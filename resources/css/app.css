@@ -1,0 +1,161 @@
+@import 'tailwindcss';
+@import '@fontsource/atkinson-hyperlegible/latin-400.css';
+@import '@fontsource/atkinson-hyperlegible/latin-700.css';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+/*
+ * Atkinson Hyperlegible dirancang agar huruf mudah dibedakan oleh pembaca berpenglihatan
+ * lemah; cocok untuk warga yang membaca di HP di bawah terik.
+ * Cokelat kopi dipakai sebagai warna merek karena tidak bertabrakan dengan warna status
+ * hijau/kuning/merah: warna-warna itu hanya boleh berarti status.
+ */
+@theme {
+    --font-sans: 'Atkinson Hyperlegible', ui-sans-serif, system-ui, sans-serif;
+
+    --color-kertas: #f6f2ea;
+    --color-permukaan: #fffdf9;
+    --color-tinta: #1e2421;
+    --color-redup: #56605a;
+    --color-garis: #7d8479;
+    --color-garis-halus: #d9d3c6;
+
+    --color-kopi: #5a3a20;
+    --color-kopi-tua: #3f2813;
+
+    --color-aman: #0f6b45;
+    --color-aman-lembut: #e3f2ea;
+    --color-waspada: #f2b705;
+    --color-waspada-lembut: #fdf3cf;
+    --color-waspada-teks: #6b4e00;
+    --color-awas: #a61b14;
+    --color-awas-tua: #7f130e;
+    --color-awas-lembut: #fbe5e3;
+    --color-kosong: #56605a;
+    --color-kosong-lembut: #ebe8e1;
+}
+
+@layer base {
+    html {
+        font-size: 106.25%;
+        -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+        background: var(--color-kertas);
+        color: var(--color-tinta);
+    }
+
+    /* Reset Tailwind membuat tombol berkursor panah; pengguna tetikus butuh tanda bisa diklik. */
+    button:not(:disabled),
+    summary,
+    select,
+    label[for],
+    [role='button'],
+    input[type='checkbox'],
+    input[type='radio'] {
+        cursor: pointer;
+    }
+
+    button:disabled {
+        cursor: not-allowed;
+    }
+
+    :focus-visible {
+        outline: 3px solid var(--color-tinta);
+        outline-offset: 2px;
+    }
+
+    a {
+        text-underline-offset: 0.15em;
+    }
+
+    summary {
+        list-style: none;
+    }
+
+    summary::-webkit-details-marker {
+        display: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        ::before,
+        ::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
+}
+
+@layer components {
+    /* Warna status dikendalikan satu atribut agar Blade dan JavaScript memakai aturan tampilan yang sama. */
+    [data-warna='hijau'] {
+        --status-isi: var(--color-aman);
+        --status-teks: #ffffff;
+        --status-lembut: var(--color-aman-lembut);
+        --status-teks-lembut: var(--color-aman);
+    }
+
+    [data-warna='kuning'] {
+        --status-isi: var(--color-waspada);
+        --status-teks: var(--color-tinta);
+        --status-lembut: var(--color-waspada-lembut);
+        --status-teks-lembut: var(--color-waspada-teks);
+    }
+
+    [data-warna='merah'] {
+        --status-isi: var(--color-awas);
+        --status-teks: #ffffff;
+        --status-lembut: var(--color-awas-lembut);
+        --status-teks-lembut: var(--color-awas);
+    }
+
+    [data-warna='kosong'] {
+        --status-isi: var(--color-kosong);
+        --status-teks: #ffffff;
+        --status-lembut: var(--color-kosong-lembut);
+        --status-teks-lembut: var(--color-tinta);
+    }
+
+    .status-pekat {
+        background: var(--status-isi);
+        color: var(--status-teks);
+    }
+
+    .status-lembut {
+        background: var(--status-lembut);
+        color: var(--status-teks-lembut);
+    }
+
+    .status-garis {
+        border-color: var(--status-isi);
+    }
+
+    .isian {
+        width: 100%;
+        min-height: 2.75rem;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--color-garis);
+        border-radius: 0.375rem;
+        background: var(--color-permukaan);
+        color: var(--color-tinta);
+    }
+
+    .isian[aria-invalid='true'] {
+        border-color: var(--color-awas);
+        border-width: 2px;
+    }
+
+    .tautan {
+        font-weight: 700;
+        text-decoration: underline;
+    }
+
+    .tautan:hover {
+        color: var(--color-kopi);
+    }
+}

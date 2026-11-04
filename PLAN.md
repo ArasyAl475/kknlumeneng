@@ -13,41 +13,41 @@ serta tempat untuk modul **Toko** dan **Edukasi** yang dikerjakan rekan lewat br
 ## Fase 0 — Fondasi repo (branch `fondasi/awal`)
 Tujuan: kerangka yang membuat 4 orang bisa bekerja paralel tanpa saling bentrok.
 
-- [ ] Baca SELURUH: `CLAUDE.md`, `docs/ews/*`, `referensi/prototipe-ews/*`.
-- [ ] Cek `php -v`, `composer -V`, `node -v`. Jika ada yang hilang: berhenti, jelaskan cara
+- [x] Baca SELURUH: `CLAUDE.md`, `docs/ews/*`, `referensi/prototipe-ews/*`.
+- [x] Cek `php -v`, `composer -V`, `node -v`. Jika ada yang hilang: berhenti, jelaskan cara
       memasangnya langkah demi langkah, tunggu pengguna.
-- [ ] Buat proyek Laravel stable terbaru di folder sementara, lalu pindahkan ke root TANPA
+- [x] Buat proyek Laravel stable terbaru di folder sementara, lalu pindahkan ke root TANPA
       menimpa: `CLAUDE.md`, `PLAN.md`, `README.md`, `CONTRIBUTING.md`, `pint.json`,
       `.claude/`, `.github/`, `docs/`, `referensi/`, `firmware/`.
-- [ ] Jika scaffold membuat `AGENTS.md`/`CLAUDE.md` bawaan Laravel: JANGAN timpa `CLAUDE.md`
+- [x] Jika scaffold membuat `AGENTS.md`/`CLAUDE.md` bawaan Laravel: JANGAN timpa `CLAUDE.md`
       kita. Hapus berkas bawaan itu. Jangan jalankan `laravel/boost` / `boost:install`
       kecuali diminta pengguna (Boost menulis ulang CLAUDE.md).
-- [ ] Gabungkan `.gitignore` dengan menambah: `.claude/settings.local.json`, `CLAUDE.local.md`,
+- [x] Gabungkan `.gitignore` dengan menambah: `.claude/settings.local.json`, `CLAUDE.local.md`,
       `/referensi/**/.env`, `*.sqlite`, `/storage/*.key`.
-- [ ] Sesuaikan `php-version` di `.github/workflows/ci.yml` dengan `require.php` di composer.json.
-- [ ] `.env.example` bersih (tanpa rahasia) berisi: `APP_TIMEZONE=Asia/Jakarta`, `APP_LOCALE=id`,
+- [x] Sesuaikan `php-version` di `.github/workflows/ci.yml` dengan `require.php` di composer.json.
+- [x] `.env.example` bersih (tanpa rahasia) berisi: `APP_TIMEZONE=Asia/Jakarta`, `APP_LOCALE=id`,
       `DB_CONNECTION=sqlite`, `MODUL_EWS=true`, `MODUL_TOKO=false`, `MODUL_EDUKASI=false`,
       `EWS_API_KEY=`, `TELEGRAM_BOT_TOKEN=`, `TELEGRAM_CHAT_ID=`, `TELEGRAM_COOLDOWN_MENIT=30`,
       `EWS_ALAT_OFFLINE_MENIT=15`, `EWS_VALIDASI_JEDA_MENIT=30`, `ADMIN_EMAIL=`, `ADMIN_PASSWORD=`.
-- [ ] Tailwind + Vite aktif. Pasang `leaflet`, `leaflet-draw`, `chart.js` lewat npm. Tidak ada CDN.
-- [ ] Tema: font mudah dibaca (mis. Atkinson Hyperlegible, di-host sendiri lewat npm
+- [x] Tailwind + Vite aktif. Pasang `leaflet`, `leaflet-draw`, `chart.js` lewat npm. Tidak ada CDN.
+- [x] Tema: font mudah dibaca (mis. Atkinson Hyperlegible, di-host sendiri lewat npm
       `@fontsource/...`), token warna di `resources/css/app.css` (`@theme`), termasuk warna
       status: hijau/kuning/merah dengan kontras cukup.
-- [ ] Komponen Blade bersama di `resources/views/components/`: `tombol`, `kartu`, `lencana`
+- [x] Komponen Blade bersama di `resources/views/components/`: `tombol`, `kartu`, `lencana`
       (untuk status), `pesan` (flash sukses/galat), `judul-halaman`.
-- [ ] Layout publik `layouts/app.blade.php` (header, menu dari `config/modul.php`, footer
+- [x] Layout publik `layouts/app.blade.php` (header, menu dari `config/modul.php`, footer
       dengan disclaimer) dan layout admin `layouts/admin.blade.php` (sidebar memakai
       `@includeIf('admin.menu.<modul>')` untuk tiap modul).
-- [ ] Rute: `routes/web.php` & `routes/admin.php` memuat otomatis `routes/web/*.php` dan
+- [x] Rute: `routes/web.php` & `routes/admin.php` memuat otomatis `routes/web/*.php` dan
       `routes/admin/*.php` (dan `routes/api/*.php` untuk API). Buat berkas kosong berkomentar
       untuk `landing`, `ews`, `toko`, `edukasi`.
-- [ ] Autentikasi admin: kolom `users.is_admin`, middleware alias `admin`, halaman `/masuk`,
+- [x] Autentikasi admin: kolom `users.is_admin`, middleware alias `admin`, halaman `/masuk`,
       keluar, throttle login. `AdminSeeder` membuat akun dari `.env`, menolak kata sandi lemah
       di luar lokal. Rute `/admin` selalu terlindungi.
-- [ ] Halaman `/admin` (beranda admin) + halaman galat 403/404/500 berbahasa Indonesia.
-- [ ] `DatabaseSeeder` memanggil seeder per modul.
-- [ ] Tes: login admin berhasil/gagal, non-admin ditolak, rute admin butuh login.
-- [ ] `/cek` hijau. Commit. Beri tahu pengguna cara membuat tag `v0.1-fondasi` setelah merge.
+- [x] Halaman `/admin` (beranda admin) + halaman galat 403/404/500 berbahasa Indonesia.
+- [x] `DatabaseSeeder` memanggil seeder per modul.
+- [x] Tes: login admin berhasil/gagal, non-admin ditolak, rute admin butuh login.
+- [x] `/cek` hijau. Commit. Beri tahu pengguna cara membuat tag `v0.1-fondasi` setelah merge.
 
 **Selesai jika:** `composer install && php artisan migrate --seed && npm run build` berjalan
 bersih di mesin baru; CI hijau; rekan bisa membuat branch dan menambah modul hanya dengan
