@@ -18,11 +18,11 @@ banyak yang awam teknologi, memakai HP dan sinyal sering lemah.
 | Edukasi | halaman edukasi (mitigasi longsor, ekonomi sirkular) | [ISI NAMA] |
 
 Alat EWS (ESP32 + sensor) dibuat tim lain. Sensor: kelembapan tanah, curah hujan,
-kemiringan, dan udara (kelembapan udara; lihat "keputusan terbuka" di PLAN.md).
+kemiringan, dan udara (sementara diartikan kelembapan udara, belum dikonfirmasi tim).
 Ini alat bantu, BUKAN peringatan resmi BPBD. Selalu tampilkan disclaimer di halaman EWS.
 
-Rencana kerja bertahap: `PLAN.md`. Aturan domain EWS: `docs/ews/ATURAN_EWS.md`.
-Kontrak API untuk alat: `docs/ews/API_ALAT.md`. Alur kerja tim: `CONTRIBUTING.md`.
+Aturan domain EWS: `docs/ews/ATURAN_EWS.md`. Kontrak API untuk alat: `docs/ews/API_ALAT.md`.
+Cara memasang proyek: `README.md`.
 
 ## 2. Cara bekerja dengan pengguna (pemula)
 - Pakai bahasa Indonesia sederhana. Jangan menganggap pengguna paham istilah teknis;
@@ -76,7 +76,7 @@ resources/views/{layouts,components}/              BERSAMA (lihat bagian 6)
 resources/js/<modul>/   resources/css/app.css
 database/migrations/ (nama berisi nama modul)   database/seeders/<Modul>Seeder.php
 tests/Feature/<Modul>/   tests/Unit/<Modul>/
-docs/   firmware/   referensi/ (hanya bacaan, bukan bagian aplikasi)
+docs/   firmware/
 ```
 - Tabel diberi awalan modul: `ews_*`, `toko_*`, `edukasi_*`. Tabel bersama: `users`, dst.
 - Rute: `routes/web.php` dan `routes/admin.php` hanya memuat semua berkas di
@@ -89,7 +89,7 @@ docs/   firmware/   referensi/ (hanya bacaan, bukan bagian aplikasi)
 `resources/views/layouts/*`, `resources/views/components/*`, `resources/css/app.css`,
 `routes/web.php`, `routes/admin.php`, `bootstrap/app.php`, `config/modul.php`,
 `database/seeders/DatabaseSeeder.php`, `composer.json`, `package.json` (+ berkas lock),
-`.github/**`, `CLAUDE.md`, `PLAN.md`.
+`.github/**`, `CLAUDE.md`.
 Perubahan di sini: buat branch `fondasi/<topik>`, PR kecil terpisah, kabari grup.
 Perlu komponen UI baru yang dipakai banyak modul? Tambahkan di `components/` lewat PR fondasi.
 
@@ -123,16 +123,13 @@ Perlu komponen UI baru yang dipakai banyak modul? Tambahkan di `components/` lew
 - Dashboard EWS harus tetap terbaca di sinyal lemah (halaman ringan, pembaruan data
   berkala 5–10 detik lewat satu endpoint JSON yang di-cache).
 
-## 10. Git (ringkas; lengkap di CONTRIBUTING.md)
+## 10. Git
 - Jangan commit/push langsung ke `main`. Branch: `<modul>/<topik-singkat>`
   (`ews/grafik-hujan`, `toko/keranjang`, `edukasi/modul-longsor`, `fondasi/menu-admin`).
 - Pesan commit: `<modul>: <apa yang berubah>` (Indonesia, singkat, kalimat perintah).
 - Sebelum PR: jalankan `/cek`. PR kecil, satu topik, ikuti template PR.
 - Hanya ubah berkas di modul sendiri. Menyentuh modul orang lain = bicarakan dulu.
 
-## 11. Referensi prototipe
-`referensi/prototipe-ews/` adalah GAMBARAN KASAR (Laravel). Jangan disalin mentah dan
-jangan dijalankan. Ambil aturan dan idenya; tampilan boleh/akan berbeda. Daftar perbaikan
-yang wajib dilakukan ada di PLAN.md bagian "Catatan dari prototipe".
-Kontrak API alat adalah pengecualian: harus tetap kompatibel dengan prototipe
-(`/api/sensor`, `/api/ping`, nama field) karena firmware alat sudah mengikutinya.
+## 11. Kontrak API alat
+Firmware alat sudah mengikuti `/api/sensor`, `/api/ping`, dan nama field di `docs/ews/API_ALAT.md`.
+Jangan mengubahnya tanpa persetujuan pembuat alat.

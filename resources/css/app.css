@@ -4,8 +4,7 @@
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
-/* Prototipe hanya bacaan: kelas Tailwind di dalamnya tidak boleh ikut membengkakkan CSS. */
-@source not '../../referensi';
+/* Dokumen bukan tampilan: kelas Tailwind di dalamnya tidak boleh ikut membengkakkan CSS. */
 @source not '../../docs';
 
 /*

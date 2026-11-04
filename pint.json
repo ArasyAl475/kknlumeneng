@@ -1,4 +1,4 @@
 {
     "preset": "laravel",
-    "exclude": ["referensi", "vendor", "node_modules", "storage", "bootstrap/cache"]
+    "exclude": ["vendor", "node_modules", "storage", "bootstrap/cache"]
 }

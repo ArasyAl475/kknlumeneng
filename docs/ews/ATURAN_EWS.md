@@ -1,6 +1,6 @@
 # Aturan domain EWS Longsor (satu sumber kebenaran)
 
-Diturunkan dari prototipe. Jika ingin mengubah aturan di sini, bicarakan dengan tim
+Jika ingin mengubah aturan di sini, bicarakan dengan tim
 (termasuk Karang Taruna) dan perbarui dokumen ini DAN tesnya dalam PR yang sama.
 
 ## Sensor
@@ -9,7 +9,7 @@ Diturunkan dari prototipe. Jika ingin mengubah aturan di sini, bicarakan dengan 
 | Kelembapan tanah | `kelembapan_tanah` (alias lama `kelembapan`) | % (0–100) | Ya |
 | Curah hujan | `curah_hujan` | mm per jam (hujan 1 jam terakhir) | Ya |
 | Kemiringan | `kemiringan` | derajat dari posisi saat dipasang; nilai mutlak yang dinilai | Ya |
-| Udara | `kelembapan_udara` (asumsi, lihat keputusan terbuka di PLAN.md) | % | Tidak, hanya ditampilkan |
+| Udara | `kelembapan_udara` (asumsi, belum dikonfirmasi tim) | % | Tidak, hanya ditampilkan |
 
 Sensor yang gagal baca: field dikosongkan (`null`/tidak dikirim). Jangan simpan `0` atau `-999`.
 Tampilan: "tidak ada data", bukan 0.

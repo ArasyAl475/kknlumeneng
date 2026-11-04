@@ -29,13 +29,5 @@ Thumbs.db
 # Tambahan proyek
 .claude/settings.local.json
 CLAUDE.local.md
-/referensi/**/.env
-*.sqlite
-*.sqlite-journal
-
-# Tambahan proyek
-.claude/settings.local.json
-CLAUDE.local.md
-/referensi/**/.env
 *.sqlite
 *.sqlite-journal
