@@ -84,22 +84,22 @@ Skema (fresh, tidak perlu kompatibel dengan basis data prototipe):
 - `ews_pengaturan`: kunci (PK), nilai. Isi awal dari `config/ews.php`.
 
 Tugas:
-- [ ] Migrasi, model (`App\Models\Ews\*`), factory, `EwsSeeder` (3 wilayah contoh, ambang awal).
-- [ ] `App\Services\Ews\PenilaianStatus`: satu-satunya tempat aturan status (lihat aturan).
-- [ ] **Tes unit PenilaianStatus lengkap** (semua kombinasi level, nilai null, batas tepat,
+- [x] Migrasi, model (`App\Models\Ews\*`), factory, `EwsSeeder` (3 wilayah contoh, ambang awal).
+- [x] `App\Services\Ews\PenilaianStatus`: satu-satunya tempat aturan status (lihat aturan).
+- [x] **Tes unit PenilaianStatus lengkap** (semua kombinasi level, nilai null, batas tepat,
       kabel putus, kemiringan negatif).
-- [ ] `POST /api/sensor` dan `GET /api/ping` sesuai `API_ALAT.md` (kompatibel dengan alat).
+- [x] `POST /api/sensor` dan `GET /api/ping` sesuai `API_ALAT.md` (kompatibel dengan alat).
       FormRequest terpisah untuk API; middleware cek `X-API-KEY` (`hash_equals`); throttle.
       Terima nama lama `kelembapan` sebagai `kelembapan_tanah`.
-- [ ] Logika permintaan validasi: satu laporan "menunggu" per wilayah, jeda setelah keputusan
+- [x] Logika permintaan validasi: satu laporan "menunggu" per wilayah, jeda setelah keputusan
       admin (`EWS_VALIDASI_JEDA_MENIT`), tidak membanjiri admin.
-- [ ] `App\Services\Ews\PemberitahuTelegram`: kirim lewat antrean/`dispatchAfterResponse`,
+- [x] `App\Services\Ews\PemberitahuTelegram`: kirim lewat antrean/`dispatchAfterResponse`,
       timeout pendek, anti-spam (`TELEGRAM_COOLDOWN_MENIT`), gagal kirim tidak menggagalkan API.
-- [ ] Deteksi alat offline (tanpa kiriman ≥ `EWS_ALAT_OFFLINE_MENIT`).
-- [ ] Perintah `php artisan ews:simulasi` (data acak realistis untuk demo/dev; menolak jalan
+- [x] Deteksi alat offline (tanpa kiriman ≥ `EWS_ALAT_OFFLINE_MENIT`).
+- [x] Perintah `php artisan ews:simulasi` (data acak realistis untuk demo/dev; menolak jalan
       di produksi).
-- [ ] Perintah `ews:bersihkan` (hapus/ringkas pembacaan lama, mis. > 90 hari; dapat dijadwalkan).
-- [ ] Tes fitur API: 201 sukses, 401 kunci salah/kosong, 422 data tidak valid, sensor null
+- [x] Perintah `ews:bersihkan` (hapus/ringkas pembacaan lama, mis. > 90 hari; dapat dijadwalkan).
+- [x] Tes fitur API: 201 sukses, 401 kunci salah/kosong, 422 data tidak valid, sensor null
       tersimpan, `kabel_putus` → Awas otomatis, laporan validasi tidak berulang.
 
 **Selesai jika:** `curl` contoh di `API_ALAT.md` berhasil, semua tes hijau, dan firmware contoh
