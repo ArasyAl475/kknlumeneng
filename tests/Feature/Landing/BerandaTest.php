@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Landing;
 
+use App\Models\Ews\Pembacaan;
+use App\Models\Ews\Wilayah;
 use App\Services\Landing\RingkasanEws;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -50,5 +52,12 @@ class BerandaTest extends TestCase
         $html = $this->get('/')->getContent();
 
         $this->assertDoesNotMatchRegularExpression('/<(script|link)[^>]+(src|href)="https?:\/\/(?!localhost)/i', $html);
+    }
+
+    public function test_ringkasan_memakai_status_terburuk_ews(): void
+    {
+        Pembacaan::factory()->create(['wilayah_id' => Wilayah::factory()->awas()->create(['nama' => 'Lereng Uji'])]);
+
+        $this->get('/')->assertSee('Awas')->assertSee('Lereng Uji')->assertSee('Lihat Status Peringatan Dini')->assertSee(route('ews.index'), false);
     }
 }

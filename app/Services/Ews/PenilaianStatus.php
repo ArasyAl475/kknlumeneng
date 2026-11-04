@@ -155,7 +155,7 @@ class PenilaianStatus
     }
 
     // Kemiringan dinilai dari besar simpangannya; arah negatif/positif sama saja.
-    private static function nilaiDinilai(string $sensor, float|int|null $nilai): ?float
+    public static function nilaiDinilai(string $sensor, float|int|null $nilai): ?float
     {
         if ($nilai === null) {
             return null;

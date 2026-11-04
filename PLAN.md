@@ -108,20 +108,20 @@ Tugas:
 ---
 
 ## Fase 3 — Dashboard EWS publik (branch `ews/dashboard`)
-- [ ] Satu endpoint JSON `GET /ews/data` (nama bebas, harus konsisten) yang di-cache singkat
+- [x] Satu endpoint JSON `GET /ews/data` (nama bebas, harus konsisten) yang di-cache singkat
       (5–10 detik) dan dibatalkan saat data baru masuk. Tanpa N+1.
-- [ ] Panel status utama (kondisi terburuk dari semua wilayah): warna + ikon + kata +
+- [x] Panel status utama (kondisi terburuk dari semua wilayah): warna + ikon + kata +
       saran tindakan sederhana per status + waktu data terakhir.
-- [ ] Kartu 4 sensor per wilayah dengan level (normal/waspada/lewat batas) dan satuan jelas;
+- [x] Kartu 4 sensor per wilayah dengan level (normal/waspada/lewat batas) dan satuan jelas;
       sensor kosong tampil "tidak ada data", bukan 0.
-- [ ] Peta Leaflet: poligon wilayah berwarna sesuai status, klik wilayah → detailnya.
-- [ ] Grafik Chart.js: pilih sensor dan rentang (1 jam / 24 jam / 7 hari), garis ambang batas.
-- [ ] Log kejadian terbaru. Banner "alat tidak mengirim data" saat offline.
-- [ ] Pembaruan otomatis berkala, hemat data, tetap jalan saat sebentar kehilangan sinyal
+- [x] Peta Leaflet: poligon wilayah berwarna sesuai status, klik wilayah → detailnya.
+- [x] Grafik Chart.js: pilih sensor dan rentang (1 jam / 24 jam / 7 hari), garis ambang batas.
+- [x] Log kejadian terbaru. Banner "alat tidak mengirim data" saat offline.
+- [x] Pembaruan otomatis berkala, hemat data, tetap jalan saat sebentar kehilangan sinyal
       (tampilkan "terakhir diperbarui" + status koneksi).
-- [ ] Disclaimer "bukan peringatan resmi BPBD" terlihat jelas.
-- [ ] Aksesibilitas: status bukan hanya warna, `aria-live` untuk perubahan status, fokus terlihat.
-- [ ] Tes fitur untuk endpoint data; tes tampilan dasar (halaman 200, teks kunci muncul).
+- [x] Disclaimer "bukan peringatan resmi BPBD" terlihat jelas.
+- [x] Aksesibilitas: status bukan hanya warna, `aria-live` untuk perubahan status, fokus terlihat.
+- [x] Tes fitur untuk endpoint data; tes tampilan dasar (halaman 200, teks kunci muncul).
 
 **Selesai jika:** terbaca nyaman di HP, aman/kuning/merah dapat dibedakan tanpa melihat warna,
 dan 50 pengunjung bersamaan tidak membuat server kewalahan (berkat cache).

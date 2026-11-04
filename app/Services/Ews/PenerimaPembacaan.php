@@ -54,6 +54,7 @@ class PenerimaPembacaan
         });
 
         Cache::forget($this->kunciOffline($wilayah));
+        DataDasbor::lupakan();
         $pembacaan->setRelation('wilayah', $wilayah);
 
         if ($mulaiAwas) {

@@ -16,7 +16,7 @@ class RingkasanEws
      */
     public function ambil(): ?array
     {
-        if (! config('modul.ews.aktif') || ! class_exists(DataDasbor::class)) {
+        if (! config('modul.ews.aktif')) {
             return null;
         }
 
