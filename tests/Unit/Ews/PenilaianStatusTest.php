@@ -146,6 +146,32 @@ class PenilaianStatusTest extends TestCase
         $this->assertSame(['status' => null, 'warna' => 'kosong'], PenilaianStatus::statusWilayah(null, false));
     }
 
+    public function test_status_terkini_menahan_awas_selama_belum_dicabut(): void
+    {
+        $this->assertSame(
+            ['status' => 'Awas', 'warna' => 'merah', 'pemicu' => 'Kabel EWS putus (otomatis)'],
+            PenilaianStatus::statusTerkini('Aman', null, ['kelembapan_tanah' => 10.0], self::AMBANG, true, 'Kabel EWS putus (otomatis)'),
+        );
+    }
+
+    public function test_status_terkini_menilai_ulang_pembacaan_awas_setelah_dicabut(): void
+    {
+        $tinggi = PenilaianStatus::statusTerkini('Awas', 'Kelembapan tanah 90%', ['kelembapan_tanah' => 90.0], self::AMBANG, false);
+        $this->assertSame(['status' => 'Waspada', 'warna' => 'kuning', 'pemicu' => 'Kelembapan tanah 90%'], $tinggi);
+
+        $kabelNormal = PenilaianStatus::statusTerkini('Awas', 'Kabel EWS putus', ['kelembapan_tanah' => 20.0], self::AMBANG, false);
+        $this->assertSame(['status' => 'Aman', 'warna' => 'hijau', 'pemicu' => null], $kabelNormal);
+    }
+
+    public function test_status_terkini_memakai_nilai_tersimpan_untuk_status_biasa(): void
+    {
+        $this->assertSame(
+            ['status' => 'Waspada', 'warna' => 'kuning', 'pemicu' => 'tersimpan'],
+            PenilaianStatus::statusTerkini('Waspada', 'tersimpan', [], self::AMBANG, false),
+        );
+        $this->assertSame(['status' => null, 'warna' => 'kosong', 'pemicu' => null], PenilaianStatus::statusTerkini(null, null, [], self::AMBANG, false));
+    }
+
     public function test_warna_terburuk(): void
     {
         $this->assertSame('kosong', PenilaianStatus::warnaTerburuk([]));

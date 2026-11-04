@@ -5,6 +5,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Route;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -25,6 +26,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias(['admin' => PastikanAdmin::class]);
         $middleware->redirectUsersTo(fn () => route('admin.beranda'));
+
+        // Hak akses diperiksa sebelum data rute dicari. Jika terbalik, non-admin bisa menebak
+        // ID mana yang ada dari beda jawaban 404 dan 403.
+        $middleware->prependToPriorityList(before: SubstituteBindings::class, prepend: PastikanAdmin::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

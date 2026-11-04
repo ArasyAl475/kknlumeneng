@@ -129,17 +129,17 @@ dan 50 pengunjung bersamaan tidak membuat server kewalahan (berkat cache).
 ---
 
 ## Fase 4 — Admin EWS (branch `ews/admin`)
-- [ ] Menu `resources/views/admin/menu/ews.blade.php` + halaman di `admin/ews/`.
-- [ ] Antrean validasi: lihat nilai semua sensor, setujui (→ Awas + Telegram) atau tolak.
-- [ ] Cabut status Awas (dengan konfirmasi dan catatan alasan).
-- [ ] Ubah ambang batas 3 sensor (validasi: batas validasi > batas waspada; rentang wajar).
-- [ ] Kelola wilayah: gambar poligon di peta (minimal 3 titik, tidak menyilang, bukan garis),
+- [x] Menu `resources/views/admin/menu/ews.blade.php` + halaman di `admin/ews/`.
+- [x] Antrean validasi: lihat nilai semua sensor, setujui (→ Awas + Telegram) atau tolak.
+- [x] Cabut status Awas (dengan konfirmasi dan catatan alasan).
+- [x] Ubah ambang batas 3 sensor (validasi: batas validasi > batas waspada; rentang wajar).
+- [x] Kelola wilayah: gambar poligon di peta (minimal 3 titik, tidak menyilang, bukan garis),
       ubah nama, hapus (soft delete), tampilkan "ID alat" untuk dipasang di ESP32.
-- [ ] Riwayat pembacaan dengan filter wilayah/tanggal + ekspor CSV.
-- [ ] Log aktivitas admin sederhana (siapa menyetujui/mencabut/mengubah ambang, kapan).
-- [ ] Halaman "Status alat": terakhir mengirim kapan, offline/online per wilayah.
-- [ ] Simulator (hanya admin + non-produksi) untuk mencoba tanpa alat.
-- [ ] Tes: hanya admin yang bisa; tiap aksi mengubah status sesuai aturan; validasi ambang.
+- [x] Riwayat pembacaan dengan filter wilayah/tanggal + ekspor CSV.
+- [x] Log aktivitas admin sederhana (siapa menyetujui/mencabut/mengubah ambang, kapan).
+- [x] Halaman "Status alat": terakhir mengirim kapan, offline/online per wilayah.
+- [x] Simulator (hanya admin + non-produksi) untuk mencoba tanpa alat.
+- [x] Tes: hanya admin yang bisa; tiap aksi mengubah status sesuai aturan; validasi ambang.
 
 **Selesai jika:** seluruh alur "data masuk → perlu validasi → admin setujui → Awas →
 Telegram → admin cabut" bisa dicoba dari simulator dan lolos tes.

@@ -94,7 +94,7 @@ class DataDasbor
     private function wilayah(Wilayah $wilayah, array $ambang, int $batasOffline): array
     {
         $baca = $wilayah->pembacaanTerbaru;
-        $status = PenilaianStatus::statusWilayah($baca?->status, $wilayah->status_awas);
+        $status = PenilaianStatus::statusTerkini($baca?->status, $baca?->pemicu, $baca?->only(PenilaianStatus::SENSOR_DINILAI) ?? [], $ambang, $wilayah->status_awas, $wilayah->awas_sumber);
         $level = $baca ? PenilaianStatus::levelSensor($baca->only(PenilaianStatus::SENSOR_DINILAI), $ambang) : [];
 
         $sensor = [];
@@ -123,7 +123,7 @@ class DataDasbor
             'poligon' => $wilayah->poligon,
             'status' => $status['status'],
             'warna' => $status['warna'],
-            'pemicu' => $wilayah->status_awas ? $wilayah->awas_sumber : $baca?->pemicu,
+            'pemicu' => $status['pemicu'],
             'waktu' => $baca?->created_at->format('d-m-Y H:i'),
             'offline' => PenilaianStatus::alatOffline($baca?->created_at, $batasOffline),
             'sensor' => $sensor,

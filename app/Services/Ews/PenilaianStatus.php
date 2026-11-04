@@ -107,6 +107,30 @@ class PenilaianStatus
     }
 
     /**
+     * Status dan pemicu yang ditampilkan untuk satu wilayah. Pembacaan yang tersimpan sebagai Awas
+     * (disetujui admin atau kabel putus) dinilai ulang dari angkanya setelah Awas dicabut; kalau
+     * tidak, wilayah tersangkut Awas sampai alat mengirim lagi, atau selamanya bila alat mati.
+     *
+     * @param  array<string, float|int|null>  $bacaan
+     * @param  array<string, array{waspada: float|int, validasi: float|int}>  $ambang
+     * @return array{status: ?string, warna: string, pemicu: ?string}
+     */
+    public static function statusTerkini(?string $statusTersimpan, ?string $pemicuTersimpan, array $bacaan, array $ambang, bool $statusAwas, ?string $sumberAwas = null): array
+    {
+        if ($statusAwas) {
+            return self::statusWilayah($statusTersimpan, true) + ['pemicu' => $sumberAwas];
+        }
+
+        if ($statusTersimpan === self::AWAS) {
+            $hasil = self::nilai($bacaan, $ambang);
+
+            return ['status' => $hasil['status'], 'warna' => $hasil['warna'], 'pemicu' => $hasil['pemicu']];
+        }
+
+        return self::statusWilayah($statusTersimpan, false) + ['pemicu' => $pemicuTersimpan];
+    }
+
+    /**
      * @param  iterable<string>  $daftarWarna
      */
     public static function warnaTerburuk(iterable $daftarWarna): string
