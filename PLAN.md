@@ -56,15 +56,15 @@ menambah berkas di folder modulnya.
 ---
 
 ## Fase 1 — Landing page (branch `landing/awal`)
-- [ ] Hero: nama program, satu kalimat tujuan, tombol utama "Lihat Status Peringatan Dini".
-- [ ] Ringkasan status EWS langsung (Aman/Waspada/Awas terburuk) memakai layanan EWS yang sama
+- [x] Hero: nama program, satu kalimat tujuan, tombol utama "Lihat Status Peringatan Dini".
+- [x] Ringkasan status EWS langsung (Aman/Waspada/Awas terburuk) memakai layanan EWS yang sama
       dengan dashboard; jika modul/data belum ada, tampilkan keadaan "belum ada data" yang rapi.
-- [ ] Kartu modul: EWS, Toko, Edukasi (mengikuti `config/modul.php`; yang belum siap
+- [x] Kartu modul: EWS, Toko, Edukasi (mengikuti `config/modul.php`; yang belum siap
       tampil "segera hadir" tanpa tautan).
-- [ ] Bagian "Tentang program", "Mitra" (Karang Taruna Giri, Petani Muda Jaya), "Kontak/lokasi",
+- [x] Bagian "Tentang program", "Mitra" (Karang Taruna Giri, Petani Muda Jaya), "Kontak/lokasi",
       nomor darurat (BPBD Kab. Pekalongan: ISI SETELAH DIVERIFIKASI, jangan mengarang nomor).
-- [ ] Responsif, cepat (tanpa gambar besar tak terkompresi), judul/deskripsi meta, favicon.
-- [ ] Teks konten disimpan di satu tempat mudah diedit (berkas lang/config), bukan tersebar.
+- [x] Responsif, cepat (tanpa gambar besar tak terkompresi), judul/deskripsi meta, favicon.
+- [x] Teks konten disimpan di satu tempat mudah diedit (berkas lang/config), bukan tersebar.
 
 **Selesai jika:** halaman terbaca baik di HP 360px, skor Lighthouse mobile baik (Performance,
 Accessibility ≥ 90 sebagai target), tidak ada skrip/CSS dari CDN.
