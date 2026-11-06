@@ -34,6 +34,12 @@
         @case('penjualan')
             <path d="M4 10v10h16V10M3 10l2-6h14l2 6M3 10a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0" />
             @break
+        @case('produk')
+            <path d="M21 8 12 3 3 8v8l9 5 9-5V8Z" /><path d="m3 8 9 5 9-5M12 13v8" />
+            @break
+        @case('profil')
+            <circle cx="12" cy="8" r="4" /><path d="M20 21a8 8 0 0 0-16 0" />
+            @break
         @case('situs')
             <path d="M3 12 12 3l9 9v9H3z" /><path d="M9 21v-9h6v9" />
             @break
