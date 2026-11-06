@@ -614,56 +614,6 @@ body.hasil {
     box-shadow: 0 2px 6px rgb(0 54 31 / 0.25);
 }
 
-/* Tab rincian (Jenis/Tempat/Tahun/Bulan/Hari): tab bergaris bawah, karena tiap tab mengganti isi tabel di bawahnya. */
-.segmen--tab {
-    display: flex;
-    flex: 1 1 100%;
-    gap: 4px;
-    padding: 0;
-    border-bottom: 1px solid var(--h-garis);
-    border-radius: 0;
-    background: none;
-    box-shadow: none;
-    scrollbar-width: none;
-}
-
-.segmen--tab::-webkit-scrollbar {
-    display: none;
-}
-
-.segmen--tab .segmen__item {
-    position: relative;
-    min-height: 48px;
-    padding: 0 16px;
-    margin-bottom: -1px;
-    border-bottom: 3px solid transparent;
-    border-radius: var(--h-r-lg) var(--h-r-lg) 0 0;
-    font-size: 15px;
-    transition: background-color var(--h-ease), color var(--h-ease), border-color var(--h-ease);
-}
-
-@media (max-width: 480px) {
-    .segmen--tab {
-        gap: 0;
-    }
-
-    .segmen--tab .segmen__item {
-        padding: 0 10px;
-        font-size: 14px;
-    }
-}
-
-.segmen--tab .segmen__item:hover {
-    background: var(--h-sf-rendah);
-}
-
-.segmen--tab .segmen__item[aria-selected='true'] {
-    border-bottom-color: var(--h-sekunder);
-    background: var(--h-sf-rendah);
-    color: var(--h-primer);
-    font-weight: 800;
-}
-
 .tombol-filter__jumlah {
     display: inline-grid;
     place-items: center;
@@ -1312,6 +1262,20 @@ body.hasil {
     color: #fff;
 }
 
+/* Ikon seri: dekoratif, pendamping penanda warna/pola. Meredup saat pilihan mati, seperti penandanya. */
+.ikon-seri {
+    color: var(--h-primer-kontainer);
+}
+
+.chip-seri .ikon-seri {
+    opacity: 0.5;
+    transition: opacity var(--h-ease);
+}
+
+.chip-seri[aria-pressed='true'] .ikon-seri {
+    opacity: 1;
+}
+
 /* Penanda seri: warna + pola, jadi tetap terbedakan tanpa warna. */
 .swatch {
     flex: none;
@@ -1742,54 +1706,15 @@ body.hasil {
     color: var(--h-teks-2);
 }
 
-/* ---------- Rincian panen kopi ---------- */
-.rincian-kontrol {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px 16px;
-}
-
-.urut-pilih {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.urut-pilih select {
-    min-height: 44px;
-    padding: 0 12px;
-    border: 1px solid rgb(192 201 192 / 0.8);
-    border-radius: var(--h-r-lg);
-    background: var(--h-sf-rendah);
-    color: var(--h-teks);
-    font-weight: 500;
-}
-
-@media (min-width: 768px) {
-    .urut-pilih {
-        display: none;
-    }
-}
-
-.rincian {
+/* ---------- Rincian panen kopi: catatan timbang ---------- */
+.timbang {
     width: 100%;
     margin-top: 12px;
     border-collapse: collapse;
 }
 
-.rincian tbody tr {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 6px 16px;
-    padding-block: 14px;
-    border-bottom: 1px solid rgb(192 201 192 / 0.3);
-}
-
-.rincian thead {
+/* HP: tiap catatan jadi kartu kecil; judul kolom tampil sebagai label di atas isinya. */
+.timbang thead {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -1797,38 +1722,53 @@ body.hasil {
     clip-path: inset(50%);
 }
 
-.rincian__label {
+.timbang tbody tr,
+.timbang tfoot tr {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 16px;
+    padding-block: 14px;
+    border-bottom: 1px solid rgb(192 201 192 / 0.3);
+}
+
+.timbang__tanggal {
+    grid-column: 1 / -1;
     text-align: left;
     font-weight: 700;
 }
 
-.rincian td[data-sel='Panen'] {
-    text-align: right;
-    font-weight: 700;
+.timbang td {
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
-.rincian__sebaran {
-    grid-column: 1 / -1;
-    order: 3;
-}
-
-.rincian td[data-sel='Limbah'] {
-    grid-column: 1 / -1;
-    order: 4;
-    font-size: 14px;
+.timbang td[data-sel]::before {
+    content: attr(data-sel);
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
     color: var(--h-teks-2);
 }
 
-.rincian td[data-sel='Limbah']::before {
-    content: 'Limbah ';
+.timbang td[data-sel='Nama Petani/Kelompok'],
+.timbang td[data-sel='Blok Lahan'] {
+    grid-column: 1 / -1;
 }
 
-.rincian .batang {
-    height: 10px;
+.timbang__angka {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.timbang tfoot tr {
+    border-bottom: 0;
+    background: var(--h-sf-rendah);
+    padding-inline: 12px;
+    border-radius: var(--h-r-lg);
 }
 
 @media (min-width: 768px) {
-    .rincian thead {
+    .timbang thead {
         position: static;
         width: auto;
         height: auto;
@@ -1836,63 +1776,52 @@ body.hasil {
         overflow: visible;
     }
 
-    .rincian tbody tr {
+    .timbang tbody tr,
+    .timbang tfoot tr {
         display: table-row;
         padding: 0;
-        border: 0;
     }
 
-    .rincian tbody tr:hover {
+    .timbang tbody tr:hover {
         background: rgb(235 247 237 / 0.5);
     }
 
-    .rincian th,
-    .rincian td {
+    .timbang th,
+    .timbang td {
         padding: 12px 16px;
         border-bottom: 1px solid rgb(192 201 192 / 0.3);
         vertical-align: middle;
+        text-align: left;
     }
 
-    .rincian thead tr {
+    .timbang thead tr {
         background: var(--h-sf-rendah);
     }
 
-    .rincian thead th {
-        padding-block: 4px;
+    .timbang thead th {
+        padding-block: 14px;
         border-block: 1px solid rgb(192 201 192 / 0.4);
-        text-align: right;
         font-size: 14px;
         color: var(--h-teks-2);
     }
 
-    .rincian thead th:first-child {
-        text-align: left;
-    }
-
-    .rincian__sebaran {
-        width: 30%;
-    }
-
-    .rincian td[data-sel='Limbah'] {
-        text-align: right;
-        color: var(--h-teks);
-    }
-
-    .rincian td[data-sel='Limbah']::before {
+    .timbang td[data-sel]::before {
         content: none;
     }
 
-    .rincian__label {
-        width: 24%;
+    .timbang .timbang__angka {
+        text-align: right;
     }
-}
 
-.tombol-urut {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    min-height: 44px;
-    font-weight: 700;
+    .timbang tfoot th,
+    .timbang tfoot td {
+        border-bottom: 0;
+        border-top: 2px solid var(--h-primer-kontainer);
+    }
+
+    .timbang tfoot tr {
+        border-radius: 0;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -15,6 +15,11 @@ class PanenKopiRequest extends FormRequest
                 $this->merge([$kolom => Str::title(Str::squish($this->input($kolom)))]);
             }
         }
+
+        // Nama orang/kelompok tidak diubah huruf besar-kecilnya ("KWT" tidak boleh jadi "Kwt"), hanya dirapikan spasinya.
+        if (is_string($this->input('nama_petani'))) {
+            $this->merge(['nama_petani' => Str::squish($this->input('nama_petani')) ?: null]);
+        }
     }
 
     public function rules(): array
@@ -23,6 +28,7 @@ class PanenKopiRequest extends FormRequest
             'tanggal_panen' => ['required', 'date', 'before_or_equal:today'],
             'jenis_kopi' => ['required', 'string', 'max:100'],
             'tempat_panen' => ['required', 'string', 'max:150'],
+            'nama_petani' => ['nullable', 'string', 'max:150'],
             'jumlah_kg' => ['required', 'numeric', 'decimal:0,2', 'min:0.01', 'max:99999999.99'],
             'limbah_kg' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:99999999.99'],
         ];
@@ -42,6 +48,7 @@ class PanenKopiRequest extends FormRequest
             'tanggal_panen' => 'tanggal panen',
             'jenis_kopi' => 'jenis kopi',
             'tempat_panen' => 'tempat panen',
+            'nama_petani' => 'nama petani/kelompok',
             'jumlah_kg' => 'jumlah panen',
             'limbah_kg' => 'jumlah limbah',
         ];

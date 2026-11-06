@@ -6,18 +6,18 @@
     use App\Services\Toko\FormatHasil;
     use App\Services\Toko\RekapHasil;
 
-    $tabRincian = [
-        ['jenis', 'Jenis', 'Jenis kopi', 'Per jenis kopi', $kopi['per_jenis']],
-        ['tempat', 'Tempat', 'Tempat panen', 'Per tempat panen', $kopi['per_tempat']],
-        ['tahun', 'Tahun', 'Tahun', 'Per tahun', $kopi['per_tahun']],
-        ['bulan', 'Bulan', 'Bulan', 'Per bulan', $kopi['per_bulan']],
-        ['hari', 'Hari', 'Hari panen', 'Per hari panen', $kopi['per_hari']],
-    ];
     $deretSeri = [
         'kopi' => 'Panen kopi',
         'jamur' => 'Panen jamur',
         'terjual' => 'Jamur terjual',
         'pendapatan' => 'Pendapatan',
+    ];
+    // Satu sumber ikon untuk kartu angka, pilihan grafik, dan ringkasan, supaya selalu sama.
+    $ikonSeri = [
+        'kopi' => 'biji-kopi',
+        'jamur' => 'jamur',
+        'terjual' => 'terjual',
+        'pendapatan' => 'uang',
     ];
     $labelLalu = $perubahan['label'] ?? '';
     // "Lihat semua waktu" tetap membawa pilihan jenis dan tempat.
@@ -26,7 +26,7 @@
 @endphp
 
 @push('kepala')
-    <noscript><style>[data-panel-rincian] { display: block !important; } [role='tablist'], .rincian-kontrol .segmen, [data-buka-filter] { display: none; } .lembar { display: block; position: static; width: auto; height: auto; margin-top: 1rem; border-radius: 0.75rem; } .lembar__kepala button { display: none; }</style></noscript>
+    <noscript><style>[data-buka-filter] { display: none; } .lembar { display: block; position: static; width: auto; height: auto; margin-top: 1rem; border-radius: 0.75rem; } .lembar__kepala button { display: none; }</style></noscript>
 @endpush
 
 @section('isi')
@@ -58,6 +58,11 @@
                         <span class="tombol-filter__jumlah" aria-label="{{ $penyaring['jumlah'] }} pilihan aktif">{{ $penyaring['jumlah'] }}</span>
                     @endif
                 </button>
+                {{-- Unduhan membawa filter yang sedang aktif, jadi isi Excel sama dengan yang terlihat di layar. --}}
+                <a href="{{ route('toko.hasil.excel', array_filter($filter)) }}" class="tombol-kustom" download>
+                    @include('toko.partials.ikon', ['nama' => 'unduh', 'kelas' => 'size-4'])
+                    Unduh Excel
+                </a>
             </div>
         </div>
     </section>
@@ -133,7 +138,7 @@
             <article class="kartu-hero" aria-labelledby="judul-uang">
                 <div class="kartu__atas">
                     <h3 id="judul-uang" class="kartu__label">Uang dari jamur terjual</h3>
-                    <span class="medalion" aria-hidden="true">@include('toko.partials.ikon', ['nama' => 'uang', 'kelas' => 'size-5'])</span>
+                    <span class="medalion" aria-hidden="true">@include('toko.partials.ikon', ['nama' => $ikonSeri['pendapatan'], 'kelas' => 'size-5'])</span>
                 </div>
                 @include('toko.partials.angka', ['awalan' => 'Rp', 'nilai' => FormatHasil::angka($penjualan['rupiah'], 0), 'ukuran' => 'angka--hero', 'kosong' => $penjualan['rupiah'] <= 0])
                 <span class="lencana lencana--gelap">{{ $periode['keterangan'] }}</span>
@@ -150,7 +155,7 @@
             <article class="kartu kartu--angka">
                 <div class="kartu__atas">
                     <h3 class="kartu__label">Panen kopi</h3>
-                    <span class="medalion medalion--terang" aria-hidden="true">@include('toko.partials.ikon', ['nama' => 'biji-kopi', 'kelas' => 'size-5'])</span>
+                    <span class="medalion medalion--terang" aria-hidden="true">@include('toko.partials.ikon', ['nama' => $ikonSeri['kopi'], 'kelas' => 'size-5'])</span>
                 </div>
                 @include('toko.partials.angka', ['nilai' => FormatHasil::angka($kopi['panen']), 'satuan' => 'kg', 'ukuran' => 'angka--metrik', 'kosong' => $kopi['panen'] <= 0])
                 @if ($kopi['panen'] <= 0)
@@ -178,18 +183,12 @@
                         <div class="kartu__kaki">@include('toko.partials.perubahan', ['p' => $perubahan['limbah'], 'label' => $labelLalu])</div>
                     @endif
                 @endif
-                {{-- Pintu catat limbah hanya untuk admin; pengunjung biasa tidak melihat tombol yang berujung halaman masuk. --}}
-                @if (auth()->user()?->is_admin)
-                    <div class="kartu__kaki">
-                        <a href="{{ route('admin.toko.panen-kopi.create') }}" class="tombol-h tombol-h--tepi">Catat limbah</a>
-                    </div>
-                @endif
             </article>
 
             <article class="kartu kartu--angka">
                 <div class="kartu__atas">
                     <h3 class="kartu__label">Panen jamur</h3>
-                    <span class="medalion medalion--terang" aria-hidden="true">@include('toko.partials.ikon', ['nama' => 'jamur', 'kelas' => 'size-5'])</span>
+                    <span class="medalion medalion--terang" aria-hidden="true">@include('toko.partials.ikon', ['nama' => $ikonSeri['jamur'], 'kelas' => 'size-5'])</span>
                 </div>
                 @include('toko.partials.angka', ['nilai' => FormatHasil::angka($jamur['total']), 'satuan' => 'kg', 'ukuran' => 'angka--metrik', 'kosong' => $jamur['total'] <= 0])
                 @if ($jamur['total'] <= 0)
@@ -208,7 +207,7 @@
             <article class="kartu kartu--angka">
                 <div class="kartu__atas">
                     <h3 class="kartu__label">Jamur terjual</h3>
-                    <span class="medalion medalion--terang" aria-hidden="true">@include('toko.partials.ikon', ['nama' => 'terjual', 'kelas' => 'size-5'])</span>
+                    <span class="medalion medalion--terang" aria-hidden="true">@include('toko.partials.ikon', ['nama' => $ikonSeri['terjual'], 'kelas' => 'size-5'])</span>
                 </div>
                 @include('toko.partials.angka', ['nilai' => FormatHasil::angka($penjualan['kg']), 'satuan' => 'kg', 'ukuran' => 'angka--metrik', 'kosong' => $penjualan['kg'] <= 0])
                 @if ($penjualan['kg'] <= 0)
@@ -242,7 +241,7 @@
                         <div class="grafik__seri" role="group" aria-label="Data yang ditampilkan">
                             @foreach ($deretSeri as $kunci => $nama)
                                 <button type="button" class="chip-seri" data-seri="{{ $kunci }}" aria-pressed="{{ in_array($kunci, ['kopi', 'jamur']) ? 'true' : 'false' }}">
-                                    <span class="swatch swatch--{{ $kunci }}" aria-hidden="true"></span>
+                                    @include('toko.partials.ikon', ['nama' => $ikonSeri[$kunci], 'kelas' => 'size-5 ikon-seri'])
                                     {{ $nama }}
                                     @include('toko.partials.ikon', ['nama' => 'centang', 'kelas' => 'size-4 chip-seri__centang'])
                                 </button>
@@ -443,42 +442,20 @@
     <section aria-labelledby="judul-rincian" class="bagian" id="rincian">
         <div class="bagian__kepala">
             <h2 id="judul-rincian" class="bagian__judul">Rincian panen kopi</h2>
-            <p class="bagian__ket">Dikelompokkan menurut pilihan di bawah. Jenis dan tempat hanya berlaku untuk data kopi.</p>
+            <p class="bagian__ket">Catatan timbang panen kopi, yang terbaru di atas. Berat bersih adalah berat kotor dikurangi limbah.</p>
         </div>
 
-        @if (empty($kopi['per_jenis']))
+        @if (empty($kopi['timbang']))
             <div class="keadaan-kosong">
                 @include('toko.partials.ikon', ['nama' => 'kopi', 'kelas' => 'size-8'])
                 <strong>Belum ada data panen kopi pada pilihan ini.</strong>
                 <span>Coba pilih Semua waktu atau hapus pilihan jenis dan tempat.</span>
             </div>
         @else
-            <div class="rincian-kontrol">
-                <div role="tablist" aria-labelledby="judul-rincian" class="segmen segmen--tab">
-                    @foreach ($tabRincian as $i => [$kunci, $label])
-                        <button type="button" role="tab" id="tab-{{ $kunci }}" aria-controls="panel-{{ $kunci }}" aria-selected="{{ $i === 0 ? 'true' : 'false' }}" tabindex="{{ $i === 0 ? 0 : -1 }}" class="segmen__item">{{ $label }}</button>
-                    @endforeach
-                </div>
-                <label class="urut-pilih" hidden data-urut-pilih>
-                    Urutkan
-                    <select>
-                        <option value="awal">Urutan biasa</option>
-                        <option value="panen-turun">Panen terbanyak</option>
-                        <option value="panen-naik">Panen tersedikit</option>
-                        <option value="limbah-turun">Limbah terbanyak</option>
-                        <option value="label-naik">Nama A ke Z</option>
-                    </select>
-                </label>
-            </div>
-
-            @foreach ($tabRincian as $i => [$kunci, $label, $kolom, $judul, $baris])
-                <div id="panel-{{ $kunci }}" role="tabpanel" aria-labelledby="tab-{{ $kunci }}" data-panel-rincian @class(['hidden' => $i > 0])>
-                    @include('toko.partials.rincian', ['judul' => $judul, 'kolom' => $kolom, 'baris' => $baris])
-                    @if ($kunci === 'hari' && $kopi['hari_terpotong'])
-                        <p class="catatan-kecil">Menampilkan {{ RekapHasil::BATAS_HARIAN }} hari panen terbaru. Pilih tanggal di Kustom untuk melihat hari yang lebih lama.</p>
-                    @endif
-                </div>
-            @endforeach
+            @include('toko.partials.timbang', ['baris' => $kopi['timbang'], 'jumlah' => $kopi['timbang_jumlah'], 'totalKotor' => $kopi['panen'], 'totalBersih' => $kopi['bersih']])
+            @if ($kopi['timbang_jumlah'] > count($kopi['timbang']))
+                <p class="catatan-kecil">Menampilkan {{ count($kopi['timbang']) }} catatan terbaru dari {{ $kopi['timbang_jumlah'] }}. Unduh Excel untuk melihat semuanya, atau pilih tanggal di Kustom.</p>
+            @endif
         @endif
     </section>
 @endsection

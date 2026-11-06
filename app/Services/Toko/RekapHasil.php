@@ -14,6 +14,9 @@ class RekapHasil
     // Rincian harian dibatasi agar halaman tetap ringan di sinyal lemah.
     public const BATAS_HARIAN = 31;
 
+    // Tabel catatan timbang di halaman dibatasi agar tetap ringan; Excel memuat semuanya.
+    public const BATAS_TIMBANG = 50;
+
     // Kunci 1 dan 0 sama dengan nilai kolom dengan_cangkang_kopi.
     public const MEDIA = [1 => 'Dengan cangkang kopi', 0 => 'Tanpa cangkang kopi'];
 
@@ -22,11 +25,10 @@ class RekapHasil
      */
     public function kopi(array $filter = []): array
     {
-        $baris = $this->dalamRentang(PanenKopi::query(), 'tanggal_panen', $filter)
-            ->when($filter['jenis'] ?? null, fn (Builder $q, string $jenis) => $q->where('jenis_kopi', $jenis))
-            ->when($filter['tempat'] ?? null, fn (Builder $q, string $tempat) => $q->where('tempat_panen', $tempat))
+        $baris = $this->kopiTersaring($filter)
             ->orderByDesc('tanggal_panen')
-            ->get(['tanggal_panen', 'jenis_kopi', 'tempat_panen', 'jumlah_kg', 'limbah_kg']);
+            ->orderByDesc('id')
+            ->get(['tanggal_panen', 'jenis_kopi', 'tempat_panen', 'nama_petani', 'jumlah_kg', 'limbah_kg']);
 
         $perHari = $this->kelompokkan($baris, fn (PanenKopi $p) => FormatHasil::hari($p->tanggal_panen));
         $panen = round($baris->sum('jumlah_kg'), 2);
@@ -42,7 +44,47 @@ class RekapHasil
             'per_bulan' => $this->kelompokkan($baris, fn (PanenKopi $p) => $p->tanggal_panen->translatedFormat('F Y')),
             'per_hari' => array_slice($perHari, 0, self::BATAS_HARIAN),
             'hari_terpotong' => count($perHari) > self::BATAS_HARIAN,
+            // Catatan timbang terbaru. Berat bersih = berat kotor (jumlah panen) dikurangi limbah.
+            'timbang' => $baris->take(self::BATAS_TIMBANG)->map(fn (PanenKopi $p) => [
+                'tanggal' => $p->tanggal_panen,
+                'petani' => $p->nama_petani,
+                'blok' => $p->tempat_panen,
+                'kotor' => (float) $p->jumlah_kg,
+                'bersih' => max(round((float) $p->jumlah_kg - (float) $p->limbah_kg, 2), 0.0),
+            ])->all(),
+            'timbang_jumlah' => $baris->count(),
+            'bersih' => max(round($panen - $limbah, 2), 0.0),
         ];
+    }
+
+    /**
+     * Catatan mentah, urut dari yang paling lama, untuk berkas unduhan. Memakai filter yang sama
+     * dengan kopi() supaya angka di Excel selalu cocok dengan angka di halaman.
+     *
+     * @param  array{dari?: ?string, sampai?: ?string, jenis?: ?string, tempat?: ?string}  $filter
+     * @return Collection<int, PanenKopi>
+     */
+    public function daftarKopi(array $filter = []): Collection
+    {
+        return $this->kopiTersaring($filter)->orderBy('tanggal_panen')->orderBy('id')->get();
+    }
+
+    /**
+     * @param  array{dari?: ?string, sampai?: ?string}  $filter
+     * @return Collection<int, PanenJamur>
+     */
+    public function daftarPanenJamur(array $filter = []): Collection
+    {
+        return $this->dalamRentang(PanenJamur::query(), 'tanggal_panen', $filter)->orderBy('tanggal_panen')->orderBy('id')->get();
+    }
+
+    /**
+     * @param  array{dari?: ?string, sampai?: ?string}  $filter
+     * @return Collection<int, PenjualanJamur>
+     */
+    public function daftarPenjualanJamur(array $filter = []): Collection
+    {
+        return $this->dalamRentang(PenjualanJamur::query(), 'tanggal_penjualan', $filter)->orderBy('tanggal_penjualan')->orderBy('id')->get();
     }
 
     /**
@@ -128,13 +170,14 @@ class RekapHasil
     /**
      * Pilihan yang sudah pernah dicatat, untuk filter publik dan saran isian admin.
      *
-     * @return array{jenis: Collection<int, string>, tempat: Collection<int, string>}
+     * @return array{jenis: Collection<int, string>, tempat: Collection<int, string>, petani: Collection<int, string>}
      */
     public function pilihanKopi(): array
     {
         return [
             'jenis' => PanenKopi::query()->distinct()->orderBy('jenis_kopi')->pluck('jenis_kopi'),
             'tempat' => PanenKopi::query()->distinct()->orderBy('tempat_panen')->pluck('tempat_panen'),
+            'petani' => PanenKopi::query()->whereNotNull('nama_petani')->distinct()->orderBy('nama_petani')->pluck('nama_petani'),
         ];
     }
 
@@ -199,6 +242,13 @@ class RekapHasil
             ->keyBy(fn ($baris) => (int) $baris->media);
 
         return [$panen, $terjual];
+    }
+
+    private function kopiTersaring(array $filter): Builder
+    {
+        return $this->dalamRentang(PanenKopi::query(), 'tanggal_panen', $filter)
+            ->when($filter['jenis'] ?? null, fn (Builder $q, string $jenis) => $q->where('jenis_kopi', $jenis))
+            ->when($filter['tempat'] ?? null, fn (Builder $q, string $tempat) => $q->where('tempat_panen', $tempat));
     }
 
     private function persen(float $bagian, float $keseluruhan): float

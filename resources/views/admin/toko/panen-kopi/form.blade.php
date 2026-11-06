@@ -13,6 +13,7 @@
         <x-bidang nama="tanggal_panen" label="Tanggal panen" type="date" required :max="now()->format('Y-m-d')" :value="old('tanggal_panen', ($panen->tanggal_panen ?? now())->format('Y-m-d'))" />
         <x-bidang nama="jenis_kopi" label="Jenis kopi" required maxlength="100" list="daftar-jenis" bantuan="Contoh: Arabika atau Robusta." :value="old('jenis_kopi', $panen->jenis_kopi)" />
         <x-bidang nama="tempat_panen" label="Tempat panen" required maxlength="150" list="daftar-tempat" :value="old('tempat_panen', $panen->tempat_panen)" />
+        <x-bidang nama="nama_petani" label="Nama petani / kelompok" maxlength="150" list="daftar-petani" bantuan="Boleh dikosongkan. Tampil di tabel Rincian panen kopi pada halaman Hasil Panen." :value="old('nama_petani', $panen->nama_petani)" />
         <div class="grid gap-4 sm:grid-cols-2">
             <x-bidang nama="jumlah_kg" label="Jumlah panen (kg)" type="number" step="0.01" min="0.01" required inputmode="decimal" :value="old('jumlah_kg', $panen->jumlah_kg)" />
             <x-bidang nama="limbah_kg" label="Jumlah limbah (kg)" type="number" step="0.01" min="0" required inputmode="decimal" :value="old('limbah_kg', $panen->limbah_kg)" />
@@ -26,6 +27,12 @@
         <datalist id="daftar-tempat">
             @foreach ($pilihan['tempat'] as $tempat)
                 <option value="{{ $tempat }}"></option>
+            @endforeach
+        </datalist>
+
+        <datalist id="daftar-petani">
+            @foreach ($pilihan['petani'] as $petani)
+                <option value="{{ $petani }}"></option>
             @endforeach
         </datalist>
 

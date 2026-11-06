@@ -3,10 +3,8 @@
 import '../../css/toko-hasil.css';
 import { pasangGrafik, pasangGrafikBaglog } from './lib/grafik-halaman.js';
 import { pasangLembarFilter } from './lib/lembar-filter.js';
-import { pasangRincian } from './lib/rincian.js';
 
 pasangLembarFilter();
-pasangRincian();
 
 const grafik = document.querySelector('[data-grafik]');
 if (grafik) pasangGrafik(grafik);

@@ -61,6 +61,9 @@
         @case('centang')
             <path d="m5 12.5 4.5 4.5L19 7.5" />
             @break
+        @case('unduh')
+            <path d="M12 4v11M7.5 11 12 15.5 16.5 11M5 20h14" />
+            @break
         @case('urut')
             <path d="M8 5v14M4 9l4-4 4 4M16 19V5M12 15l4 4 4-4" />
             @break

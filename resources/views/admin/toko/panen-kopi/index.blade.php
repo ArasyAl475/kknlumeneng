@@ -29,6 +29,9 @@
                             <div class="min-w-0">
                                 <p class="font-bold">{{ $hari }}</p>
                                 <p class="text-redup">{{ $p->jenis_kopi }} · {{ $p->tempat_panen }}</p>
+                                @if ($p->nama_petani)
+                                    <p class="text-redup">Petani/kelompok: {{ $p->nama_petani }}</p>
+                                @endif
                                 <p class="mt-1">Panen <strong>{{ FormatHasil::kg($p->jumlah_kg) }}</strong> · Limbah <strong>{{ FormatHasil::kg($p->limbah_kg) }}</strong></p>
                             </div>
                         </div>

@@ -5,7 +5,7 @@ namespace Tests\Feature\Toko;
 use App\Models\Toko\PanenJamur;
 use App\Models\Toko\PanenKopi;
 use App\Models\Toko\PenjualanJamur;
-use App\Models\User;
+use App\Services\Toko\RekapHasil;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -21,26 +21,61 @@ class HalamanHasilTest extends TestCase
 
         $this->get('/toko/hasil')->assertOk()
             ->assertSee('1.250,50 kg')
-            ->assertSee('300,00 kg')
-            ->assertSee('Robusta')
+            ->assertSee('300,00')
             ->assertSee('Krajan')
-            ->assertSee('Senin, 05-10-2026')
-            ->assertSee('Oktober 2026')
+            ->assertSee('05-10-2026')
             ->assertSee('8,50 kg')
             ->assertSee('Panen jamur dengan cangkang kopi')
             ->assertSee('2,50 kg')
             ->assertSee('Rp 1.500.000');
     }
 
-    public function test_rincian_tetap_ada_di_halaman_meski_tabnya_tersembunyi(): void
+    public function test_rincian_panen_kopi_berupa_tabel_catatan_timbang(): void
     {
-        PanenKopi::query()->create(['tanggal_panen' => '2026-10-05', 'jenis_kopi' => 'Robusta', 'tempat_panen' => 'Krajan', 'jumlah_kg' => 10, 'limbah_kg' => 2]);
+        PanenKopi::query()->create(['tanggal_panen' => '2026-10-05', 'jenis_kopi' => 'Robusta', 'tempat_panen' => 'Blok Krajan', 'nama_petani' => 'Kelompok Tani Giri', 'jumlah_kg' => 10, 'limbah_kg' => 2.5]);
+        PanenKopi::query()->create(['tanggal_panen' => '2026-10-06', 'jenis_kopi' => 'Arabika', 'tempat_panen' => 'Blok Giri', 'jumlah_kg' => 20, 'limbah_kg' => 5]);
 
         $this->get('/toko/hasil')->assertOk()
-            ->assertSee('id="panel-jenis"', false)
-            ->assertSee('id="panel-hari"', false)
-            ->assertSee('<noscript><style>[data-panel-rincian] { display: block !important; }', false)
-            ->assertSee('20,0% dari panen kopi');
+            ->assertSeeInOrder(['Tanggal Timbang', 'Nama Petani/Kelompok', 'Blok Lahan', 'Berat Kotor (kg)', 'Berat Bersih (kg)'])
+            ->assertSeeInOrder(['06-10-2026', 'Blok Giri', '20,00', '15,00', '05-10-2026', 'Kelompok Tani Giri', 'Blok Krajan', '10,00', '7,50'])
+            ->assertSee('Jumlah seluruh catatan (2)')
+            ->assertSee('30,00')
+            ->assertSee('22,50')
+            ->assertSee('25,0% dari panen kopi')
+            ->assertDontSee('role="tablist"', false)
+            ->assertDontSee('data-panel-rincian', false);
+    }
+
+    public function test_catatan_tanpa_nama_petani_tampil_strip(): void
+    {
+        PanenKopi::query()->create(['tanggal_panen' => '2026-10-05', 'jenis_kopi' => 'Robusta', 'tempat_panen' => 'Blok Krajan', 'jumlah_kg' => 10, 'limbah_kg' => 2]);
+
+        $this->get('/toko/hasil')->assertOk()->assertSee('data-sel="Nama Petani/Kelompok">–</td>', false);
+    }
+
+    public function test_nama_petani_ditulis_aman_dan_berat_bersih_tidak_negatif(): void
+    {
+        PanenKopi::query()->create(['tanggal_panen' => '2026-10-05', 'jenis_kopi' => 'Robusta', 'tempat_panen' => 'Krajan', 'nama_petani' => '<b>x</b>', 'jumlah_kg' => 1, 'limbah_kg' => 3]);
+
+        $html = $this->get('/toko/hasil')->assertOk()->getContent();
+
+        $this->assertStringNotContainsString('<b>x</b>', $html);
+        $this->assertStringContainsString('&lt;b&gt;x&lt;/b&gt;', $html);
+        $this->assertStringContainsString('data-sel="Berat Bersih (kg)" class="timbang__angka">0,00</td>', $html);
+    }
+
+    public function test_tabel_timbang_dibatasi_dan_memberi_petunjuk_unduh(): void
+    {
+        foreach (range(1, RekapHasil::BATAS_TIMBANG + 1) as $n) {
+            PanenKopi::query()->create(['tanggal_panen' => now()->subDays($n)->format('Y-m-d'), 'jenis_kopi' => 'Robusta', 'tempat_panen' => 'Krajan', 'jumlah_kg' => 1, 'limbah_kg' => 0]);
+        }
+
+        $html = $this->get('/toko/hasil')->assertOk()
+            ->assertSee('Menampilkan 50 catatan terbaru dari 51')
+            ->assertSee('Jumlah seluruh catatan (51)')
+            ->getContent();
+
+        $this->assertSame(RekapHasil::BATAS_TIMBANG, substr_count($html, 'class="timbang__tanggal">') - 1);
     }
 
     public function test_warga_melihat_perbandingan_baglog_tanpa_harga(): void
@@ -112,15 +147,13 @@ class HalamanHasilTest extends TestCase
         $this->get('/toko/hasil')->assertOk();
     }
 
-    public function test_tombol_catat_limbah_hanya_tampil_untuk_admin(): void
+    public function test_empat_pilihan_grafik_punya_ikon(): void
     {
-        $this->get('/toko/hasil')->assertOk()->assertDontSee('Catat limbah');
+        PanenKopi::query()->create(['tanggal_panen' => '2026-10-05', 'jenis_kopi' => 'Robusta', 'tempat_panen' => 'Krajan', 'jumlah_kg' => 10, 'limbah_kg' => 2]);
 
-        $this->actingAs(User::factory()->create());
-        $this->get('/toko/hasil')->assertOk()->assertDontSee('Catat limbah');
+        $html = $this->get('/toko/hasil')->assertOk()->getContent();
 
-        $this->actingAs(User::factory()->admin()->create());
-        $this->get('/toko/hasil')->assertOk()->assertSee('Catat limbah')->assertSee(route('admin.toko.panen-kopi.create'), false);
+        $this->assertSame(4, substr_count($html, 'ikon-seri'));
     }
 
     public function test_menu_toko_tersembunyi_saat_modul_mati(): void

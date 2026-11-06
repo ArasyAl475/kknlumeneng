@@ -55,6 +55,28 @@ class PencatatanAdminTest extends TestCase
         $this->get(route('admin.toko.penjualan-jamur.index'))->assertOk()->assertSee('Belum ada catatan penjualan jamur');
     }
 
+    public function test_nama_petani_boleh_kosong_dan_dirapikan_spasinya_saja(): void
+    {
+        $this->post(route('admin.toko.panen-kopi.store'), $this->dataKopi(['nama_petani' => '  KWT   Giri  ']))->assertRedirect(route('admin.toko.panen-kopi.index'));
+        $this->post(route('admin.toko.panen-kopi.store'), $this->dataKopi(['tanggal_panen' => '2026-10-06', 'nama_petani' => '   ']))->assertRedirect(route('admin.toko.panen-kopi.index'));
+        $this->post(route('admin.toko.panen-kopi.store'), $this->dataKopi(['tanggal_panen' => '2026-10-07']))->assertRedirect(route('admin.toko.panen-kopi.index'));
+
+        $this->assertSame(['KWT Giri', null, null], PanenKopi::query()->orderBy('tanggal_panen')->pluck('nama_petani')->all());
+    }
+
+    public function test_nama_petani_terlalu_panjang_ditolak(): void
+    {
+        $this->post(route('admin.toko.panen-kopi.store'), $this->dataKopi(['nama_petani' => str_repeat('a', 151)]))->assertSessionHasErrors('nama_petani');
+    }
+
+    public function test_formulir_dan_daftar_admin_menampilkan_nama_petani(): void
+    {
+        $kopi = PanenKopi::query()->create($this->dataKopi(['nama_petani' => 'Kelompok Tani Giri']));
+
+        $this->get(route('admin.toko.panen-kopi.edit', $kopi))->assertOk()->assertSee('Kelompok Tani Giri')->assertSee('Nama petani / kelompok');
+        $this->get(route('admin.toko.panen-kopi.index'))->assertOk()->assertSee('Petani/kelompok: Kelompok Tani Giri');
+    }
+
     public function test_panen_kopi_disimpan_dengan_tulisan_seragam(): void
     {
         $this->post(route('admin.toko.panen-kopi.store'), $this->dataKopi(['jenis_kopi' => '  robusta ', 'tempat_panen' => 'kebun   krajan']))

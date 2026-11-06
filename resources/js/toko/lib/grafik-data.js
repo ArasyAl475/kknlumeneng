@@ -56,9 +56,9 @@ export function renderRingkas(dl, skalaData, aktif, skala) {
         const r = ringkas(skalaData, seri);
         const baris = buat('div', 'ringkas__seri');
         const nama = buat('dt', 'ringkas__nama');
-        const penanda = buat('span', `swatch swatch--${seri}`);
-        penanda.setAttribute('aria-hidden', 'true');
-        nama.append(penanda, SERI[seri].nama);
+        // Ikon disalin dari pilihan grafik di halaman, jadi ikon di sini selalu sama dengan di sana.
+        const ikon = document.querySelector(`[data-seri="${seri}"] .ikon-seri`)?.cloneNode(true);
+        nama.append(...(ikon ? [ikon] : []), SERI[seri].nama);
         baris.append(nama);
 
         if (!r.puncak) {

@@ -8,7 +8,7 @@ class PanenKopi extends Model
 {
     protected $table = 'toko_panen_kopi';
 
-    protected $fillable = ['tanggal_panen', 'jenis_kopi', 'tempat_panen', 'jumlah_kg', 'limbah_kg'];
+    protected $fillable = ['tanggal_panen', 'jenis_kopi', 'tempat_panen', 'nama_petani', 'jumlah_kg', 'limbah_kg'];
 
     protected function casts(): array
     {
