@@ -3,8 +3,10 @@
 namespace Tests\Feature\Toko;
 
 use App\Models\Toko\Aktivitas;
+use App\Models\Toko\Marketplace;
 use App\Models\Toko\Produk;
 use App\Models\User;
+use Database\Seeders\TokoSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -158,5 +160,20 @@ class ProdukAdminTest extends TestCase
         $this->get(route('admin.toko.pengaturan.edit'))->assertOk()->assertSee('UMKM Desa Lumeneng');
         $this->get(route('admin.toko.aktivitas'))->assertOk();
         $this->get(route('admin.beranda'))->assertOk()->assertSee('Toko Desa');
+    }
+
+    // Lazy loading hanya dilarang bila ada lebih dari satu produk, jadi daftar diuji dengan data seeder (5 produk).
+    public function test_halaman_daftar_tidak_galat_dengan_banyak_produk(): void
+    {
+        $this->seed(TokoSeeder::class);
+        Marketplace::query()->whereKey('shopee')->update(['url_toko' => 'https://shopee.co.id/tokodesa']);
+        Produk::query()->each(fn (Produk $p) => $p->varian()->create(['nama' => '250 g', 'harga' => 25000, 'tersedia' => true]));
+
+        $this->get(route('admin.toko.produk.index'))->assertOk()->assertSee('Rp 25.000');
+        $this->get(route('admin.toko.marketplace.show', 'shopee'))->assertOk()->assertSee('Rp 25.000');
+        $this->get(route('admin.toko.beranda'))->assertOk();
+        $this->get(route('toko.index'))->assertOk();
+        $this->get(route('toko.marketplace', 'shopee'))->assertOk()->assertSee('Rp 25.000');
+        $this->get(route('toko.produk', ['shopee', 'kopi-bubuk']))->assertOk()->assertSee('Produk lain');
     }
 }

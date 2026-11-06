@@ -18,7 +18,7 @@ class ProdukController extends Controller
     public function index(): View
     {
         return view('admin.toko.produk.index', [
-            'produk' => Produk::query()->with(['foto', 'tautan'])->orderBy('urutan')->orderBy('id')->get(),
+            'produk' => Produk::query()->with(['foto', 'tautan', 'varian'])->orderBy('urutan')->orderBy('id')->get(),
             'terhapus' => Produk::onlyTrashed()->orderByDesc('deleted_at')->get(),
         ]);
     }
