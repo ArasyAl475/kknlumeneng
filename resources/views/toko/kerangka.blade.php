@@ -59,7 +59,8 @@
                 <h2 id="judul-kaki-tautan" class="hasil-kaki__judul">Jelajahi</h2>
                 <ul class="hasil-kaki__daftar">
                     <li><a href="{{ route('landing') }}">Beranda</a></li>
-                    <li><a href="{{ route('toko.index') }}">Katalog Produk</a></li>
+                    <li><a href="{{ route('toko.index') }}">Toko Desa</a></li>
+                    <li><a href="{{ route('toko.hasil') }}" @if (request()->routeIs('toko.hasil')) aria-current="page" @endif>Hasil Panen</a></li>
                     @if ($ews)
                         <li><a href="{{ route($ews['rute']) }}">{{ $ews['nama'] }}</a></li>
                     @endif

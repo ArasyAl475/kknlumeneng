@@ -128,18 +128,29 @@
 
 @layer components {
     /*
-     * Tema hijau panel admin: hanya menimpa token warna di bawah <body class="tema-admin">,
-     * sehingga semua kelas bg-kopi / bg-kertas / border-garis-halus di halaman admin ikut berubah
-     * tanpa mengubah halaman publik. Hijau ini warna merek; status tetap dibaca lewat ikon + kata.
+     * Tema hijau: hanya menimpa token warna di bawah <body class="tema-admin"> (panel admin) atau
+     * <body class="tema-hijau"> (halaman publik), sehingga semua kelas bg-kopi / bg-kertas / border-garis-halus
+     * ikut berubah tanpa mengedit tiap halaman. Hijau ini warna merek (sama dengan halaman Hasil Panen);
+     * status tetap dibaca lewat ikon + kata, bukan warna saja.
      */
-    .tema-admin {
-        --color-kertas: #e9f3ec;
+    .tema-admin,
+    .tema-hijau {
         --color-permukaan: #ffffff;
         --color-tinta: #141e18;
         --color-redup: #404942;
-        --color-garis-halus: #cfdcd2;
         --color-kopi: #164e32;
         --color-kopi-tua: #00361f;
+    }
+
+    .tema-admin {
+        --color-kertas: #e9f3ec;
+        --color-garis-halus: #cfdcd2;
+    }
+
+    /* Halaman publik memakai latar mint yang sama dengan halaman Hasil Panen. */
+    .tema-hijau {
+        --color-kertas: #c3e6cd;
+        --color-garis-halus: #aacdb6;
     }
 
     /* Menu tetap bisa digulir (roda tetikus, sentuh, panah keyboard); hanya batang gulirnya yang disembunyikan. */

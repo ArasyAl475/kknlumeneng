@@ -304,6 +304,64 @@ body.hasil {
     line-height: 24px;
 }
 
+/* HP: footer dirapatkan dan tautan dibuat baris penuh (mudah disentuh jempol, ada tanda panah). */
+@media (max-width: 767px) {
+    .hasil-kaki {
+        margin-top: 32px;
+    }
+
+    .hasil-kaki__isi {
+        gap: 28px;
+        padding-block: 32px 28px;
+    }
+
+    .hasil-kaki__nama {
+        margin-bottom: 8px;
+    }
+
+    .hasil-kaki__daftar a {
+        justify-content: space-between;
+        width: 100%;
+        min-height: 52px;
+        border-bottom: 1px solid rgb(255 255 255 / 0.14);
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .hasil-kaki__daftar li:first-child a {
+        border-top: 1px solid rgb(255 255 255 / 0.14);
+    }
+
+    .hasil-kaki__daftar a::after {
+        content: '';
+        width: 8px;
+        height: 8px;
+        border-top: 2px solid currentColor;
+        border-right: 2px solid currentColor;
+        opacity: 0.7;
+        transform: rotate(45deg);
+    }
+
+    .hasil-kaki__daftar a[aria-current='page'] {
+        color: var(--h-sekunder-kontainer);
+    }
+
+    .hasil-kaki__bawah-isi {
+        flex-direction: column-reverse;
+        align-items: stretch;
+        gap: 4px;
+        padding-block: 16px;
+        text-align: center;
+    }
+
+    .hasil-kaki__atas {
+        justify-content: center;
+        min-height: 48px;
+        border-radius: 999px;
+        box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.3);
+    }
+}
+
 .hasil-kaki__nama {
     display: flex;
     align-items: center;
@@ -994,6 +1052,14 @@ body.hasil {
     margin-bottom: 10px;
 }
 
+/* Saat kartu angka berjajar, judul satu baris diberi tinggi dua baris supaya angka, keterangan, dan batang
+   persen di tiap kartu sejajar (judul "Limbah kopi (cangkang)" memang dua baris). Di HP kartu bertumpuk, jadi tidak perlu. */
+@media (min-width: 640px) {
+    .kartu--angka .kartu__atas {
+        min-height: 40px;
+    }
+}
+
 .kartu__label {
     font-size: 14px;
     font-weight: 600;
@@ -1036,8 +1102,7 @@ body.hasil {
 }
 
 .kartu__ket + .kartu__kaki,
-.meter + .kartu__kaki,
-.rincian-singkat + .kartu__kaki {
+.meter + .kartu__kaki {
     margin-top: 16px;
 }
 
@@ -1146,11 +1211,6 @@ body.hasil {
     height: 100%;
     border-radius: 999px;
     background: var(--h-sekunder);
-}
-
-.rincian-singkat dd {
-    font-weight: 700;
-    color: var(--h-teks);
 }
 
 /* ---------- Baris utama 7:5 ---------- */
@@ -1707,13 +1767,23 @@ body.hasil {
 }
 
 /* ---------- Rincian panen kopi: catatan timbang ---------- */
-.timbang {
+/* HP: tiap catatan jadi kartu bergaris dengan jarak antar kartu; judul kolom tampil sebagai label di atas isinya. */
+.timbang,
+.timbang tbody,
+.timbang tfoot {
+    display: block;
     width: 100%;
-    margin-top: 12px;
-    border-collapse: collapse;
 }
 
-/* HP: tiap catatan jadi kartu kecil; judul kolom tampil sebagai label di atas isinya. */
+.timbang {
+    margin-top: 16px;
+}
+
+.timbang tbody {
+    display: grid;
+    gap: 12px;
+}
+
 .timbang thead {
     position: absolute;
     width: 1px;
@@ -1726,15 +1796,23 @@ body.hasil {
 .timbang tfoot tr {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 8px 16px;
-    padding-block: 14px;
-    border-bottom: 1px solid rgb(192 201 192 / 0.3);
+    gap: 10px 16px;
+    padding: 16px;
+    border-radius: var(--h-r-xl);
+}
+
+.timbang tbody tr {
+    border: 1px solid var(--h-garis);
+    background: var(--h-putih);
 }
 
 .timbang__tanggal {
     grid-column: 1 / -1;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgb(192 201 192 / 0.4);
     text-align: left;
-    font-weight: 700;
+    font-size: 16px;
+    font-weight: 800;
 }
 
 .timbang td {
@@ -1745,7 +1823,8 @@ body.hasil {
 .timbang td[data-sel]::before {
     content: attr(data-sel);
     display: block;
-    font-size: 12px;
+    margin-bottom: 2px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--h-teks-2);
 }
@@ -1756,18 +1835,41 @@ body.hasil {
 }
 
 .timbang__angka {
-    font-weight: 700;
+    font-size: 18px;
+    font-weight: 800;
     font-variant-numeric: tabular-nums;
 }
 
+/* Berat bersih jadi angka yang paling menonjol di tiap kartu. */
+.timbang td[data-sel='Berat Bersih (kg)'] {
+    color: var(--h-sekunder);
+}
+
+.timbang tfoot {
+    margin-top: 12px;
+}
+
 .timbang tfoot tr {
-    border-bottom: 0;
     background: var(--h-sf-rendah);
-    padding-inline: 12px;
-    border-radius: var(--h-r-lg);
+    box-shadow: inset 0 0 0 2px var(--h-primer-kontainer);
 }
 
 @media (min-width: 768px) {
+    .timbang {
+        display: table;
+        margin-top: 12px;
+        border-collapse: collapse;
+    }
+
+    .timbang tbody {
+        display: table-row-group;
+    }
+
+    .timbang tfoot {
+        display: table-footer-group;
+        margin-top: 0;
+    }
+
     .timbang thead {
         position: static;
         width: auto;
@@ -1780,6 +1882,13 @@ body.hasil {
     .timbang tfoot tr {
         display: table-row;
         padding: 0;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .timbang tbody tr {
+        background: none;
     }
 
     .timbang tbody tr:hover {
@@ -1792,6 +1901,12 @@ body.hasil {
         border-bottom: 1px solid rgb(192 201 192 / 0.3);
         vertical-align: middle;
         text-align: left;
+    }
+
+    .timbang__tanggal {
+        padding-bottom: 12px;
+        font-size: inherit;
+        font-weight: 700;
     }
 
     .timbang thead tr {
@@ -1811,16 +1926,15 @@ body.hasil {
 
     .timbang .timbang__angka {
         text-align: right;
+        font-size: inherit;
+        font-weight: 700;
     }
 
     .timbang tfoot th,
     .timbang tfoot td {
         border-bottom: 0;
         border-top: 2px solid var(--h-primer-kontainer);
-    }
-
-    .timbang tfoot tr {
-        border-radius: 0;
+        background: var(--h-sf-rendah);
     }
 }
 
