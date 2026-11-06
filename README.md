@@ -10,7 +10,7 @@ Stack: Laravel, Blade, Tailwind (Vite), SQLite (lokal) / MySQL (produksi).
 
 ## Memasang di komputer sendiri
 
-Butuh Git, PHP 8.3 atau lebih baru, Composer, dan Node.js.
+Butuh Git, PHP 8.3 atau lebih baru (dengan ekstensi `gd`, sudah ada di Laravel Herd), Composer, dan Node.js.
 
 1. `composer install`
 2. Salin pengaturan: `cp .env.example .env` (Windows PowerShell: `copy .env.example .env`)
@@ -18,9 +18,10 @@ Butuh Git, PHP 8.3 atau lebih baru, Composer, dan Node.js.
 4. Isi `ADMIN_EMAIL` dan `ADMIN_PASSWORD` di `.env` untuk membuat akun admin.
    Jangan pernah meng-upload berkas `.env`.
 5. `php artisan migrate --seed`
-6. `npm install`
-7. Jalankan `npm run dev` di terminal pertama dan `php artisan serve` di terminal kedua.
-8. Buka http://localhost:8000 (admin: http://localhost:8000/masuk)
+6. `php artisan storage:link` (agar foto yang diunggah admin bisa tampil di situs)
+7. `npm install`
+8. Jalankan `npm run dev` di terminal pertama dan `php artisan serve` di terminal kedua.
+9. Buka http://localhost:8000 (admin: http://localhost:8000/masuk)
 
 Data contoh untuk dashboard EWS: `php artisan ews:simulasi --riwayat=24`
 
