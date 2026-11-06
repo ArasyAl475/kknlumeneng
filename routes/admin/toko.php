@@ -4,7 +4,10 @@ use App\Http\Controllers\Admin\Toko\AktivitasController;
 use App\Http\Controllers\Admin\Toko\BerandaController;
 use App\Http\Controllers\Admin\Toko\FotoProdukController;
 use App\Http\Controllers\Admin\Toko\MarketplaceController;
+use App\Http\Controllers\Admin\Toko\PanenJamurController;
+use App\Http\Controllers\Admin\Toko\PanenKopiController;
 use App\Http\Controllers\Admin\Toko\PengaturanController;
+use App\Http\Controllers\Admin\Toko\PenjualanJamurController;
 use App\Http\Controllers\Admin\Toko\ProdukController;
 use App\Services\Toko\DaftarMarketplace;
 use Illuminate\Support\Facades\Route;
@@ -31,4 +34,9 @@ Route::prefix('toko')->name('toko.')->group(function () {
     Route::put('pengaturan', [PengaturanController::class, 'update'])->name('pengaturan.update');
 
     Route::get('aktivitas', AktivitasController::class)->name('aktivitas');
+
+    // Pencatatan hasil panen (tampil di halaman publik /toko/hasil).
+    Route::resource('panen-kopi', PanenKopiController::class)->except('show')->parameters(['panen-kopi' => 'panenKopi']);
+    Route::resource('panen-jamur', PanenJamurController::class)->except('show')->parameters(['panen-jamur' => 'panenJamur']);
+    Route::resource('penjualan-jamur', PenjualanJamurController::class)->except('show')->parameters(['penjualan-jamur' => 'penjualanJamur']);
 });
