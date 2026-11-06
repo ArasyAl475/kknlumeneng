@@ -22,10 +22,12 @@ class Modul
     }
 
     /**
+     * Modul yang siap dibuka dan boleh tampil di menu publik (menu_publik false = hanya kartu landing).
+     *
      * @return array<string, array<string, mixed>>
      */
     public static function tersedia(): array
     {
-        return array_filter(self::semua(), fn (array $modul) => $modul['tersedia']);
+        return array_filter(self::semua(), fn (array $modul) => $modul['tersedia'] && ($modul['menu_publik'] ?? true));
     }
 }
