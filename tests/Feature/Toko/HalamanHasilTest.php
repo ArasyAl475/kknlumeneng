@@ -49,7 +49,8 @@ class HalamanHasilTest extends TestCase
         PenjualanJamur::query()->create(['tanggal_penjualan' => '2026-10-08', 'jumlah_kg' => 2, 'dengan_cangkang_kopi' => true, 'total_rupiah' => 90000]);
 
         $this->get('/toko/hasil')->assertOk()
-            ->assertSee('Baglog jamur: dengan dan tanpa cangkang kopi')
+            ->assertSee('Apakah cangkang kopi membantu jamur?')
+            ->assertSee('50% lebih banyak')
             ->assertSee('Tanpa cangkang kopi')
             ->assertSee('100 baglog')
             ->assertSee('0,30 kg')
@@ -62,7 +63,12 @@ class HalamanHasilTest extends TestCase
 
     public function test_keadaan_kosong_ramah(): void
     {
-        $this->get('/toko/hasil')->assertOk()->assertSee('Belum ada data panen kopi')->assertSee('Rp 0');
+        $this->get('/toko/hasil')->assertOk()
+            ->assertSee('Belum ada data panen kopi')
+            ->assertSee('Belum ada penjualan jamur')
+            ->assertSee('Belum ada data untuk periode ini')
+            ->assertSee('Data belum cukup untuk dibandingkan')
+            ->assertDontSee('data-grafik', false);
     }
 
     public function test_filter_mengubah_angka_dan_tetap_terpilih(): void

@@ -1,23 +1,15 @@
-// Hanya satu rincian tampil agar halaman tidak memanjang di HP.
-// Tanpa JavaScript semua rincian tetap terlihat (lihat <noscript> di toko/hasil.blade.php).
-const daftarTab = [...document.querySelectorAll('[role="tab"]')];
+// Halaman publik Hasil panen dan penjualan. Setiap bagian punya versi tanpa JavaScript
+// (tabel bulanan, formulir filter, semua rincian terlihat), jadi skrip ini hanya menambah kenyamanan.
+import '../../css/toko-hasil.css';
+import { pasangGrafik, pasangGrafikBaglog } from './lib/grafik-halaman.js';
+import { pasangLembarFilter } from './lib/lembar-filter.js';
+import { pasangRincian } from './lib/rincian.js';
 
-function pilih(tab, fokus = false) {
-    daftarTab.forEach((t) => {
-        const aktif = t === tab;
-        t.setAttribute('aria-selected', String(aktif));
-        t.tabIndex = aktif ? 0 : -1;
-        document.getElementById(t.getAttribute('aria-controls')).classList.toggle('hidden', !aktif);
-    });
-    if (fokus) tab.focus();
-}
+pasangLembarFilter();
+pasangRincian();
 
-daftarTab.forEach((tab, i) => {
-    tab.addEventListener('click', () => pilih(tab));
-    tab.addEventListener('keydown', (e) => {
-        const arah = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
-        if (!arah) return;
-        e.preventDefault();
-        pilih(daftarTab[(i + arah + daftarTab.length) % daftarTab.length], true);
-    });
-});
+const grafik = document.querySelector('[data-grafik]');
+if (grafik) pasangGrafik(grafik);
+
+const grafikBaglog = document.querySelector('[data-grafik-baglog]');
+if (grafikBaglog) pasangGrafikBaglog(grafikBaglog);

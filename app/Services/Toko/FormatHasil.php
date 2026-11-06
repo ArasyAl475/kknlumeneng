@@ -12,6 +12,14 @@ class FormatHasil
         return number_format((float) $nilai, 2, ',', '.').' kg';
     }
 
+    /**
+     * Angka tanpa satuan, untuk tampilan yang menulis satuannya dengan ukuran lebih kecil.
+     */
+    public static function angka(float|string $nilai, int $desimal = 2): string
+    {
+        return number_format((float) $nilai, $desimal, ',', '.');
+    }
+
     public static function rupiah(int $nilai): string
     {
         return 'Rp '.number_format($nilai, 0, ',', '.');
