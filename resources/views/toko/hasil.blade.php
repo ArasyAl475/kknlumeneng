@@ -194,10 +194,8 @@
                 @if ($jamur['total'] <= 0)
                     <p class="kartu__ket">Belum ada catatan panen jamur.</p>
                 @else
-                    <dl class="kartu__ket rincian-singkat">
-                        <dt>Panen jamur dengan cangkang kopi</dt>
-                        <dd>{{ FormatHasil::kg($jamur['cangkang']) }} ({{ FormatHasil::persen($jamur['persen_cangkang']) }})</dd>
-                    </dl>
+                    <p class="kartu__ket">{{ FormatHasil::persen($jamur['persen_cangkang']) }} memakai cangkang kopi</p>
+                    <div class="meter" aria-hidden="true"><span class="meter__isi" style="width: {{ min($jamur['persen_cangkang'], 100) }}%"></span></div>
                     @if (! empty($perubahan['jamur']))
                         <div class="kartu__kaki">@include('toko.partials.perubahan', ['p' => $perubahan['jamur'], 'label' => $labelLalu])</div>
                     @endif

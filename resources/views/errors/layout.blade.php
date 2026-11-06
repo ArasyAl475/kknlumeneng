@@ -11,7 +11,7 @@
         main { max-width: 32rem; }
         p.kode { margin: 0; font-weight: 700; color: #56605a; }
         h1 { margin: .25rem 0 .5rem; font-size: 1.75rem; line-height: 1.2; }
-        a { display: inline-flex; align-items: center; min-height: 44px; margin-top: .75rem; padding: 0 1rem; border-radius: 6px; background: #5a3a20; color: #fff; font-weight: 700; text-decoration: none; }
+        a { display: inline-flex; align-items: center; min-height: 44px; margin-top: .75rem; padding: 0 1rem; border-radius: 6px; background: #164e32; color: #fff; font-weight: 700; text-decoration: none; }
         a:focus-visible { outline: 3px solid #1e2421; outline-offset: 2px; }
     </style>
 </head>

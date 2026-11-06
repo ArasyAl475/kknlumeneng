@@ -25,7 +25,7 @@ class HalamanHasilTest extends TestCase
             ->assertSee('Krajan')
             ->assertSee('05-10-2026')
             ->assertSee('8,50 kg')
-            ->assertSee('Panen jamur dengan cangkang kopi')
+            ->assertSee('100,0% memakai cangkang kopi')
             ->assertSee('2,50 kg')
             ->assertSee('Rp 1.500.000');
     }
