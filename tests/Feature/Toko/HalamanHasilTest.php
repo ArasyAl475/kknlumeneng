@@ -138,12 +138,13 @@ class HalamanHasilTest extends TestCase
         $this->get('/toko/hasil')->assertOk()->assertDontSee('<script>x</script>', false);
     }
 
-    public function test_menu_toko_membuka_katalog_saat_modul_menyala(): void
+    public function test_menu_toko_membuka_etalase_dan_katalog_saat_modul_menyala(): void
     {
         config(['modul.toko.aktif' => true]);
 
         $this->get('/')->assertSee(route('toko.index'), false);
-        $this->get('/toko')->assertOk()->assertSee('Katalog Produk Sederhana');
+        $this->get('/toko')->assertOk();
+        $this->get('/toko/katalog')->assertOk()->assertSee('Katalog Produk Sederhana');
         $this->get('/toko/hasil')->assertOk();
     }
 

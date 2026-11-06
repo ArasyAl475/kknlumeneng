@@ -11,7 +11,7 @@ class KatalogTest extends TestCase
 
     public function test_warga_dapat_melihat_katalog_produk_sederhana(): void
     {
-        $response = $this->get('/toko');
+        $response = $this->get('/toko/katalog');
 
         $response->assertOk()
             ->assertSee('Koci Circular')
@@ -29,7 +29,7 @@ class KatalogTest extends TestCase
 
     public function test_katalog_memuat_filter_dan_kategori(): void
     {
-        $response = $this->get('/toko');
+        $response = $this->get('/toko/katalog');
 
         $response->assertOk()
             ->assertSee('Jamur Tiram &amp; Olahan', false)
