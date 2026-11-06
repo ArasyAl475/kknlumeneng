@@ -5,6 +5,7 @@ namespace Tests\Feature\Toko;
 use App\Models\Toko\PanenJamur;
 use App\Models\Toko\PanenKopi;
 use App\Models\Toko\PenjualanJamur;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -102,12 +103,24 @@ class HalamanHasilTest extends TestCase
         $this->get('/toko/hasil')->assertOk()->assertDontSee('<script>x</script>', false);
     }
 
-    public function test_menu_toko_membuka_rekap_saat_modul_menyala(): void
+    public function test_menu_toko_membuka_katalog_saat_modul_menyala(): void
     {
         config(['modul.toko.aktif' => true]);
 
         $this->get('/')->assertSee(route('toko.index'), false);
-        $this->get('/toko')->assertRedirect('/toko/hasil');
+        $this->get('/toko')->assertOk()->assertSee('Katalog Produk Sederhana');
+        $this->get('/toko/hasil')->assertOk();
+    }
+
+    public function test_tombol_catat_limbah_hanya_tampil_untuk_admin(): void
+    {
+        $this->get('/toko/hasil')->assertOk()->assertDontSee('Catat limbah');
+
+        $this->actingAs(User::factory()->create());
+        $this->get('/toko/hasil')->assertOk()->assertDontSee('Catat limbah');
+
+        $this->actingAs(User::factory()->admin()->create());
+        $this->get('/toko/hasil')->assertOk()->assertSee('Catat limbah')->assertSee(route('admin.toko.panen-kopi.create'), false);
     }
 
     public function test_menu_toko_tersembunyi_saat_modul_mati(): void

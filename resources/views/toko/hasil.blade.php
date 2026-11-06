@@ -178,6 +178,12 @@
                         <div class="kartu__kaki">@include('toko.partials.perubahan', ['p' => $perubahan['limbah'], 'label' => $labelLalu])</div>
                     @endif
                 @endif
+                {{-- Pintu catat limbah hanya untuk admin; pengunjung biasa tidak melihat tombol yang berujung halaman masuk. --}}
+                @if (auth()->user()?->is_admin)
+                    <div class="kartu__kaki">
+                        <a href="{{ route('admin.toko.panen-kopi.create') }}" class="tombol-h tombol-h--tepi">Catat limbah</a>
+                    </div>
+                @endif
             </article>
 
             <article class="kartu kartu--angka">
