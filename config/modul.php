@@ -25,7 +25,7 @@ return [
         'deskripsi' => 'Bacaan tentang mitigasi longsor dan ekonomi sirkular.',
     ],
     // Limbah kopi dicatat bersama panen lewat panel admin, lalu tampil di halaman Hasil Panen (toko.hasil).
-    // Kartu landing membuka halaman Hasil Panen; tombol "Catat limbah" ada di sana khusus admin.
+    // Kartu landing membuka halaman Hasil Panen. Pencatatan tetap lewat admin (menu Panen kopi).
     // Ikut bendera MODUL_TOKO. 'menu_publik' => false: tidak dobel di menu atas (sudah ada Toko Desa).
     'limbah' => [
         'aktif' => (bool) env('MODUL_TOKO', false),
@@ -33,6 +33,6 @@ return [
         'rute' => 'toko.hasil',
         'ikon' => 'tanah',
         'menu_publik' => false,
-        'deskripsi' => 'Pantau limbah cangkang kopi dari panen warga. Pengelola mencatatnya langsung dari halaman Hasil Panen.',
+        'deskripsi' => 'Pantau limbah cangkang kopi dari panen warga, lengkap dengan grafik dan perbandingan hasil jamur.',
     ],
 ];

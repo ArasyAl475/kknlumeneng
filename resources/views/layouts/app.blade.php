@@ -89,7 +89,7 @@
                 </div>
             </div>
             <div class="mt-5 border-t border-white/15 pt-4 text-center text-xs text-white/50">
-                Program KKN / Aksara Peduli · Desa Lumeneng, Kec. Paninggaran, Kab. Pekalongan
+                Program KKN / Aksara Peduli Universitas Ivet · Desa Lumeneng, Kec. Paninggaran, Kab. Pekalongan
             </div>
         </div>
     </footer>

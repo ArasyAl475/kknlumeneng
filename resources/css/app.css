@@ -127,6 +127,120 @@
 }
 
 @layer components {
+    /*
+     * Tema hijau panel admin: hanya menimpa token warna di bawah <body class="tema-admin">,
+     * sehingga semua kelas bg-kopi / bg-kertas / border-garis-halus di halaman admin ikut berubah
+     * tanpa mengubah halaman publik. Hijau ini warna merek; status tetap dibaca lewat ikon + kata.
+     */
+    .tema-admin {
+        --color-kertas: #e9f3ec;
+        --color-permukaan: #ffffff;
+        --color-tinta: #141e18;
+        --color-redup: #404942;
+        --color-garis-halus: #cfdcd2;
+        --color-kopi: #164e32;
+        --color-kopi-tua: #00361f;
+    }
+
+    /* Menu tetap bisa digulir (roda tetikus, sentuh, panah keyboard); hanya batang gulirnya yang disembunyikan. */
+    .tanpa-batang-gulir {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .tanpa-batang-gulir::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Sidebar admin */
+    .menu-admin__judul {
+        margin: 1.4rem 0.75rem 0.4rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: rgb(151 245 204 / 0.7);
+    }
+
+    .menu-admin__item {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        min-height: 2.75rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.75rem;
+        color: rgb(255 255 255 / 0.82);
+        font-weight: 500;
+        transition: background-color 150ms ease, color 150ms ease;
+    }
+
+    .menu-admin__item:hover {
+        background: rgb(255 255 255 / 0.08);
+        color: #fff;
+    }
+
+    .menu-admin__item:focus-visible {
+        outline-color: #fff;
+    }
+
+    /* Menu aktif dibedakan dari tiga hal sekaligus: latar, huruf tebal, dan garis mint di kiri. */
+    .menu-admin__item.is-aktif {
+        background: rgb(255 255 255 / 0.14);
+        box-shadow: inset 3px 0 0 #6cf8bb;
+        color: #fff;
+        font-weight: 700;
+    }
+
+    .menu-admin__ikon {
+        width: 1.25rem;
+        height: 1.25rem;
+        flex: none;
+        opacity: 0.75;
+    }
+
+    .menu-admin__item.is-aktif .menu-admin__ikon {
+        color: #6cf8bb;
+        opacity: 1;
+    }
+
+    .menu-admin__label {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .menu-admin__lencana {
+        padding: 0.05rem 0.5rem;
+        border-radius: 999px;
+        background: var(--color-waspada);
+        color: var(--color-tinta);
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    .menu-admin__pengguna {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-top: 1rem;
+        padding: 0.75rem;
+        border-radius: 0.75rem;
+        background: rgb(255 255 255 / 0.08);
+        font-size: 0.9rem;
+    }
+
+    .menu-admin__avatar {
+        display: grid;
+        flex: none;
+        place-items: center;
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 999px;
+        background: #6cf8bb;
+        color: #00361f;
+        font-weight: 700;
+    }
+
     /* Warna status dikendalikan satu atribut agar Blade dan JavaScript memakai aturan tampilan yang sama. */
     [data-warna='hijau'] {
         --status-isi: var(--color-aman);
