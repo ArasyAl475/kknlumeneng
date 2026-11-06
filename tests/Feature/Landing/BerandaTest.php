@@ -5,6 +5,7 @@ namespace Tests\Feature\Landing;
 use App\Models\Ews\Pembacaan;
 use App\Models\Ews\Wilayah;
 use App\Services\Landing\RingkasanEws;
+use App\Support\Modul;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -27,6 +28,28 @@ class BerandaTest extends TestCase
         config(['modul.toko.aktif' => false]);
 
         $this->get('/')->assertSee('Toko Desa')->assertSee('Segera hadir')->assertDontSee('/toko"', false);
+    }
+
+    public function test_kartu_catat_limbah_membuka_halaman_hasil_panen_saat_toko_menyala(): void
+    {
+        config(['modul.limbah.aktif' => true]);
+
+        $this->get('/')->assertSee('Catat Limbah')->assertSee(route('toko.hasil'), false);
+    }
+
+    public function test_kartu_catat_limbah_tidak_masuk_menu_atas(): void
+    {
+        config(['modul.limbah.aktif' => true]);
+
+        $this->assertArrayNotHasKey('limbah', Modul::tersedia());
+        $this->assertTrue(Modul::semua()['limbah']['tersedia']);
+    }
+
+    public function test_kartu_catat_limbah_segera_hadir_saat_toko_mati(): void
+    {
+        config(['modul.limbah.aktif' => false]);
+
+        $this->get('/')->assertSee('Catat Limbah')->assertDontSee(route('toko.hasil'), false);
     }
 
     public function test_tanpa_data_menampilkan_keadaan_belum_ada_data(): void

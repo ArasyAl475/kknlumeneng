@@ -1,17 +1,13 @@
 <?php
 
-use App\Http\Controllers\Toko\BeliController;
-use App\Http\Controllers\Toko\ProdukController;
-use App\Http\Controllers\Toko\TokoController;
-use App\Services\Toko\DaftarMarketplace;
+use App\Http\Controllers\Toko\EksporController;
+use App\Http\Controllers\Toko\HasilController;
+use App\Http\Controllers\Toko\KatalogController;
 use Illuminate\Support\Facades\Route;
 
-// Rute publik modul Toko. Nama rute: toko.* (toko.index dipakai config/modul.php).
-Route::get('/toko', [TokoController::class, 'index'])->name('toko.index');
-
-Route::prefix('toko/{marketplace}')->whereIn('marketplace', DaftarMarketplace::KUNCI)->group(function () {
-    Route::get('/', [TokoController::class, 'marketplace'])->name('toko.marketplace');
-    Route::get('{produk:slug}', ProdukController::class)->name('toko.produk');
-    // Pengalih ke marketplace agar klik bisa dihitung; tujuannya selalu tautan dari basis data.
-    Route::get('{produk:slug}/beli', BeliController::class)->middleware('throttle:30,1')->name('toko.beli');
-});
+// Rute publik modul Toko (Katalog Produk & Rekap Hasil). Nama rute: toko.*
+Route::get('/toko', [KatalogController::class, 'index'])->name('toko.index');
+Route::get('/toko/katalog', [KatalogController::class, 'index'])->name('toko.katalog');
+Route::get('/toko/hasil', [HasilController::class, 'index'])->name('toko.hasil');
+// Pembuatan berkas lebih berat dari halaman biasa, jadi dibatasi lajunya.
+Route::get('/toko/hasil/excel', EksporController::class)->middleware('throttle:20,1')->name('toko.hasil.excel');

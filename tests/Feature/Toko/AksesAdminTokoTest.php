@@ -17,15 +17,12 @@ class AksesAdminTokoTest extends TestCase
      */
     private function semuaRuteToko(): array
     {
-        $contoh = ['{marketplace}' => 'shopee', '{arah}' => 'naik'];
         $daftar = [];
 
         foreach (Route::getRoutes()->getRoutes() as $rute) {
             if (str_starts_with($rute->uri(), 'admin/toko')) {
-                $uri = preg_replace('/\{[^}]+\}/', '1', strtr($rute->uri(), $contoh));
-
                 foreach (array_diff($rute->methods(), ['HEAD']) as $metode) {
-                    $daftar[] = [$metode, '/'.$uri];
+                    $daftar[] = [$metode, '/'.preg_replace('/\{[^}]+\}/', '1', $rute->uri())];
                 }
             }
         }
@@ -33,13 +30,10 @@ class AksesAdminTokoTest extends TestCase
         return $daftar;
     }
 
-    public function test_daftar_rute_tidak_kosong(): void
-    {
-        $this->assertGreaterThan(15, count($this->semuaRuteToko()));
-    }
-
     public function test_tamu_dialihkan_dari_semua_rute(): void
     {
+        $this->assertNotEmpty($this->semuaRuteToko());
+
         foreach ($this->semuaRuteToko() as [$metode, $uri]) {
             $this->withoutMiddleware(PreventRequestForgery::class)
                 ->call($metode, $uri)->assertRedirect(route('login'));
