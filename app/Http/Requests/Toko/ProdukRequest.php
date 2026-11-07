@@ -36,7 +36,9 @@ class ProdukRequest extends FormRequest
         $aturan = [
             'nama' => ['required', 'string', 'max:120'],
             'deskripsi' => ['nullable', 'string', 'max:5000'],
-            'harga' => ['nullable', 'integer', 'min:0', 'max:100000000'],
+            // Harga wajib karena pembeli memutuskan membeli dari harga. Varian berharga tidak menggantikannya:
+            // harga ini jadi harga dasar bila varian dihapus atau semua variannya tidak tersedia.
+            'harga' => ['required', 'integer', 'min:1', 'max:100000000'],
             'tersedia' => ['required', 'boolean'],
             'tampil' => ['required', 'boolean'],
             'urutan' => ['nullable', 'integer', 'min:0', 'max:999'],
@@ -93,6 +95,11 @@ class ProdukRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'nama.required' => 'Nama produk wajib diisi.',
+            'nama.max' => 'Nama produk terlalu panjang. Tulis paling banyak 120 huruf.',
+            'harga.required' => 'Harga wajib diisi. Tulis angkanya saja, misalnya 25000.',
+            'harga.min' => 'Harga harus lebih dari 0.',
+            'harga.max' => 'Harga terlalu besar. Periksa lagi jumlah nolnya.',
             'varian.*.nama.required_with' => 'Varian yang diberi harga juga perlu diberi nama, misalnya "250 g".',
             'spesifikasi.*.label.required_with' => 'Isi nama spesifikasinya juga, misalnya "Berat".',
             'spesifikasi.*.nilai.required_with' => 'Isi spesifikasinya juga, misalnya "250 g".',

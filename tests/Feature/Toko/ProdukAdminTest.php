@@ -68,16 +68,49 @@ class ProdukAdminTest extends TestCase
         $this->assertDatabaseHas('toko_aktivitas', ['aksi' => 'tambah_produk']);
     }
 
-    public function test_produk_boleh_tanpa_harga_varian_dan_spesifikasi(): void
+    public function test_produk_boleh_tanpa_varian_spesifikasi_dan_tautan(): void
     {
         $this->post(route('admin.toko.produk.store'), [
-            'nama' => 'Abon Jamur', 'tersedia' => '1', 'tampil' => '1',
+            'nama' => 'Abon Jamur', 'harga' => '18000', 'tersedia' => '1', 'tampil' => '1',
         ])->assertSessionHasNoErrors();
 
         $produk = Produk::query()->sole();
-        $this->assertNull($produk->harga);
+        $this->assertSame(18000, $produk->harga);
         $this->assertNull($produk->spesifikasi);
-        $this->assertNull($produk->hargaTeks());
+        $this->assertSame('Rp 18.000', $produk->hargaTeks());
+    }
+
+    public function test_nama_dan_harga_wajib_diisi_dengan_pesan_yang_jelas(): void
+    {
+        $this->post(route('admin.toko.produk.store'), $this->isian(['nama' => '', 'harga' => '']))
+            ->assertSessionHasErrors([
+                'nama' => 'Nama produk wajib diisi.',
+                'harga' => 'Harga wajib diisi. Tulis angkanya saja, misalnya 25000.',
+            ]);
+
+        $this->assertSame(0, Produk::query()->count());
+    }
+
+    public function test_harga_nol_ditolak(): void
+    {
+        $this->post(route('admin.toko.produk.store'), $this->isian(['harga' => '0']))
+            ->assertSessionHasErrors(['harga' => 'Harga harus lebih dari 0.']);
+    }
+
+    public function test_alert_galat_dan_penanda_wajib_tampil_di_formulir(): void
+    {
+        $this->get(route('admin.toko.produk.create'))
+            ->assertOk()
+            ->assertSee('(wajib)')
+            ->assertSee('aria-required="true"', false);
+
+        $this->from(route('admin.toko.produk.create'))
+            ->followingRedirects()
+            ->post(route('admin.toko.produk.store'), $this->isian(['harga' => '']))
+            ->assertSee('role="alert"', false)
+            ->assertSee('Periksa kembali isian berikut')
+            ->assertSee('Harga wajib diisi')
+            ->assertSee('aria-invalid="true"', false);
     }
 
     public function test_tautan_dari_situs_lain_ditolak(): void

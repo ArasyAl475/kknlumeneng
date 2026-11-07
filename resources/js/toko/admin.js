@@ -5,6 +5,14 @@ document.querySelectorAll('form[data-konfirmasi]').forEach((form) => {
     });
 });
 
+// Setelah simpan gagal, langsung arahkan ke isian pertama yang salah agar admin tidak mencari sendiri.
+// Tanpa JavaScript, kotak alert di atas halaman tetap menjelaskan apa yang perlu dibetulkan.
+const isianSalah = document.querySelector('form [aria-invalid="true"]');
+if (isianSalah) {
+    isianSalah.focus({ preventScroll: true });
+    isianSalah.scrollIntoView({ block: 'center' });
+}
+
 // Tombol "Tambah baris" hanya muncul bila JavaScript jalan; tanpa itu form sudah menyediakan baris kosong.
 document.querySelectorAll('[data-tambah-baris]').forEach((tombol) => {
     const jenis = tombol.dataset.tambahBaris;

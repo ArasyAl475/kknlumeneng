@@ -38,9 +38,18 @@
             <input type="hidden" name="kembali" value="{{ $kembali }}">
         @endif
 
+        <p class="text-redup"><span class="font-bold text-awas" aria-hidden="true">*</span> Isian bertanda <strong>(wajib)</strong> harus diisi sebelum produk bisa disimpan.</p>
+
         <x-kartu judul="Data produk">
             <div class="space-y-4">
-                <x-bidang nama="nama" label="Nama produk" required maxlength="120" :value="old('nama', $produk->nama)" />
+                <div>
+                    <label for="nama" class="mb-1 block font-bold">Nama produk @include('admin.toko.produk.penanda-wajib')</label>
+                    <input id="nama" name="nama" type="text" required aria-required="true" maxlength="120" class="isian"
+                        value="{{ old('nama', $produk->nama) }}" @error('nama') aria-invalid="true" aria-describedby="nama-galat" @enderror>
+                    @error('nama')
+                        <p id="nama-galat" class="mt-1 text-sm font-bold text-awas">{{ $message }}</p>
+                    @enderror
+                </div>
 
                 <div>
                     <label for="deskripsi" class="mb-1 block font-bold">Deskripsi</label>
@@ -51,8 +60,16 @@
                     @enderror
                 </div>
 
-                <x-bidang nama="harga" label="Harga (Rp)" inputmode="numeric" maxlength="15" placeholder="contoh: 25000"
-                    :value="old('harga', $produk->harga)" bantuan="Boleh kosong. Kalau varian di bawah diberi harga, harga varian yang ditampilkan." />
+                <div>
+                    <label for="harga" class="mb-1 block font-bold">Harga (Rp) @include('admin.toko.produk.penanda-wajib')</label>
+                    <input id="harga" name="harga" type="text" inputmode="numeric" required aria-required="true" maxlength="15" class="isian"
+                        placeholder="contoh: 25000" value="{{ old('harga', $produk->harga) }}"
+                        aria-describedby="harga-bantuan @error('harga') harga-galat @enderror" @error('harga') aria-invalid="true" @enderror>
+                    <p id="harga-bantuan" class="mt-1 text-sm text-redup">Tulis angkanya saja. Kalau varian di bawah diberi harga, harga varian yang ditampilkan; harga ini tetap jadi harga dasar.</p>
+                    @error('harga')
+                        <p id="harga-galat" class="mt-1 text-sm font-bold text-awas">{{ $message }}</p>
+                    @enderror
+                </div>
 
                 <x-bidang nama="urutan" label="Urutan tampil" type="number" min="0" max="999" class="max-w-48"
                     :value="old('urutan', $produk->urutan ?? 0)" bantuan="Angka kecil tampil lebih dulu." />
