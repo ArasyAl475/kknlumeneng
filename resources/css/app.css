@@ -36,12 +36,45 @@
     --color-awas-lembut: #fbe5e3;
     --color-kosong: #56605a;
     --color-kosong-lembut: #ebe8e1;
+
+    /* Circularity Agritech (Stitch AI) Tokens */
+    --color-surface: #eaffea;
+    --color-surface-dim: #c8e0ca;
+    --color-surface-bright: #eaffea;
+    --color-surface-container-lowest: #ffffff;
+    --color-surface-container-low: #e1fae3;
+    --color-surface-container: #dcf4dd;
+    --color-surface-container-high: #d6efd7;
+    --color-surface-container-highest: #d0e9d2;
+    --color-on-surface: #0c2012;
+    --color-on-surface-variant: #414941;
+    --color-outline: #717970;
+    --color-outline-variant: #c1c9be;
+    --color-surface-tint: #396844;
+    --color-primary-container: #1e4d2b;
+    --color-on-primary-container: #8bbd92;
+    --color-on-primary: #ffffff;
+    --color-primary-fixed: #bbefc1;
+    --color-on-primary-fixed: #00210b;
+    --color-primary-fixed-dim: #a0d3a6;
+    --color-secondary: #79573f;
+    --color-secondary-container: #ffd1b3;
+    --color-on-secondary-container: #7a5840;
+    --color-secondary-fixed: #ffdcc6;
+    --color-secondary-fixed-dim: #eabda0;
+    --color-on-secondary-fixed: #2d1604;
+    --color-secondary-fixed-variant: #5f402a;
+    --color-tertiary: #003709;
+    --color-tertiary-container: #005011;
+    --color-on-tertiary-container: #73c46f;
+    --color-on-tertiary: #ffffff;
 }
 
 @layer base {
     html {
         font-size: 106.25%;
         -webkit-text-size-adjust: 100%;
+        scroll-behavior: smooth;
     }
 
     body {
@@ -94,6 +127,131 @@
 }
 
 @layer components {
+    /*
+     * Tema hijau: hanya menimpa token warna di bawah <body class="tema-admin"> (panel admin) atau
+     * <body class="tema-hijau"> (halaman publik), sehingga semua kelas bg-kopi / bg-kertas / border-garis-halus
+     * ikut berubah tanpa mengedit tiap halaman. Hijau ini warna merek (sama dengan halaman Hasil Panen);
+     * status tetap dibaca lewat ikon + kata, bukan warna saja.
+     */
+    .tema-admin,
+    .tema-hijau {
+        --color-permukaan: #ffffff;
+        --color-tinta: #141e18;
+        --color-redup: #404942;
+        --color-kopi: #164e32;
+        --color-kopi-tua: #00361f;
+    }
+
+    .tema-admin {
+        --color-kertas: #e9f3ec;
+        --color-garis-halus: #cfdcd2;
+    }
+
+    /* Halaman publik memakai latar mint yang sama dengan halaman Hasil Panen. */
+    .tema-hijau {
+        --color-kertas: #c3e6cd;
+        --color-garis-halus: #aacdb6;
+    }
+
+    /* Menu tetap bisa digulir (roda tetikus, sentuh, panah keyboard); hanya batang gulirnya yang disembunyikan. */
+    .tanpa-batang-gulir {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .tanpa-batang-gulir::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Sidebar admin */
+    .menu-admin__judul {
+        margin: 1.4rem 0.75rem 0.4rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: rgb(151 245 204 / 0.7);
+    }
+
+    .menu-admin__item {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        min-height: 2.75rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.75rem;
+        color: rgb(255 255 255 / 0.82);
+        font-weight: 500;
+        transition: background-color 150ms ease, color 150ms ease;
+    }
+
+    .menu-admin__item:hover {
+        background: rgb(255 255 255 / 0.08);
+        color: #fff;
+    }
+
+    .menu-admin__item:focus-visible {
+        outline-color: #fff;
+    }
+
+    /* Menu aktif dibedakan dari tiga hal sekaligus: latar, huruf tebal, dan garis mint di kiri. */
+    .menu-admin__item.is-aktif {
+        background: rgb(255 255 255 / 0.14);
+        box-shadow: inset 3px 0 0 #6cf8bb;
+        color: #fff;
+        font-weight: 700;
+    }
+
+    .menu-admin__ikon {
+        width: 1.25rem;
+        height: 1.25rem;
+        flex: none;
+        opacity: 0.75;
+    }
+
+    .menu-admin__item.is-aktif .menu-admin__ikon {
+        color: #6cf8bb;
+        opacity: 1;
+    }
+
+    .menu-admin__label {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .menu-admin__lencana {
+        padding: 0.05rem 0.5rem;
+        border-radius: 999px;
+        background: var(--color-waspada);
+        color: var(--color-tinta);
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    .menu-admin__pengguna {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-top: 1rem;
+        padding: 0.75rem;
+        border-radius: 0.75rem;
+        background: rgb(255 255 255 / 0.08);
+        font-size: 0.9rem;
+    }
+
+    .menu-admin__avatar {
+        display: grid;
+        flex: none;
+        place-items: center;
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 999px;
+        background: #6cf8bb;
+        color: #00361f;
+        font-weight: 700;
+    }
+
     /* Warna status dikendalikan satu atribut agar Blade dan JavaScript memakai aturan tampilan yang sama. */
     [data-warna='hijau'] {
         --status-isi: var(--color-aman);
@@ -160,4 +318,47 @@
     .tautan:hover {
         color: var(--color-kopi);
     }
+
+    /* Animasi ping untuk indikator live */
+    @keyframes ping {
+        75%, 100% {
+            transform: scale(2);
+            opacity: 0;
+        }
+    }
+
+    .animate-ping {
+        animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+
+    /* Utilitas Spasi & Tipografi Stitch AI (Circularity Agritech) */
+    .px-margin { padding-left: 1rem; padding-right: 1rem; }
+    .py-space-xs { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+    .pt-space-xs { padding-top: 0.25rem; }
+    .pb-space-sm { padding-bottom: 0.5rem; }
+    .pt-space-sm { padding-top: 0.5rem; }
+    .py-space-sm { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+    .pb-space-lg { padding-bottom: 1.5rem; }
+    .mb-space-lg { margin-bottom: 1.5rem; }
+    .px-space-xs { padding-left: 0.25rem; padding-right: 0.25rem; }
+    .gap-space-sm { gap: 0.5rem; }
+
+    .font-headline-sm { font-weight: 600; letter-spacing: -0.01em; }
+    .text-headline-sm { font-size: 1.125rem; line-height: 1.5rem; }
+    .font-label-sm { font-weight: 600; letter-spacing: 0.02em; }
+    .text-label-sm { font-size: 0.75rem; line-height: 1rem; }
+    .font-label-md { font-weight: 600; letter-spacing: 0.01em; }
+    .text-label-md { font-size: 0.875rem; line-height: 1.25rem; }
+    .font-label-lg { font-weight: 700; letter-spacing: 0.01em; }
+    .text-label-lg { font-size: 1rem; line-height: 1.5rem; }
+    .font-body-sm { font-size: 0.75rem; line-height: 1rem; }
+    .text-body-sm { font-size: 0.75rem; line-height: 1rem; }
+    .font-body-md { font-size: 0.875rem; line-height: 1.25rem; }
+    .text-body-md { font-size: 0.875rem; line-height: 1.25rem; }
+
+    .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+    .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 }
