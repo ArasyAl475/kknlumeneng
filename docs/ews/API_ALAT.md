@@ -1,7 +1,11 @@
 # Panduan API untuk alat (ESP32) — EWS Longsor Desa Lumeneng
 
 Dokumen ini untuk yang membuat alatnya. Website sudah siap menerima 4 sensor:
-kelembapan tanah, curah hujan, kemiringan, dan kelembapan udara.
+kelembapan tanah, intensitas hujan, kemiringan, dan kelembapan udara.
+
+> Perubahan 5-11-2026: field `curah_hujan` (mm/jam) DIGANTI `intensitas_hujan` (0–100 %) karena alat memakai
+> sensor hujan MH-RD yang hanya mengukur basah/kering, bukan jumlah hujan. Kiriman yang hanya berisi
+> `curah_hujan` kini ditolak (422). Langkah memasang alat: `docs/ews/PANDUAN_ESP32.md`.
 
 ## 1. Yang harus disiapkan dulu (di sisi website)
 
@@ -30,7 +34,7 @@ jadi GET dan datanya hilang tanpa pesan jelas.
 {
   "wilayah_id": 1,
   "kelembapan_tanah": 63.4,
-  "curah_hujan": 12.5,
+  "intensitas_hujan": 45.5,
   "kemiringan": 3.2,
   "kelembapan_udara": 88.0,
   "kabel_putus": false
@@ -41,10 +45,10 @@ jadi GET dan datanya hilang tanpa pesan jelas.
 |---|---|---|---|---|
 | `wilayah_id` | ya* | angka | — | ID dari Admin → Daftar wilayah. Alternatif: `lokasi` (nama persis, huruf besar-kecil dan spasi harus sama) |
 | `kelembapan_tanah` | tidak | % | 0 – 100 | Nama lama `kelembapan` juga diterima |
-| `curah_hujan` | tidak | **mm per jam** | 0 – 1000 | Total hujan **1 jam terakhir** (lihat bagian 5) |
+| `intensitas_hujan` | tidak | % | 0 – 100 | Seberapa basah papan sensor hujan: 0 = kering, 100 = basah kuyup (lihat bagian 5) |
 | `kemiringan` | tidak | derajat | −90 – 90 | Selisih sudut dari posisi saat alat dipasang (negatif/positif sama saja, yang dinilai nilai mutlaknya) |
 | `kelembapan_udara` | tidak | % | 0 – 100 | Hanya ditampilkan, tidak ikut menentukan status |
-| `kabel_putus` | tidak | true/false | — | Kirim `true` jika kabel EWS putus → wilayah langsung **AWAS** dan Telegram terkirim |
+| `kabel_putus` | tidak | true/false | — | Kirim `true` jika kabel EWS putus → wilayah langsung **AWAS** |
 
 \* Salah satu dari `wilayah_id` atau `lokasi`.
 
@@ -68,7 +72,8 @@ Aturan penting:
 | `429` | Terlalu sering | Kirim lebih jarang |
 | `5xx` / timeout | Server/sinyal bermasalah | Coba lagi nanti (mis. 30 detik, 1 menit, 2 menit) |
 
-Contoh balasan `201` (ringkas):
+Contoh balasan `201` (ringkas). Field `telegram_terkirim` selalu `null` dan hanya dipertahankan
+agar kontrak untuk firmware tidak berubah:
 
 ```json
 { "pesan": "Data tersimpan", "menunggu_validasi": false, "telegram_terkirim": null,
@@ -79,9 +84,10 @@ Jam data **diambil dari jam server**, jadi ESP32 tidak perlu RTC/NTP.
 
 ## 5. Penjelasan satuan (supaya angka alat dan ambang website sama)
 
-- **Curah hujan**: website menilai dalam **mm/jam**. Untuk tipping bucket, hitung jumlah ketukan
-  1 jam terakhir × volume per ketukan (mis. 0,2 mm). Contoh kode ada di `esp32_contoh.ino`.
-  Ambang awal: waspada 10 mm/jam (hujan lebat), validasi 20 mm/jam (sangat lebat) — acuan BMKG.
+- **Intensitas hujan**: persentase basah papan sensor MH-RD. Alat membaca nilai analog (AO), lalu mengubahnya
+  ke 0–100 % memakai nilai papan kering dan papan basah yang diukur sendiri (lihat `PANDUAN_ESP32.md`).
+  Ambang awal: waspada 40 %, validasi 70 % — SEMENTARA, tentukan bersama tim setelah alat diuji saat hujan.
+  Sensor ini tidak bisa mengukur mm hujan.
 - **Kemiringan**: ambang awal 5° (waspada) dan 15° (validasi) hanya angka **sementara**.
   Tentukan angka sebenarnya bersama tim setelah alat dikalibrasi, lalu ubah di Admin → Ambang batas sensor.
 - **Kelembapan tanah**: ambang awal 50% dan 80%. Kalibrasi sensor (nilai kering = 0%, basah = 100%) dilakukan di alat.
@@ -90,8 +96,8 @@ Jam data **diambil dari jam server**, jadi ESP32 tidak perlu RTC/NTP.
 
 - Semua sensor di bawah batas waspada → **Aman** (hijau)
 - Salah satu sensor ≥ batas waspada → **Waspada** (kuning)
-- Salah satu sensor ≥ batas validasi → tetap Waspada, tetapi **admin diminta memvalidasi** (Telegram dikirim sekali;
-  tidak dikirim berulang selama laporan menunggu atau baru diputuskan, 30 menit)
+- Salah satu sensor ≥ batas validasi → tetap Waspada, tetapi **admin diminta memvalidasi** (laporan baru tidak dibuat
+  berulang selama laporan menunggu atau baru diputuskan, 30 menit)
 - **Awas** (merah) hanya dari `kabel_putus: true` atau setelah admin menyetujui
 
 ## 7. Tes tanpa alat (dari laptop)
@@ -101,7 +107,7 @@ curl -i https://DOMAIN-KAMU/api/ping -H "X-API-KEY: ISI_KUNCI"
 
 curl -i -X POST https://DOMAIN-KAMU/api/sensor \
   -H "X-API-KEY: ISI_KUNCI" -H "Content-Type: application/json" -H "Accept: application/json" \
-  -d '{"wilayah_id":1,"kelembapan_tanah":63.4,"curah_hujan":12.5,"kemiringan":3.2,"kelembapan_udara":88}'
+  -d '{"wilayah_id":1,"kelembapan_tanah":63.4,"intensitas_hujan":45.5,"kemiringan":3.2,"kelembapan_udara":88}'
 ```
 
 ## 8. Catatan untuk modem

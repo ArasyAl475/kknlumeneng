@@ -22,7 +22,7 @@ class Pembacaan extends Model
     protected $table = 'ews_pembacaan';
 
     protected $fillable = [
-        'wilayah_id', 'kelembapan_tanah', 'curah_hujan', 'kemiringan', 'kelembapan_udara',
+        'wilayah_id', 'kelembapan_tanah', 'intensitas_hujan', 'kemiringan', 'kelembapan_udara',
         'kabel_putus', 'status', 'warna', 'pemicu', 'validasi', 'divalidasi_pada', 'divalidasi_oleh',
     ];
 
@@ -30,7 +30,8 @@ class Pembacaan extends Model
     {
         return [
             'kelembapan_tanah' => 'float',
-            'curah_hujan' => 'float',
+            'curah_hujan' => 'float', // kolom lama (mm/jam), hanya riwayat
+            'intensitas_hujan' => 'float',
             'kemiringan' => 'float',
             'kelembapan_udara' => 'float',
             'kabel_putus' => 'boolean',

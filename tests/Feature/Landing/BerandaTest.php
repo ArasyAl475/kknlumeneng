@@ -34,22 +34,38 @@ class BerandaTest extends TestCase
     {
         config(['modul.limbah.aktif' => true]);
 
-        $this->get('/')->assertSee('Catat Limbah')->assertSee(route('toko.hasil'), false);
+        $this->get('/')->assertSee('History Limbah')->assertSee(route('toko.hasil'), false);
     }
 
-    public function test_kartu_catat_limbah_tidak_masuk_menu_atas(): void
+    public function test_menu_atas_memuat_toko_edukasi_dan_history_limbah(): void
     {
-        config(['modul.limbah.aktif' => true]);
+        // Dipaksa menyala agar tes tidak bergantung pada isi .env di komputer masing-masing.
+        config(['modul.ews.aktif' => true, 'modul.toko.aktif' => true, 'modul.edukasi.aktif' => true, 'modul.limbah.aktif' => true]);
 
+        $menu = Modul::tersedia();
+
+        $this->assertSame(['ews', 'toko', 'edukasi', 'limbah'], array_keys($menu));
+
+        $html = $this->get('/')->assertOk()->getContent();
+        foreach (['toko.index', 'edukasi.index', 'toko.hasil'] as $rute) {
+            $this->assertStringContainsString('href="'.route($rute).'"', $html);
+        }
+        $this->assertStringNotContainsString('Segera hadir', $html);
+    }
+
+    public function test_menu_atas_tidak_memuat_limbah_saat_toko_mati(): void
+    {
+        config(['modul.toko.aktif' => false, 'modul.limbah.aktif' => false]);
+
+        $this->assertArrayNotHasKey('toko', Modul::tersedia());
         $this->assertArrayNotHasKey('limbah', Modul::tersedia());
-        $this->assertTrue(Modul::semua()['limbah']['tersedia']);
     }
 
     public function test_kartu_catat_limbah_segera_hadir_saat_toko_mati(): void
     {
         config(['modul.limbah.aktif' => false]);
 
-        $this->get('/')->assertSee('Catat Limbah')->assertDontSee(route('toko.hasil'), false);
+        $this->get('/')->assertSee('History Limbah')->assertDontSee(route('toko.hasil'), false);
     }
 
     public function test_tanpa_data_menampilkan_keadaan_belum_ada_data(): void

@@ -11,14 +11,15 @@ return [
         'deskripsi' => 'Pantau kondisi lereng Desa Lumeneng: kelembapan tanah, curah hujan, dan pergerakan tanah.',
     ],
     'toko' => [
-        'aktif' => (bool) env('MODUL_TOKO', false),
+        // Bawaan true karena modulnya sudah rampung. .env hanya dipakai untuk mematikan.
+        'aktif' => (bool) env('MODUL_TOKO', true),
         'nama' => 'Toko Desa',
         'rute' => 'toko.index',
         'ikon' => 'toko',
         'deskripsi' => 'Kopi, jamur tiram, dan produk warga Desa Lumeneng.',
     ],
     'edukasi' => [
-        'aktif' => (bool) env('MODUL_EDUKASI', false),
+        'aktif' => (bool) env('MODUL_EDUKASI', true),
         'nama' => 'Edukasi',
         'rute' => 'edukasi.index',
         'ikon' => 'buku',
@@ -26,13 +27,12 @@ return [
     ],
     // Limbah kopi dicatat bersama panen lewat panel admin, lalu tampil di halaman Hasil Panen (toko.hasil).
     // Kartu landing membuka halaman Hasil Panen. Pencatatan tetap lewat admin (menu Panen kopi).
-    // Ikut bendera MODUL_TOKO. 'menu_publik' => false: tidak dobel di menu atas (sudah ada Toko Desa).
+    // Ikut bendera MODUL_TOKO. Tampil juga di menu atas agar warga bisa langsung menuju halaman limbah.
     'limbah' => [
-        'aktif' => (bool) env('MODUL_TOKO', false),
-        'nama' => 'Catat Limbah',
+        'aktif' => (bool) env('MODUL_TOKO', true),
+        'nama' => 'History Limbah',
         'rute' => 'toko.hasil',
         'ikon' => 'tanah',
-        'menu_publik' => false,
         'deskripsi' => 'Pantau limbah cangkang kopi dari panen warga, lengkap dengan grafik dan perbandingan hasil jamur.',
     ],
 ];

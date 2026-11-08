@@ -152,7 +152,8 @@ body.hasil {
     box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
 }
 
-.hasil-kepala :focus-visible {
+.hasil-kepala :focus-visible,
+.hasil [data-navbar-publik] :focus-visible {
     outline-color: #fff;
 }
 

@@ -23,7 +23,7 @@ class PenilaianStatus
     public const WARNA_KOSONG = 'kosong';
 
     // Kelembapan udara sengaja tidak ada di sini: hanya ditampilkan, tidak ikut menentukan status.
-    public const SENSOR_DINILAI = ['kelembapan_tanah', 'curah_hujan', 'kemiringan'];
+    public const SENSOR_DINILAI = ['kelembapan_tanah', 'intensitas_hujan', 'kemiringan'];
 
     private const PERINGKAT = [self::WARNA_KOSONG => 0, 'hijau' => 1, 'kuning' => 2, 'merah' => 3];
 
@@ -166,7 +166,7 @@ class PenilaianStatus
 
         return match ($sensor) {
             'kelembapan_tanah' => "Kelembapan tanah {$angka}%",
-            'curah_hujan' => "Curah hujan {$angka} mm/jam",
+            'intensitas_hujan' => "Intensitas hujan {$angka}%",
             'kemiringan' => "Kemiringan {$angka}°",
             'kelembapan_udara' => "Kelembapan udara {$angka}%",
         };

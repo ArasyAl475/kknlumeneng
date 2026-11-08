@@ -17,7 +17,7 @@ class PengaturanAdminTest extends TestCase
 
     private const AMBANG = [
         'kelembapan_tanah_waspada' => 55, 'kelembapan_tanah_validasi' => 85,
-        'curah_hujan_waspada' => 12.5, 'curah_hujan_validasi' => 25,
+        'intensitas_hujan_waspada' => 12.5, 'intensitas_hujan_validasi' => 25,
         'kemiringan_waspada' => 3, 'kemiringan_validasi' => 9,
     ];
 
@@ -36,7 +36,7 @@ class PengaturanAdminTest extends TestCase
         $this->put(route('admin.ews.ambang.update'), self::AMBANG)->assertSessionHas('sukses');
 
         $this->assertSame(['waspada' => 3.0, 'validasi' => 9.0], Pengaturan::ambang()['kemiringan']);
-        $this->assertSame(['waspada' => 12.5, 'validasi' => 25.0], Pengaturan::ambang()['curah_hujan']);
+        $this->assertSame(['waspada' => 12.5, 'validasi' => 25.0], Pengaturan::ambang()['intensitas_hujan']);
         $this->assertStringContainsString('Kemiringan: 5/15 menjadi 3/9', Aktivitas::query()->sole()->keterangan);
     }
 
@@ -60,11 +60,11 @@ class PengaturanAdminTest extends TestCase
     {
         return [
             'validasi sama dengan waspada' => [['kelembapan_tanah_validasi' => 55], 'kelembapan_tanah_validasi'],
-            'validasi di bawah waspada' => [['curah_hujan_validasi' => 5], 'curah_hujan_validasi'],
+            'validasi di bawah waspada' => [['intensitas_hujan_validasi' => 5], 'intensitas_hujan_validasi'],
             'kemiringan terbalik' => [['kemiringan_waspada' => 20], 'kemiringan_validasi'],
             'tanah lewat 100' => [['kelembapan_tanah_validasi' => 101], 'kelembapan_tanah_validasi'],
             'kemiringan lewat 90' => [['kemiringan_validasi' => 91], 'kemiringan_validasi'],
-            'waspada nol' => [['curah_hujan_waspada' => 0], 'curah_hujan_waspada'],
+            'waspada nol' => [['intensitas_hujan_waspada' => 0], 'intensitas_hujan_waspada'],
             'kosong' => [['kemiringan_waspada' => ''], 'kemiringan_waspada'],
         ];
     }
@@ -180,7 +180,7 @@ class PengaturanAdminTest extends TestCase
     {
         $a = Wilayah::factory()->create(['nama' => '=HYPERLINK("x")']);
         $b = Wilayah::factory()->create(['nama' => 'Lain']);
-        Pembacaan::factory()->create(['wilayah_id' => $a->id, 'kelembapan_tanah' => 63.4, 'curah_hujan' => null]);
+        Pembacaan::factory()->create(['wilayah_id' => $a->id, 'kelembapan_tanah' => 63.4, 'intensitas_hujan' => null]);
         Pembacaan::factory()->create(['wilayah_id' => $b->id]);
 
         $respons = $this->get(route('admin.ews.riwayat.ekspor', ['wilayah' => $a->id]))->assertOk();
@@ -206,7 +206,7 @@ class PengaturanAdminTest extends TestCase
 
     public function test_status_alat_online_offline_dan_tanpa_rahasia(): void
     {
-        config(['ews.alat_offline_menit' => 15, 'ews.api_key' => 'KUNCI-RAHASIA', 'ews.telegram.token' => 'TOKEN-RAHASIA', 'ews.telegram.chat_id' => 'c']);
+        config(['ews.alat_offline_menit' => 15, 'ews.api_key' => 'KUNCI-RAHASIA']);
         $hidup = Wilayah::factory()->create(['nama' => 'Hidup']);
         $mati = Wilayah::factory()->create(['nama' => 'Mati']);
         Wilayah::factory()->create(['nama' => 'Baru']);
@@ -215,15 +215,15 @@ class PengaturanAdminTest extends TestCase
 
         $this->get(route('admin.ews.alat'))->assertOk()
             ->assertSeeInOrder(['Hidup', 'Mengirim', 'Mati', 'Tidak mengirim', 'Baru', 'Belum terhubung'])
-            ->assertDontSee('KUNCI-RAHASIA')->assertDontSee('TOKEN-RAHASIA')
+            ->assertDontSee('KUNCI-RAHASIA')
             ->assertDontSee('masih kosong');
     }
 
     public function test_status_alat_memperingatkan_konfigurasi_kosong(): void
     {
-        config(['ews.api_key' => '', 'ews.telegram.token' => null]);
+        config(['ews.api_key' => '']);
 
-        $this->get(route('admin.ews.alat'))->assertSee('EWS_API_KEY di .env masih kosong')->assertSee('Telegram belum diatur');
+        $this->get(route('admin.ews.alat'))->assertSee('EWS_API_KEY di .env masih kosong');
     }
 
     public function test_simulator_menolak_kiriman_kosong_dan_berfungsi(): void

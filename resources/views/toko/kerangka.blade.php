@@ -1,5 +1,5 @@
-{{-- Kerangka halaman hasil panen: header dan footer mengikuti rancangan Stitch "AgroLumeneng Rural Intelligence".
-     Sengaja terpisah dari layouts/app agar berkas bersama tidak berubah; gabungkan lewat PR fondasi bila ingin dipakai semua halaman. --}}
+{{-- Kerangka halaman hasil panen: isi dan footer mengikuti rancangan Stitch "AgroLumeneng Rural Intelligence".
+     Navbar atas memakai partial bersama (layouts/partials/navbar-publik) agar sama dengan halaman publik lain. --}}
 @php
     $ews = \App\Support\Modul::tersedia()['ews'] ?? null;
 @endphp
@@ -18,29 +18,12 @@
     @vite(['resources/css/app.css', 'resources/css/toko-hasil.css', 'resources/js/toko/hasil.js'])
     @stack('kepala')
 </head>
-<body class="hasil">
+<body class="hasil tema-hijau">
+    <x-ikon-sprite />
     <a href="#isi" class="lompat">Lompat ke isi</a>
 
-    <header class="hasil-kepala">
-        <div class="hasil-lebar hasil-kepala__baris">
-            <a href="{{ route('landing') }}" class="hasil-merek">
-                <span class="hasil-merek__ikon">@include('toko.partials.ikon', ['nama' => 'pohon', 'kelas' => 'size-6'])</span>
-                <span class="hasil-merek__teks">
-                    <span class="hasil-merek__baris">
-                        <span class="hasil-merek__nama">Desa Lumeneng</span>
-                        <span class="lencana lencana--mint hasil-merek__lencana">Agraria Terpadu</span>
-                    </span>
-                    <span class="hasil-merek__wilayah">Kec. Paninggaran, Kab. Pekalongan</span>
-                </span>
-            </a>
-            @if ($ews)
-                <a href="{{ route($ews['rute']) }}" class="tombol-peringatan">
-                    @include('toko.partials.ikon', ['nama' => 'peringatan', 'kelas' => 'size-5'])
-                    {{ $ews['nama'] }}
-                </a>
-            @endif
-        </div>
-    </header>
+    {{-- Navbar sama dengan halaman lain (Toko, Edukasi, Peringatan Dini) supaya warga tidak "terkunci" di halaman ini. --}}
+    @include('layouts.partials.navbar-publik')
 
     <main id="isi" class="hasil-lebar hasil-isi">
         @yield('isi')

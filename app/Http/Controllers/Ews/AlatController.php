@@ -27,7 +27,7 @@ class AlatController extends Controller
         return response()->json([
             'pesan' => 'Data tersimpan',
             'menunggu_validasi' => $pembacaan->validasi === Pembacaan::VALIDASI_MENUNGGU,
-            // Selalu null: pesan baru dikirim setelah respons ini, agar alat tidak menunggu Telegram.
+            // Selalu null. Dipertahankan karena firmware alat sudah mengikuti kontrak API ini.
             'telegram_terkirim' => null,
             'waktu_server' => now()->toIso8601String(),
             'data' => ['id' => $pembacaan->id, 'status' => $pembacaan->status, 'warna' => $pembacaan->warna],
