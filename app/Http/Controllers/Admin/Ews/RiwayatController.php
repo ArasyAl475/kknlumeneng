@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class RiwayatController extends Controller
 {
-    private const KOLOM_CSV = ['id', 'waktu', 'wilayah', 'kelembapan_tanah', 'curah_hujan', 'kemiringan', 'kelembapan_udara', 'kabel_putus', 'status', 'pemicu', 'validasi'];
+    private const KOLOM_CSV = ['id', 'waktu', 'wilayah', 'kelembapan_tanah', 'intensitas_hujan', 'curah_hujan_lama', 'kemiringan', 'kelembapan_udara', 'kabel_putus', 'status', 'pemicu', 'validasi'];
 
     public function index(RiwayatRequest $request): View
     {
@@ -38,6 +38,7 @@ class RiwayatController extends Controller
                     $p->created_at->format('Y-m-d H:i:s'),
                     self::selAman($p->wilayah->nama),
                     $p->kelembapan_tanah,
+                    $p->intensitas_hujan,
                     $p->curah_hujan,
                     $p->kemiringan,
                     $p->kelembapan_udara,

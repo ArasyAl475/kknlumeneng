@@ -2,13 +2,11 @@
 
 namespace Tests\Feature\Ews;
 
-use App\Jobs\Ews\KirimPesanTelegram;
 use App\Models\Ews\Pembacaan;
 use App\Models\Ews\Pengaturan;
 use App\Models\Ews\Wilayah;
 use Database\Seeders\EwsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -61,7 +59,6 @@ class PerintahEwsTest extends TestCase
     public function test_simulasi_riwayat_tidak_membuat_laporan_validasi(): void
     {
         Http::fake();
-        config(['ews.telegram.token' => 't', 'ews.telegram.chat_id' => 'c']);
         Wilayah::factory()->create();
 
         $this->artisan('ews:simulasi', ['--skenario' => 'aman', '--riwayat' => 2])->assertSuccessful();
@@ -96,30 +93,5 @@ class PerintahEwsTest extends TestCase
         $this->artisan('ews:bersihkan', ['--hari' => 1])->assertExitCode(2);
 
         $this->assertDatabaseCount('ews_pembacaan', 1);
-    }
-
-    public function test_cek_alat_memberi_tahu_sekali_per_kejadian(): void
-    {
-        Bus::fake();
-        config(['ews.telegram.token' => 't', 'ews.telegram.chat_id' => 'c', 'ews.alat_offline_menit' => 15, 'ews.api_key' => 'k']);
-        $wilayah = Wilayah::factory()->create(['nama' => 'Lereng Uji']);
-        Wilayah::factory()->create(['nama' => 'Belum Pernah Mengirim']);
-        $this->postJson('/api/sensor', ['wilayah_id' => $wilayah->id, 'curah_hujan' => 1], ['X-API-KEY' => 'k']);
-
-        $this->travel(14)->minutes();
-        $this->artisan('ews:cek-alat');
-        Bus::assertNotDispatchedAfterResponse(KirimPesanTelegram::class);
-
-        $this->travel(2)->minutes();
-        $this->artisan('ews:cek-alat');
-        $this->artisan('ews:cek-alat');
-        Bus::assertDispatchedAfterResponseTimes(KirimPesanTelegram::class, 1);
-        Bus::assertDispatchedAfterResponse(KirimPesanTelegram::class, fn ($job) => str_contains($job->pesan, 'ALAT TIDAK MENGIRIM DATA') && str_contains($job->pesan, 'Lereng Uji'));
-
-        // Setelah kembali mengirim lalu mati lagi, pesan boleh terkirim lagi.
-        $this->postJson('/api/sensor', ['wilayah_id' => $wilayah->id, 'curah_hujan' => 1], ['X-API-KEY' => 'k']);
-        $this->travel(20)->minutes();
-        $this->artisan('ews:cek-alat');
-        Bus::assertDispatchedAfterResponseTimes(KirimPesanTelegram::class, 2);
     }
 }

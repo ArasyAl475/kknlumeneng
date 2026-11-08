@@ -11,14 +11,14 @@ class PenilaianStatusTest extends TestCase
 {
     private const AMBANG = [
         'kelembapan_tanah' => ['waspada' => 50, 'validasi' => 80],
-        'curah_hujan' => ['waspada' => 10, 'validasi' => 20],
+        'intensitas_hujan' => ['waspada' => 40, 'validasi' => 70],
         'kemiringan' => ['waspada' => 5, 'validasi' => 15],
     ];
 
     // Nilai contoh per sensor per level.
     private const CONTOH = [
         'kelembapan_tanah' => [0 => 30.0, 1 => 60.0, 2 => 90.0],
-        'curah_hujan' => [0 => 2.0, 1 => 12.0, 2 => 25.0],
+        'intensitas_hujan' => [0 => 10.0, 1 => 50.0, 2 => 80.0],
         'kemiringan' => [0 => 1.0, 1 => 7.0, 2 => 20.0],
     ];
 
@@ -46,7 +46,7 @@ class PenilaianStatusTest extends TestCase
     {
         $bacaan = [
             'kelembapan_tanah' => $tanah === null ? null : self::CONTOH['kelembapan_tanah'][$tanah],
-            'curah_hujan' => $hujan === null ? null : self::CONTOH['curah_hujan'][$hujan],
+            'intensitas_hujan' => $hujan === null ? null : self::CONTOH['intensitas_hujan'][$hujan],
             'kemiringan' => $miring === null ? null : self::CONTOH['kemiringan'][$miring],
         ];
 
@@ -56,7 +56,7 @@ class PenilaianStatusTest extends TestCase
         $this->assertSame($tertinggi === 0 ? 'Aman' : 'Waspada', $hasil['status']);
         $this->assertSame($tertinggi === 0 ? 'hijau' : 'kuning', $hasil['warna']);
         $this->assertSame($tertinggi === 2, $hasil['perlu_validasi']);
-        $this->assertSame(['kelembapan_tanah' => $tanah, 'curah_hujan' => $hujan, 'kemiringan' => $miring], $hasil['level']);
+        $this->assertSame(['kelembapan_tanah' => $tanah, 'intensitas_hujan' => $hujan, 'kemiringan' => $miring], $hasil['level']);
 
         // Angka sensor saja tidak pernah menghasilkan Awas.
         $this->assertNotSame('Awas', $hasil['status']);
@@ -79,7 +79,7 @@ class PenilaianStatusTest extends TestCase
 
         $this->assertSame('Aman', $hasil['status']);
         $this->assertNull($hasil['pemicu']);
-        $this->assertSame(['kelembapan_tanah' => null, 'curah_hujan' => null, 'kemiringan' => null], $hasil['level']);
+        $this->assertSame(['kelembapan_tanah' => null, 'intensitas_hujan' => null, 'kemiringan' => null], $hasil['level']);
     }
 
     public function test_kabel_putus_selalu_awas_tanpa_validasi(): void
