@@ -18,7 +18,7 @@ class PembacaanFactory extends Factory
         return [
             'wilayah_id' => Wilayah::factory(),
             'kelembapan_tanah' => 30,
-            'curah_hujan' => 1,
+            'intensitas_hujan' => 5,
             'kemiringan' => 0.5,
             'kelembapan_udara' => 70,
             'kabel_putus' => false,

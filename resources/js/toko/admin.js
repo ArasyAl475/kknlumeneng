@@ -1,9 +1,19 @@
+import './unggah-foto.js';
+
 // Konfirmasi sebelum menghapus. Tanpa JavaScript, aksi tetap berjalan dan tercatat di log aktivitas.
 document.querySelectorAll('form[data-konfirmasi]').forEach((form) => {
     form.addEventListener('submit', (e) => {
         if (!window.confirm(form.dataset.konfirmasi)) e.preventDefault();
     });
 });
+
+// Setelah simpan gagal, langsung arahkan ke isian pertama yang salah agar admin tidak mencari sendiri.
+// Tanpa JavaScript, kotak alert di atas halaman tetap menjelaskan apa yang perlu dibetulkan.
+const isianSalah = document.querySelector('form [aria-invalid="true"]');
+if (isianSalah) {
+    isianSalah.focus({ preventScroll: true });
+    isianSalah.scrollIntoView({ block: 'center' });
+}
 
 // Tombol "Tambah baris" hanya muncul bila JavaScript jalan; tanpa itu form sudah menyediakan baris kosong.
 document.querySelectorAll('[data-tambah-baris]').forEach((tombol) => {

@@ -25,7 +25,7 @@ class HalamanHasilTest extends TestCase
             ->assertSee('Krajan')
             ->assertSee('05-10-2026')
             ->assertSee('8,50 kg')
-            ->assertSee('Panen jamur dengan cangkang kopi')
+            ->assertSee('100,0% memakai cangkang kopi')
             ->assertSee('2,50 kg')
             ->assertSee('Rp 1.500.000');
     }
@@ -155,6 +155,20 @@ class HalamanHasilTest extends TestCase
         $html = $this->get('/toko/hasil')->assertOk()->getContent();
 
         $this->assertSame(4, substr_count($html, 'ikon-seri'));
+    }
+
+    public function test_navbar_halaman_hasil_sama_dengan_halaman_lain(): void
+    {
+        // Dipaksa menyala agar tes tidak bergantung pada isi .env di komputer masing-masing.
+        config(['modul.ews.aktif' => true, 'modul.toko.aktif' => true, 'modul.edukasi.aktif' => true, 'modul.limbah.aktif' => true]);
+
+        $respons = $this->get('/toko/hasil')->assertOk()
+            ->assertSee('data-navbar-publik', false)
+            ->assertSee('History Limbah');
+
+        foreach (['landing', 'ews.index', 'toko.index', 'edukasi.index', 'toko.hasil'] as $rute) {
+            $respons->assertSee('href="'.route($rute).'"', false);
+        }
     }
 
     public function test_menu_toko_tersembunyi_saat_modul_mati(): void

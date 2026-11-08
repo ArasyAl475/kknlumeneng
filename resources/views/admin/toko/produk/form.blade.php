@@ -19,7 +19,18 @@
         old('varian', $produk->varian->map(fn ($v) => ['nama' => $v->nama, 'harga' => $v->harga, 'tersedia' => $v->tersedia ? '1' : '0'])->all()),
         ['nama' => '', 'harga' => '', 'tersedia' => '1'],
     );
-    $barisSpesifikasi = $isiBaris(old('spesifikasi', $produk->spesifikasi ?? []), ['label' => '', 'nilai' => '']);
+    $barisSpesifikasi = $isiBaris(old('spesifikasi', $spesifikasiTambahan), ['label' => '', 'nilai' => '']);
+
+    // Contoh hanya petunjuk ketik (placeholder), bukan nilai bawaan, agar tidak tersimpan tanpa sengaja.
+    $contohUtama = [
+        'kategori' => 'contoh: Makanan & Minuman',
+        'merek' => 'contoh: nama usaha, atau Tanpa merek',
+        'tipe_paket' => 'contoh: Kemasan 250 g',
+        'asal_produk' => 'contoh: Desa Lumeneng, Pekalongan',
+        'produk_custom' => 'contoh: Tidak',
+        'jenis_biji_bijian' => 'contoh: Kopi Arabika (khusus produk kopi)',
+        'spesies_tanaman' => 'contoh: Coffea arabica (khusus produk kopi)',
+    ];
 @endphp
 
 @section('isi')
@@ -38,9 +49,18 @@
             <input type="hidden" name="kembali" value="{{ $kembali }}">
         @endif
 
+        <p class="text-redup"><span class="font-bold text-awas" aria-hidden="true">*</span> Isian bertanda <strong>(wajib)</strong> harus diisi sebelum produk bisa disimpan.</p>
+
         <x-kartu judul="Data produk">
             <div class="space-y-4">
-                <x-bidang nama="nama" label="Nama produk" required maxlength="120" :value="old('nama', $produk->nama)" />
+                <div>
+                    <label for="nama" class="mb-1 block font-bold">Nama produk @include('admin.toko.produk.penanda-wajib')</label>
+                    <input id="nama" name="nama" type="text" required aria-required="true" maxlength="120" class="isian"
+                        value="{{ old('nama', $produk->nama) }}" @error('nama') aria-invalid="true" aria-describedby="nama-galat" @enderror>
+                    @error('nama')
+                        <p id="nama-galat" class="mt-1 text-sm font-bold text-awas">{{ $message }}</p>
+                    @enderror
+                </div>
 
                 <div>
                     <label for="deskripsi" class="mb-1 block font-bold">Deskripsi</label>
@@ -51,8 +71,16 @@
                     @enderror
                 </div>
 
-                <x-bidang nama="harga" label="Harga (Rp)" inputmode="numeric" maxlength="15" placeholder="contoh: 25000"
-                    :value="old('harga', $produk->harga)" bantuan="Boleh kosong. Kalau varian di bawah diberi harga, harga varian yang ditampilkan." />
+                <div>
+                    <label for="harga" class="mb-1 block font-bold">Harga (Rp) @include('admin.toko.produk.penanda-wajib')</label>
+                    <input id="harga" name="harga" type="text" inputmode="numeric" required aria-required="true" maxlength="15" class="isian"
+                        placeholder="contoh: 25000" value="{{ old('harga', $produk->harga) }}"
+                        aria-describedby="harga-bantuan @error('harga') harga-galat @enderror" @error('harga') aria-invalid="true" @enderror>
+                    <p id="harga-bantuan" class="mt-1 text-sm text-redup">Tulis angkanya saja. Kalau varian di bawah diberi harga, harga varian yang ditampilkan; harga ini tetap jadi harga dasar.</p>
+                    @error('harga')
+                        <p id="harga-galat" class="mt-1 text-sm font-bold text-awas">{{ $message }}</p>
+                    @enderror
+                </div>
 
                 <x-bidang nama="urutan" label="Urutan tampil" type="number" min="0" max="999" class="max-w-48"
                     :value="old('urutan', $produk->urutan ?? 0)" bantuan="Angka kecil tampil lebih dulu." />
@@ -103,8 +131,25 @@
             <x-tombol varian="kedua" type="button" class="mt-3" data-tambah-baris="varian" hidden>Tambah baris varian</x-tombol>
         </x-kartu>
 
-        <x-kartu judul="Spesifikasi (boleh kosong)">
-            <p class="mb-3 text-redup">Misalnya Berat: 250 g, Masa simpan: 6 bulan, Izin: PIRT nomor sekian. Isi hanya yang sudah pasti.</p>
+        <x-kartu judul="Spesifikasi produk (boleh kosong)">
+            <p class="mb-3 text-redup">Tampil di halaman produk dalam tabel seperti di Shopee. Kosongkan yang tidak berlaku, misalnya Jenis Biji-Bijian untuk produk jamur. Baris <strong>Stok</strong> dan <strong>Dikirim Dari</strong> terisi otomatis dari status stok dan menu Info penjual.</p>
+            <div class="grid gap-4 sm:grid-cols-2">
+                @foreach (\App\Models\Toko\Produk::SPESIFIKASI_UTAMA as $kunci => $label)
+                    <div>
+                        <label for="utama-{{ $kunci }}" class="mb-1 block font-bold">{{ $label }}</label>
+                        <input id="utama-{{ $kunci }}" name="utama[{{ $kunci }}]" maxlength="200" class="isian" placeholder="{{ $contohUtama[$kunci] }}"
+                            value="{{ old("utama.{$kunci}", $spesifikasiUtama[$kunci] ?? '') }}"
+                            @error("utama.{$kunci}") aria-invalid="true" aria-describedby="utama-{{ $kunci }}-galat" @enderror>
+                        @error("utama.{$kunci}")
+                            <p id="utama-{{ $kunci }}-galat" class="mt-1 text-sm font-bold text-awas">{{ $message }}</p>
+                        @enderror
+                    </div>
+                @endforeach
+            </div>
+        </x-kartu>
+
+        <x-kartu judul="Spesifikasi tambahan (boleh kosong)">
+            <p class="mb-3 text-redup">Untuk keterangan lain di luar isian di atas, misalnya Berat: 250 g, Masa simpan: 6 bulan, Izin: PIRT nomor sekian. Isi hanya yang sudah pasti.</p>
             <div class="space-y-3" data-daftar-baris="spesifikasi">
                 @foreach ($barisSpesifikasi as $i => $b)
                     @include('admin.toko.produk.baris-spesifikasi', ['i' => $i, 'b' => $b])
@@ -156,12 +201,15 @@
             @endif
 
             @if ($produk->foto->count() < \App\Models\Toko\Produk::MAKS_FOTO)
-                <form method="POST" action="{{ route('admin.toko.foto.store', $produk) }}" enctype="multipart/form-data" class="mt-4 space-y-3">
+                <form method="POST" action="{{ route('admin.toko.foto.store', $produk) }}" enctype="multipart/form-data" class="mt-4 space-y-3" data-unggah-foto>
                     @csrf
                     <div>
                         <label for="berkas-foto" class="mb-1 block font-bold">Tambah foto</label>
-                        <input type="file" id="berkas-foto" name="foto[]" multiple accept="image/jpeg,image/png,image/webp" class="isian" required>
-                        <p class="mt-1 text-sm text-redup">JPG, PNG, atau WebP, maksimal {{ $batasFoto }} per foto. Kalau gagal, coba unggah satu per satu.</p>
+                        {{-- Daftar accept diatur FotoProdukRequest::accept(); sengaja tanpa HEIC agar iPhone mengubahnya ke JPG. --}}
+                        <input type="file" id="berkas-foto" name="foto[]" multiple accept="{{ $acceptFoto }}"
+                            class="isian" required aria-describedby="foto-bantuan foto-status">
+                        <p id="foto-bantuan" class="mt-1 text-sm text-redup">Pilih langsung dari galeri HP. Foto besar otomatis diperkecil dan diubah ke JPG sebelum diunggah, jadi lebih cepat di sinyal lemah. Jenis: {{ $jenisFoto }}. Kalau gagal, coba unggah satu per satu.</p>
+                        <p id="foto-status" data-status-foto role="status" aria-live="polite" class="mt-1 text-sm font-bold" hidden></p>
                     </div>
                     <x-tombol>Unggah foto</x-tombol>
                 </form>

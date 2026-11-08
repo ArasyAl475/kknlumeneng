@@ -25,7 +25,7 @@
                     @endforeach
                 </dl>
                 <div class="mt-3 flex flex-wrap gap-2">
-                    <form method="POST" action="{{ route('admin.ews.validasi.setujui', $l) }}" data-konfirmasi="Setujui laporan ini? {{ $l->wilayah->nama }} akan berstatus AWAS dan Telegram dikirim.">
+                    <form method="POST" action="{{ route('admin.ews.validasi.setujui', $l) }}" data-konfirmasi="Setujui laporan ini? {{ $l->wilayah->nama }} akan berstatus AWAS.">
                         @csrf
                         <x-tombol varian="bahaya">Setujui, jadikan Awas</x-tombol>
                     </form>

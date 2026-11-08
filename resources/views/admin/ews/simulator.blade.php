@@ -5,7 +5,7 @@
 @endpush
 
 @section('isi')
-    <x-judul-halaman judul="Simulator" keterangan="Mengirim data buatan lewat alur yang sama dengan alat: laporan validasi dan Telegram ikut berjalan. Halaman ini tidak ada di server produksi." />
+    <x-judul-halaman judul="Simulator" keterangan="Mengirim data buatan lewat alur yang sama dengan alat: laporan validasi ikut berjalan. Halaman ini tidak ada di server produksi." />
 
     <x-kartu>
         @if ($wilayah->isEmpty())
@@ -27,9 +27,9 @@
                     <div class="flex flex-wrap gap-2">
                         @php
                             $isiCepat = [
-                                'Aman' => ['kelembapan_tanah' => 30, 'curah_hujan' => 2, 'kemiringan' => 1, 'kelembapan_udara' => 75],
-                                'Waspada' => ['kelembapan_tanah' => $ambang['kelembapan_tanah']['waspada'] + 1, 'curah_hujan' => 2, 'kemiringan' => 1, 'kelembapan_udara' => 80],
-                                'Perlu validasi' => ['kelembapan_tanah' => $ambang['kelembapan_tanah']['validasi'] + 1, 'curah_hujan' => $ambang['curah_hujan']['validasi'] + 1, 'kemiringan' => 1, 'kelembapan_udara' => 90],
+                                'Aman' => ['kelembapan_tanah' => 30, 'intensitas_hujan' => 5, 'kemiringan' => 1, 'kelembapan_udara' => 75],
+                                'Waspada' => ['kelembapan_tanah' => $ambang['kelembapan_tanah']['waspada'] + 1, 'intensitas_hujan' => 5, 'kemiringan' => 1, 'kelembapan_udara' => 80],
+                                'Perlu validasi' => ['kelembapan_tanah' => $ambang['kelembapan_tanah']['validasi'] + 1, 'intensitas_hujan' => min(100, $ambang['intensitas_hujan']['validasi'] + 1), 'kemiringan' => 1, 'kelembapan_udara' => 90],
                             ];
                         @endphp
                         @foreach ($isiCepat as $label => $nilai)
@@ -40,7 +40,7 @@
 
                 <div class="grid gap-4 sm:grid-cols-2">
                     <x-bidang nama="kelembapan_tanah" label="Kelembapan tanah (%)" type="number" step="0.1" min="0" max="100" inputmode="decimal" />
-                    <x-bidang nama="curah_hujan" label="Curah hujan (mm/jam)" type="number" step="0.1" min="0" max="1000" inputmode="decimal" />
+                    <x-bidang nama="intensitas_hujan" label="Intensitas hujan (%)" type="number" step="0.1" min="0" max="100" inputmode="decimal" />
                     <x-bidang nama="kemiringan" label="Kemiringan (derajat)" type="number" step="0.1" min="-90" max="90" />
                     <x-bidang nama="kelembapan_udara" label="Kelembapan udara (%)" type="number" step="0.1" min="0" max="100" inputmode="decimal" />
                 </div>

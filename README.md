@@ -29,7 +29,7 @@ Data contoh untuk dashboard EWS: `php artisan ews:simulasi --riwayat=24`
 
 - Tempat modul Toko dan Edukasi sudah disiapkan: rute di `routes/web/`, `routes/admin/`, `routes/api/`.
 - Struktur folder dan aturan kode ada di [`CLAUDE.md`](CLAUDE.md).
-- Nyalakan menunya dengan `MODUL_TOKO=true` atau `MODUL_EDUKASI=true` di `.env`.
+- Menu Toko, Edukasi, dan History Limbah tampil secara bawaan. Untuk menyembunyikan, isi `MODUL_TOKO=false` atau `MODUL_EDUKASI=false` di `.env`.
 - Dengan Claude Code: `/fitur-baru toko <yang ingin dibuat>`.
 
 ## Dokumen lain

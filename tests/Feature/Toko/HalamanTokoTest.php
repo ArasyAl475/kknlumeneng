@@ -96,12 +96,48 @@ class HalamanTokoTest extends TestCase
         $produk = Produk::factory()->denganTautan(['shopee' => 'https://shopee.co.id/a'])
             ->create(['nama' => 'Abon Jamur', 'harga' => null, 'deskripsi' => null, 'spesifikasi' => null]);
 
+        // Tabel spesifikasi tetap ada (Stok dan Dikirim Dari selalu terisi, seperti di Shopee),
+        // tetapi isian utama yang tidak diisi admin tidak ikut tampil.
         $this->get(route('toko.produk', ['shopee', $produk]))->assertOk()
             ->assertSee('Lihat harga di marketplace')
             ->assertSee('Foto belum tersedia')
-            ->assertDontSee('Spesifikasi')
+            ->assertSee('Spesifikasi Produk')
+            ->assertDontSee('Merek')
+            ->assertDontSee('Jenis Biji-Bijian')
             ->assertDontSee('Pilihan')
             ->assertDontSee('property="og:image"', false);
+    }
+
+    public function test_tabel_spesifikasi_produk_urut_seperti_shopee(): void
+    {
+        Pengaturan::simpan(['lokasi_kirim' => 'Paninggaran, Kab. Pekalongan']);
+        $produk = Produk::factory()->denganTautan(['shopee' => 'https://shopee.co.id/kopi'])->create([
+            'spesifikasi' => [
+                ['label' => 'Kategori', 'nilai' => 'Makanan & Minuman'],
+                ['label' => 'Merek', 'nilai' => 'Kopi Lumeneng'],
+                ['label' => 'Jenis Biji-Bijian', 'nilai' => 'Arabika'],
+                ['label' => 'Berat', 'nilai' => '250 g'],
+            ],
+        ]);
+
+        $this->get(route('toko.produk', ['shopee', $produk]))->assertOk()
+            ->assertSeeInOrder([
+                'Spesifikasi Produk',
+                'Kategori', 'Makanan &amp; Minuman',
+                'Stok', 'Tersedia',
+                'Merek', 'Kopi Lumeneng',
+                'Jenis Biji-Bijian', 'Arabika',
+                'Berat', '250 g',
+                'Dikirim Dari', 'Paninggaran, Kab. Pekalongan',
+            ], false);
+    }
+
+    public function test_tabel_spesifikasi_menulis_habis_bila_stok_habis(): void
+    {
+        $produk = Produk::factory()->denganTautan(['shopee' => 'https://shopee.co.id/a'])->create(['tersedia' => false]);
+
+        $this->get(route('toko.produk', ['shopee', $produk]))->assertOk()
+            ->assertSeeInOrder(['Spesifikasi Produk', 'Stok', 'Habis']);
     }
 
     public function test_produk_habis_ditandai_dengan_kata(): void
