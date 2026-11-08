@@ -2,13 +2,11 @@
 
 namespace Tests\Feature\Ews\Admin;
 
-use App\Jobs\Ews\KirimPesanTelegram;
 use App\Models\Ews\Aktivitas;
 use App\Models\Ews\Pembacaan;
 use App\Models\Ews\Wilayah;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Bus;
 use Tests\TestCase;
 
 class ValidasiAdminTest extends TestCase
@@ -22,8 +20,7 @@ class ValidasiAdminTest extends TestCase
         parent::setUp();
         $this->admin = User::factory()->admin()->create();
         $this->actingAs($this->admin);
-        config(['ews.api_key' => 'k', 'ews.telegram.token' => 't', 'ews.telegram.chat_id' => 'c', 'ews.validasi_jeda_menit' => 30]);
-        Bus::fake();
+        config(['ews.api_key' => 'k', 'ews.validasi_jeda_menit' => 30]);
     }
 
     private function kirim(Wilayah $w, array $data)
@@ -34,7 +31,7 @@ class ValidasiAdminTest extends TestCase
     public function test_antrean_menampilkan_semua_nilai_sensor(): void
     {
         $w = Wilayah::factory()->create(['nama' => 'Lereng Uji']);
-        Pembacaan::factory()->menunggu()->create(['wilayah_id' => $w->id, 'curah_hujan' => null, 'kelembapan_udara' => 88.5]);
+        Pembacaan::factory()->menunggu()->create(['wilayah_id' => $w->id, 'intensitas_hujan' => null, 'kelembapan_udara' => 88.5]);
 
         $this->get(route('admin.ews.validasi.index'))->assertOk()
             ->assertSee('Lereng Uji')
@@ -54,7 +51,7 @@ class ValidasiAdminTest extends TestCase
         $this->get(route('admin.ews.validasi.index'))->assertOk();
     }
 
-    public function test_setujui_menjadikan_awas_mengirim_telegram_dan_mencatat_log(): void
+    public function test_setujui_menjadikan_awas_dan_mencatat_log(): void
     {
         $w = Wilayah::factory()->create(['nama' => 'Lereng Uji']);
         $laporan = Pembacaan::factory()->menunggu()->create(['wilayah_id' => $w->id]);
@@ -72,13 +69,11 @@ class ValidasiAdminTest extends TestCase
         $this->assertTrue($w->status_awas);
         $this->assertSame('Dinyatakan admin setelah validasi', $w->awas_sumber);
 
-        Bus::assertDispatchedAfterResponseTimes(KirimPesanTelegram::class, 1);
-        Bus::assertDispatchedAfterResponse(KirimPesanTelegram::class, fn ($j) => str_contains($j->pesan, 'dinyatakan admin') && str_contains($j->pesan, 'Lereng Uji'));
         $this->assertSame('setujui_validasi', Aktivitas::query()->sole()->aksi);
         $this->assertSame($this->admin->name, Aktivitas::query()->sole()->nama_admin);
     }
 
-    public function test_tolak_tidak_mengubah_status_wilayah_dan_tanpa_telegram(): void
+    public function test_tolak_tidak_mengubah_status_wilayah(): void
     {
         $w = Wilayah::factory()->create();
         $laporan = Pembacaan::factory()->menunggu()->create(['wilayah_id' => $w->id]);
@@ -88,7 +83,6 @@ class ValidasiAdminTest extends TestCase
         $this->assertSame(Pembacaan::VALIDASI_DITOLAK, $laporan->refresh()->validasi);
         $this->assertSame('Waspada', $laporan->status);
         $this->assertFalse($w->refresh()->status_awas);
-        Bus::assertNotDispatchedAfterResponse(KirimPesanTelegram::class);
     }
 
     public function test_laporan_tidak_bisa_diputuskan_dua_kali(): void
@@ -103,7 +97,7 @@ class ValidasiAdminTest extends TestCase
         $this->assertSame(1, Aktivitas::query()->count());
     }
 
-    public function test_setujui_saat_sudah_awas_tidak_mengirim_telegram_lagi(): void
+    public function test_setujui_saat_sudah_awas_tidak_mengubah_sumber_awas(): void
     {
         $w = Wilayah::factory()->awas('Kabel EWS putus (otomatis)')->create();
         $laporan = Pembacaan::factory()->menunggu()->create(['wilayah_id' => $w->id]);
@@ -111,7 +105,6 @@ class ValidasiAdminTest extends TestCase
         $this->post(route('admin.ews.validasi.setujui', $laporan))->assertSessionHas('sukses');
 
         $this->assertSame('Kabel EWS putus (otomatis)', $w->refresh()->awas_sumber);
-        Bus::assertNotDispatchedAfterResponse(KirimPesanTelegram::class);
     }
 
     public function test_cabut_butuh_alasan_dan_konfirmasi(): void
@@ -188,7 +181,6 @@ class ValidasiAdminTest extends TestCase
         $this->kirim($w, ['kabel_putus' => true])->assertJsonPath('data.status', 'Awas');
 
         $this->assertTrue($w->refresh()->status_awas);
-        Bus::assertDispatchedAfterResponseTimes(KirimPesanTelegram::class, 2);
     }
 
     public function test_alur_lengkap_dari_simulator_sampai_dicabut(): void
@@ -196,20 +188,18 @@ class ValidasiAdminTest extends TestCase
         $w = Wilayah::factory()->create(['nama' => 'Lereng Uji']);
         $simulator = route('admin.ews.simulator.kirim');
 
-        // 1. Data masuk melewati batas validasi: Waspada + antrean + Telegram "perlu validasi".
-        $this->post($simulator, ['wilayah_id' => $w->id, 'kelembapan_tanah' => 90, 'curah_hujan' => 25])
+        // 1. Data masuk melewati batas validasi: Waspada + antrean validasi.
+        $this->post($simulator, ['wilayah_id' => $w->id, 'kelembapan_tanah' => 90, 'intensitas_hujan' => 25])
             ->assertSessionHas('sukses', fn ($p) => str_contains($p, 'Laporan masuk antrean validasi'));
         $this->getJson('/api/ews/data')->assertJsonPath('utama.status', 'Waspada');
-        Bus::assertDispatchedAfterResponse(KirimPesanTelegram::class, fn ($j) => str_contains($j->pesan, 'PERLU VALIDASI'));
 
         // 2. Kiriman berikutnya tidak membanjiri antrean.
         $this->post($simulator, ['wilayah_id' => $w->id, 'kelembapan_tanah' => 92]);
         $laporan = Pembacaan::query()->where('validasi', Pembacaan::VALIDASI_MENUNGGU)->sole();
 
-        // 3. Admin menyetujui: Awas + Telegram.
+        // 3. Admin menyetujui: Awas.
         $this->post(route('admin.ews.validasi.setujui', $laporan));
         $this->getJson('/api/ews/data')->assertJsonPath('utama.status', 'Awas');
-        Bus::assertDispatchedAfterResponseTimes(KirimPesanTelegram::class, 2);
 
         // 4. Data membaik, Awas tetap ditahan.
         $this->post($simulator, ['wilayah_id' => $w->id, 'kelembapan_tanah' => 20]);

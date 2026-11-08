@@ -18,7 +18,7 @@ class ApiAlatTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        config(['ews.api_key' => self::KUNCI, 'ews.telegram.token' => null, 'ews.telegram.chat_id' => null]);
+        config(['ews.api_key' => self::KUNCI]);
         Http::preventStrayRequests();
     }
 
@@ -31,19 +31,19 @@ class ApiAlatTest extends TestCase
     {
         $wilayah = Wilayah::factory()->create();
 
-        $this->kirim(['wilayah_id' => $wilayah->id, 'kelembapan_tanah' => 63.4, 'curah_hujan' => 12.5, 'kemiringan' => 3.2, 'kelembapan_udara' => 88])
+        $this->kirim(['wilayah_id' => $wilayah->id, 'kelembapan_tanah' => 63.4, 'intensitas_hujan' => 45.5, 'kemiringan' => 3.2, 'kelembapan_udara' => 88])
             ->assertCreated()
             ->assertJsonStructure(['pesan', 'menunggu_validasi', 'telegram_terkirim', 'waktu_server', 'data' => ['id', 'status', 'warna']])
             ->assertJson(['pesan' => 'Data tersimpan', 'menunggu_validasi' => false, 'telegram_terkirim' => null, 'data' => ['status' => 'Waspada', 'warna' => 'kuning']]);
 
-        $this->assertDatabaseHas('ews_pembacaan', ['wilayah_id' => $wilayah->id, 'kelembapan_tanah' => 63.4, 'pemicu' => 'Kelembapan tanah 63,4%, Curah hujan 12,5 mm/jam']);
+        $this->assertDatabaseHas('ews_pembacaan', ['wilayah_id' => $wilayah->id, 'kelembapan_tanah' => 63.4, 'pemicu' => 'Kelembapan tanah 63,4%, Intensitas hujan 45,5%']);
     }
 
     public function test_format_persis_kiriman_firmware_contoh(): void
     {
         $wilayah = Wilayah::factory()->create();
         // esp32_contoh.ino merakit JSON sebagai teks: tanpa spasi, angka dua desimal, field hilang bila gagal baca.
-        $json = '{"wilayah_id":'.$wilayah->id.',"curah_hujan":0.00,"kemiringan":-1.25}';
+        $json = '{"wilayah_id":'.$wilayah->id.',"intensitas_hujan":0.00,"kemiringan":-1.25}';
 
         $this->call('POST', '/api/sensor', [], [], [], [
             'CONTENT_TYPE' => 'application/json',
@@ -52,7 +52,7 @@ class ApiAlatTest extends TestCase
         ], $json)->assertCreated()->assertJsonPath('data.status', 'Aman');
 
         $pembacaan = Pembacaan::query()->sole();
-        $this->assertSame(0.0, $pembacaan->curah_hujan);
+        $this->assertSame(0.0, $pembacaan->intensitas_hujan);
         $this->assertSame(-1.25, $pembacaan->kemiringan);
         $this->assertNull($pembacaan->kelembapan_tanah);
     }
@@ -61,7 +61,7 @@ class ApiAlatTest extends TestCase
     {
         $wilayah = Wilayah::factory()->create(['nama' => 'Lereng Uji']);
 
-        $this->kirim(['lokasi' => 'Lereng Uji', 'curah_hujan' => 1])->assertCreated();
+        $this->kirim(['lokasi' => 'Lereng Uji', 'intensitas_hujan' => 1])->assertCreated();
 
         $this->assertSame($wilayah->id, Pembacaan::query()->sole()->wilayah_id);
     }
@@ -88,7 +88,7 @@ class ApiAlatTest extends TestCase
     {
         $wilayah = Wilayah::factory()->create();
 
-        $this->kirim(['wilayah_id' => $wilayah->id, 'kelembapan_tanah' => null, 'curah_hujan' => 3])->assertCreated();
+        $this->kirim(['wilayah_id' => $wilayah->id, 'kelembapan_tanah' => null, 'intensitas_hujan' => 3])->assertCreated();
 
         $pembacaan = Pembacaan::query()->sole();
         $this->assertNull($pembacaan->kelembapan_tanah);
@@ -101,7 +101,7 @@ class ApiAlatTest extends TestCase
     {
         $wilayah = Wilayah::factory()->create();
 
-        $this->kirim(['wilayah_id' => $wilayah->id, 'curah_hujan' => 1], $kunci)->assertUnauthorized();
+        $this->kirim(['wilayah_id' => $wilayah->id, 'intensitas_hujan' => 1], $kunci)->assertUnauthorized();
         $this->getJson('/api/ping', $kunci === null ? [] : ['X-API-KEY' => $kunci])->assertUnauthorized();
         $this->assertDatabaseCount('ews_pembacaan', 0);
     }
@@ -115,7 +115,7 @@ class ApiAlatTest extends TestCase
     {
         config(['ews.api_key' => '']);
 
-        $this->kirim(['wilayah_id' => 1, 'curah_hujan' => 1], '')->assertUnauthorized();
+        $this->kirim(['wilayah_id' => 1, 'intensitas_hujan' => 1], '')->assertUnauthorized();
     }
 
     #[DataProvider('dataTidakValid')]
@@ -136,19 +136,20 @@ class ApiAlatTest extends TestCase
     {
         return [
             'tanpa sensor' => [[], 'kelembapan_tanah'],
-            'semua sensor null' => [['curah_hujan' => null], 'kelembapan_tanah'],
+            'semua sensor null' => [['intensitas_hujan' => null], 'kelembapan_tanah'],
             'kabel false saja' => [['kabel_putus' => false], 'kelembapan_tanah'],
             'tanah di atas 100' => [['kelembapan_tanah' => 100.1], 'kelembapan_tanah'],
             'tanah negatif' => [['kelembapan_tanah' => -1], 'kelembapan_tanah'],
-            'hujan negatif' => [['curah_hujan' => -0.1], 'curah_hujan'],
-            'hujan di atas 1000' => [['curah_hujan' => 1000.5], 'curah_hujan'],
+            'field lama curah_hujan tidak dikenal' => [['curah_hujan' => 5], 'kelembapan_tanah'],
+            'hujan negatif' => [['intensitas_hujan' => -0.1], 'intensitas_hujan'],
+            'hujan di atas 100' => [['intensitas_hujan' => 100.1], 'intensitas_hujan'],
             'miring di atas 90' => [['kemiringan' => 91], 'kemiringan'],
             'miring di bawah -90' => [['kemiringan' => -91], 'kemiringan'],
             'udara di atas 100' => [['kelembapan_udara' => 101], 'kelembapan_udara'],
-            'bukan angka' => [['curah_hujan' => 'deras'], 'curah_hujan'],
-            'kabel bukan boolean' => [['curah_hujan' => 1, 'kabel_putus' => 'mungkin'], 'kabel_putus'],
-            'wilayah tidak dikenal' => [['wilayah_id' => 99999, 'curah_hujan' => 1], 'wilayah_id'],
-            'tanpa wilayah' => [['wilayah_id' => '__hapus', 'curah_hujan' => 1], 'wilayah_id'],
+            'bukan angka' => [['intensitas_hujan' => 'deras'], 'intensitas_hujan'],
+            'kabel bukan boolean' => [['intensitas_hujan' => 1, 'kabel_putus' => 'mungkin'], 'kabel_putus'],
+            'wilayah tidak dikenal' => [['wilayah_id' => 99999, 'intensitas_hujan' => 1], 'wilayah_id'],
+            'tanpa wilayah' => [['wilayah_id' => '__hapus', 'intensitas_hujan' => 1], 'wilayah_id'],
         ];
     }
 
@@ -158,7 +159,7 @@ class ApiAlatTest extends TestCase
         Pembacaan::factory()->create(['wilayah_id' => $wilayah->id]);
         $wilayah->delete();
 
-        $this->kirim(['wilayah_id' => $wilayah->id, 'curah_hujan' => 1])->assertUnprocessable();
+        $this->kirim(['wilayah_id' => $wilayah->id, 'intensitas_hujan' => 1])->assertUnprocessable();
 
         $this->assertDatabaseCount('ews_pembacaan', 1);
         $this->assertSame($wilayah->nama, Pembacaan::query()->with('wilayah')->sole()->wilayah->nama);

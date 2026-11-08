@@ -1,6 +1,6 @@
 @extends('layouts.app')
 @section('judul', 'Status Peringatan Dini Longsor')
-@section('deskripsi', 'Status peringatan dini longsor Desa Lumeneng: kelembapan tanah, curah hujan, kemiringan, peta, dan grafik. Alat bantu warga, bukan peringatan resmi BPBD.')
+@section('deskripsi', 'Status peringatan dini longsor Desa Lumeneng: kelembapan tanah, intensitas hujan, kemiringan, peta, dan grafik. Alat bantu warga, bukan peringatan resmi BPBD.')
 
 @push('skrip')
     @vite('resources/js/ews/dasbor.js')
