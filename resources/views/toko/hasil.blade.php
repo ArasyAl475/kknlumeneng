@@ -26,7 +26,7 @@
 @endphp
 
 @push('kepala')
-    <noscript><style>[data-buka-filter] { display: none; } .lembar { display: block; position: static; width: auto; height: auto; margin-top: 1rem; border-radius: 0.75rem; } .lembar__kepala button { display: none; }</style></noscript>
+    <noscript><style>[data-buka-filter], [data-kontrol], [data-tombol-tabel] { display: none; } .lembar { display: block; position: static; width: auto; height: auto; margin-top: 1rem; border-radius: 0.75rem; } .lembar__kepala button { display: none; }</style></noscript>
 @endpush
 
 @section('isi')
@@ -51,7 +51,7 @@
                     @endforeach
                 </nav>
                 {{-- Kustom bukan pilihan rentang, tetapi pintu ke filter tanggal/jenis/tempat, jadi dibuat tombol tersendiri. --}}
-                <button type="button" class="tombol-kustom" data-buka-filter aria-haspopup="dialog" aria-controls="lembar-filter" hidden>
+                <button type="button" class="tombol-kustom" data-buka-filter aria-haspopup="dialog" aria-controls="lembar-filter">
                     @include('toko.partials.ikon', ['nama' => 'filter', 'kelas' => 'size-4'])
                     Kustom
                     @if ($penyaring['jumlah'] > 0)
@@ -230,7 +230,7 @@
 
             @if ($grafik['ada'])
                 <div class="grafik" data-grafik data-data="{{ json_encode($grafik['skala']) }}">
-                    <div class="grafik__kontrol" data-kontrol hidden>
+                    <div class="grafik__kontrol" data-kontrol>
                         <div class="segmen segmen--kecil" role="group" aria-label="Skala waktu grafik">
                             @foreach (['hari' => 'Hari', 'bulan' => 'Bulan', 'tahun' => 'Tahun'] as $kunci => $nama)
                                 <button type="button" class="segmen__item" data-skala="{{ $kunci }}" aria-pressed="{{ $kunci === 'bulan' ? 'true' : 'false' }}">{{ $nama }}</button>
@@ -287,7 +287,7 @@
                     <p id="deskripsi-grafik" class="sr-only" data-deskripsi></p>
 
                     <div class="grafik__aksi">
-                        <button type="button" class="tombol-tautan" data-tombol-tabel aria-expanded="false" aria-controls="tabel-grafik" hidden>
+                        <button type="button" class="tombol-tautan" data-tombol-tabel aria-expanded="false" aria-controls="tabel-grafik">
                             @include('toko.partials.ikon', ['nama' => 'tabel', 'kelas' => 'size-5'])
                             <span data-teks-tabel>Lihat sebagai tabel</span>
                         </button>

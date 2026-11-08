@@ -1,6 +1,6 @@
 // Halaman publik Hasil panen dan penjualan. Setiap bagian punya versi tanpa JavaScript
 // (tabel bulanan, formulir filter, semua rincian terlihat), jadi skrip ini hanya menambah kenyamanan.
-import '../../css/toko-hasil.css';
+// CSS halaman ini (resources/css/toko-hasil.css) dimuat lewat @vite di kerangka.blade.php, bukan diimpor di sini.
 import { pasangGrafik, pasangGrafikBaglog } from './lib/grafik-halaman.js';
 import { pasangLembarFilter } from './lib/lembar-filter.js';
 

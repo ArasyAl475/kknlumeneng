@@ -19,7 +19,6 @@ Chart.defaults.font.family = JARAK_HURUF;
 Chart.defaults.font.size = 13;
 
 const ringkasUang = new Intl.NumberFormat('id-ID', { notation: 'compact', maximumFractionDigits: 1 });
-const gerakDikurangi = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 function isian(konteks, jenis, warna) {
     if (jenis === 'solid') return warna;
@@ -51,7 +50,8 @@ function setelanDasar(skalaData, kanvas) {
     return {
         responsive: true,
         maintainAspectRatio: false,
-        animation: gerakDikurangi() ? false : { duration: 200 },
+        // Grafik dibuat ulang tiap ganti skala/data; animasi tumbuh dari nol membuatnya tampak berkedip.
+        animation: false,
         interaction: { mode: 'index', intersect: false },
         // Tanpa touchmove: menggeser grafik ke samping tidak memunculkan petunjuk yang berkedip.
         events: ['mousemove', 'mouseout', 'click', 'touchstart'],
