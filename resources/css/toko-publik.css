@@ -1,0 +1,201 @@
+/*
+ * Gaya halaman publik Toko: Beranda Toko, Marketplace, Detail Produk, dan Katalog.
+ * Dimuat lewat resources/js/toko/publik.js hanya di halaman Toko, jadi app.css dan modul lain
+ * (EWS, Edukasi, Admin) tetap memakai huruf Atkinson Hyperlegible.
+ * Ukuran kartu mengikuti halaman Hasil Panen (sudut 12px, garis 1px, bayangan lembut)
+ * supaya seluruh Toko terasa satu keluarga. Status tetap ditulis dengan ikon + kata.
+ */
+@font-face {
+    font-family: 'Plus Jakarta Sans';
+    src: url('../fonts/plus-jakarta-sans-latin-wght.woff2') format('woff2');
+    font-weight: 200 800;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Sengaja di luar @layer: harus menang atas token @theme Tailwind di app.css. */
+:root {
+    --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Di dalam layer components agar kelas utilitas Tailwind di Blade tetap bisa menimpa bila perlu. */
+@layer components {
+    main h1 {
+        letter-spacing: -0.02em;
+    }
+
+    main h2 {
+        letter-spacing: -0.01em;
+    }
+
+    /* ---------- Kartu dasar ---------- */
+    .toko-kartu {
+        border: 1px solid rgb(20 30 24 / 0.08);
+        border-radius: 0.75rem;
+        background: var(--color-permukaan);
+        box-shadow:
+            0 1px 2px rgb(16 40 28 / 0.05),
+            0 4px 12px -4px rgb(16 40 28 / 0.08);
+    }
+
+    .toko-kartu--tautan {
+        transition:
+            box-shadow 150ms ease,
+            border-color 150ms ease,
+            transform 150ms ease;
+    }
+
+    .toko-kartu--tautan:hover {
+        border-color: rgb(22 78 50 / 0.35);
+        box-shadow:
+            0 2px 4px rgb(16 40 28 / 0.06),
+            0 12px 24px -8px rgb(16 40 28 / 0.18);
+        transform: translateY(-2px);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .toko-kartu--tautan:hover {
+            transform: none;
+        }
+    }
+
+    /* Kartu bagian (Spesifikasi, Deskripsi, dst.): judul dipisah garis tipis, bukan kotak di dalam kotak. */
+    .toko-bagian {
+        padding: 1.25rem;
+    }
+
+    @media (min-width: 640px) {
+        .toko-bagian {
+            padding: 1.5rem;
+        }
+    }
+
+    .toko-bagian__judul {
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid rgb(20 30 24 / 0.08);
+        font-size: 1.0625rem;
+        font-weight: 700;
+    }
+
+    /* ---------- Kartu produk ---------- */
+    .toko-produk {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .toko-produk__foto {
+        position: relative;
+        display: block;
+        aspect-ratio: 1;
+        background: var(--color-kosong-lembut);
+    }
+
+    .toko-produk__foto img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Foto diredupkan saat stok habis; kata "Stok habis" tetap tampil di atas foto. */
+    .toko-produk--habis .toko-produk__foto img {
+        opacity: 0.6;
+    }
+
+    .toko-produk__lencana {
+        position: absolute;
+        top: 0.5rem;
+        left: 0.5rem;
+        box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
+    }
+
+    .toko-produk__isi {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        gap: 0.375rem;
+        padding: 0.75rem 0.875rem 0.875rem;
+        border-top: 1px solid rgb(20 30 24 / 0.06);
+    }
+
+    .toko-produk__nama {
+        font-weight: 600;
+        line-height: 1.35;
+    }
+
+    .toko-kartu--tautan:hover .toko-produk__nama {
+        color: var(--color-kopi);
+        text-decoration: underline;
+        text-underline-offset: 0.15em;
+    }
+
+    .toko-produk__harga {
+        margin-top: auto;
+        font-weight: 700;
+        color: var(--color-kopi);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .toko-produk__harga--kosong {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--color-redup);
+    }
+
+    /* ---------- Unsur kecil ---------- */
+    .toko-angka {
+        font-variant-numeric: tabular-nums;
+    }
+
+    .toko-pil {
+        display: inline-flex;
+        width: fit-content;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        line-height: 1.25;
+    }
+
+    .toko-pil--kecil {
+        gap: 0.25rem;
+        padding: 0.125rem 0.5rem;
+        font-size: 0.8125rem;
+    }
+
+    .toko-panah {
+        display: grid;
+        flex: none;
+        place-items: center;
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 999px;
+        background: rgb(22 78 50 / 0.08);
+        color: var(--color-kopi);
+        transition:
+            background-color 150ms ease,
+            color 150ms ease;
+    }
+
+    .toko-kartu--tautan:hover .toko-panah {
+        background: var(--color-kopi);
+        color: #fff;
+    }
+
+    /* Pita marketplace (judul halaman marketplace dan penanda di detail produk). */
+    .toko-sampul {
+        border-radius: 0.75rem;
+        background: linear-gradient(135deg, var(--color-kopi) 0%, var(--color-kopi-tua) 100%);
+        color: #fff;
+        box-shadow: 0 8px 20px -10px rgb(0 54 31 / 0.5);
+    }
+}
