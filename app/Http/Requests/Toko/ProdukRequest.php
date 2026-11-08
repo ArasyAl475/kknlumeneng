@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Toko;
 
+use App\Models\Toko\Produk;
 use App\Services\Toko\DaftarMarketplace;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
@@ -51,6 +52,8 @@ class ProdukRequest extends FormRequest
             'varian.*.harga' => ['nullable', 'integer', 'min:0', 'max:100000000'],
             'varian.*.tersedia' => ['nullable', 'boolean'],
 
+            'utama' => ['nullable', 'array'],
+
             'spesifikasi' => ['nullable', 'array', 'max:'.self::MAKS_BARIS],
             'spesifikasi.*.label' => ['nullable', 'string', 'max:60', 'required_with:spesifikasi.*.nilai'],
             'spesifikasi.*.nilai' => ['nullable', 'string', 'max:200', 'required_with:spesifikasi.*.label'],
@@ -58,6 +61,11 @@ class ProdukRequest extends FormRequest
 
         foreach (DaftarMarketplace::KUNCI as $kunci) {
             $aturan["tautan.{$kunci}"] = ['nullable', 'string', 'max:500', self::aturanTautan($kunci)];
+        }
+
+        // Isian utama semuanya boleh kosong: tidak semua berlaku untuk tiap produk (jamur tidak punya biji-bijian).
+        foreach (array_keys(Produk::SPESIFIKASI_UTAMA) as $kunci) {
+            $aturan["utama.{$kunci}"] = ['nullable', 'string', 'max:200'];
         }
 
         return $aturan;
@@ -87,6 +95,10 @@ class ProdukRequest extends FormRequest
 
         foreach (DaftarMarketplace::KUNCI as $kunci) {
             $nama["tautan.{$kunci}"] = 'tautan '.DaftarMarketplace::nama($kunci);
+        }
+
+        foreach (Produk::SPESIFIKASI_UTAMA as $kunci => $label) {
+            $nama["utama.{$kunci}"] = mb_strtolower($label);
         }
 
         return $nama;
@@ -134,9 +146,15 @@ class ProdukRequest extends FormRequest
                     'tersedia' => (bool) ($b['tersedia'] ?? true),
                 ])
                 ->values()->all(),
-            'spesifikasi' => collect($data['spesifikasi'] ?? [])
-                ->filter(fn (array $b) => filled($b['label'] ?? null) && filled($b['nilai'] ?? null))
-                ->map(fn (array $b) => ['label' => trim($b['label']), 'nilai' => trim($b['nilai'])])
+            // Isian utama disimpan lebih dulu dengan urutan tetap, lalu baris tambahan buatan admin.
+            'spesifikasi' => collect(Produk::SPESIFIKASI_UTAMA)
+                ->map(fn (string $label, string $kunci) => ['label' => $label, 'nilai' => trim((string) ($data['utama'][$kunci] ?? ''))])
+                ->filter(fn (array $b) => $b['nilai'] !== '')
+                ->concat(
+                    collect($data['spesifikasi'] ?? [])
+                        ->filter(fn (array $b) => filled($b['label'] ?? null) && filled($b['nilai'] ?? null))
+                        ->map(fn (array $b) => ['label' => trim($b['label']), 'nilai' => trim($b['nilai'])]),
+                )
                 ->values()->all(),
         ];
     }

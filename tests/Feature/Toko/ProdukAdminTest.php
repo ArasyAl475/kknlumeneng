@@ -80,6 +80,47 @@ class ProdukAdminTest extends TestCase
         $this->assertSame('Rp 18.000', $produk->hargaTeks());
     }
 
+    public function test_isian_utama_tersimpan_berurutan_dan_yang_kosong_dibuang(): void
+    {
+        $this->post(route('admin.toko.produk.store'), $this->isian([
+            'utama' => [
+                'merek' => 'Kopi Lumeneng',
+                'kategori' => 'Makanan & Minuman',
+                'tipe_paket' => '',
+                'jenis_biji_bijian' => '  Arabika ',
+            ],
+        ]))->assertSessionHasNoErrors();
+
+        // Urutan mengikuti Produk::SPESIFIKASI_UTAMA, bukan urutan kiriman; baris tambahan (Berat) menyusul.
+        $this->assertSame([
+            ['label' => 'Kategori', 'nilai' => 'Makanan & Minuman'],
+            ['label' => 'Merek', 'nilai' => 'Kopi Lumeneng'],
+            ['label' => 'Jenis Biji-Bijian', 'nilai' => 'Arabika'],
+            ['label' => 'Berat', 'nilai' => '250 g'],
+        ], Produk::query()->sole()->spesifikasi);
+    }
+
+    public function test_isian_utama_terlalu_panjang_ditolak(): void
+    {
+        $this->post(route('admin.toko.produk.store'), $this->isian(['utama' => ['merek' => str_repeat('a', 201)]]))
+            ->assertSessionHasErrors('utama.merek');
+    }
+
+    public function test_form_ubah_memisahkan_isian_utama_dari_baris_tambahan(): void
+    {
+        $produk = Produk::factory()->create(['spesifikasi' => [
+            ['label' => 'merek', 'nilai' => 'Kopi Lumeneng'],
+            ['label' => 'Berat', 'nilai' => '250 g'],
+        ]]);
+
+        $this->get(route('admin.toko.produk.edit', $produk))->assertOk()
+            ->assertSee('name="utama[merek]"', false)
+            ->assertSee('value="Kopi Lumeneng"', false)
+            ->assertSee('name="spesifikasi[0][label]"', false)
+            ->assertSee('value="Berat"', false)
+            ->assertSee('Spesifikasi tambahan');
+    }
+
     public function test_nama_dan_harga_wajib_diisi_dengan_pesan_yang_jelas(): void
     {
         $this->post(route('admin.toko.produk.store'), $this->isian(['nama' => '', 'harga' => '']))

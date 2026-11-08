@@ -1,3 +1,5 @@
+import './unggah-foto.js';
+
 // Konfirmasi sebelum menghapus. Tanpa JavaScript, aksi tetap berjalan dan tercatat di log aktivitas.
 document.querySelectorAll('form[data-konfirmasi]').forEach((form) => {
     form.addEventListener('submit', (e) => {

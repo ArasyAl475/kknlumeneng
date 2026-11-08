@@ -19,7 +19,18 @@
         old('varian', $produk->varian->map(fn ($v) => ['nama' => $v->nama, 'harga' => $v->harga, 'tersedia' => $v->tersedia ? '1' : '0'])->all()),
         ['nama' => '', 'harga' => '', 'tersedia' => '1'],
     );
-    $barisSpesifikasi = $isiBaris(old('spesifikasi', $produk->spesifikasi ?? []), ['label' => '', 'nilai' => '']);
+    $barisSpesifikasi = $isiBaris(old('spesifikasi', $spesifikasiTambahan), ['label' => '', 'nilai' => '']);
+
+    // Contoh hanya petunjuk ketik (placeholder), bukan nilai bawaan, agar tidak tersimpan tanpa sengaja.
+    $contohUtama = [
+        'kategori' => 'contoh: Makanan & Minuman',
+        'merek' => 'contoh: nama usaha, atau Tanpa merek',
+        'tipe_paket' => 'contoh: Kemasan 250 g',
+        'asal_produk' => 'contoh: Desa Lumeneng, Pekalongan',
+        'produk_custom' => 'contoh: Tidak',
+        'jenis_biji_bijian' => 'contoh: Kopi Arabika (khusus produk kopi)',
+        'spesies_tanaman' => 'contoh: Coffea arabica (khusus produk kopi)',
+    ];
 @endphp
 
 @section('isi')
@@ -120,8 +131,25 @@
             <x-tombol varian="kedua" type="button" class="mt-3" data-tambah-baris="varian" hidden>Tambah baris varian</x-tombol>
         </x-kartu>
 
-        <x-kartu judul="Spesifikasi (boleh kosong)">
-            <p class="mb-3 text-redup">Misalnya Berat: 250 g, Masa simpan: 6 bulan, Izin: PIRT nomor sekian. Isi hanya yang sudah pasti.</p>
+        <x-kartu judul="Spesifikasi produk (boleh kosong)">
+            <p class="mb-3 text-redup">Tampil di halaman produk dalam tabel seperti di Shopee. Kosongkan yang tidak berlaku, misalnya Jenis Biji-Bijian untuk produk jamur. Baris <strong>Stok</strong> dan <strong>Dikirim Dari</strong> terisi otomatis dari status stok dan menu Info penjual.</p>
+            <div class="grid gap-4 sm:grid-cols-2">
+                @foreach (\App\Models\Toko\Produk::SPESIFIKASI_UTAMA as $kunci => $label)
+                    <div>
+                        <label for="utama-{{ $kunci }}" class="mb-1 block font-bold">{{ $label }}</label>
+                        <input id="utama-{{ $kunci }}" name="utama[{{ $kunci }}]" maxlength="200" class="isian" placeholder="{{ $contohUtama[$kunci] }}"
+                            value="{{ old("utama.{$kunci}", $spesifikasiUtama[$kunci] ?? '') }}"
+                            @error("utama.{$kunci}") aria-invalid="true" aria-describedby="utama-{{ $kunci }}-galat" @enderror>
+                        @error("utama.{$kunci}")
+                            <p id="utama-{{ $kunci }}-galat" class="mt-1 text-sm font-bold text-awas">{{ $message }}</p>
+                        @enderror
+                    </div>
+                @endforeach
+            </div>
+        </x-kartu>
+
+        <x-kartu judul="Spesifikasi tambahan (boleh kosong)">
+            <p class="mb-3 text-redup">Untuk keterangan lain di luar isian di atas, misalnya Berat: 250 g, Masa simpan: 6 bulan, Izin: PIRT nomor sekian. Isi hanya yang sudah pasti.</p>
             <div class="space-y-3" data-daftar-baris="spesifikasi">
                 @foreach ($barisSpesifikasi as $i => $b)
                     @include('admin.toko.produk.baris-spesifikasi', ['i' => $i, 'b' => $b])
@@ -173,12 +201,15 @@
             @endif
 
             @if ($produk->foto->count() < \App\Models\Toko\Produk::MAKS_FOTO)
-                <form method="POST" action="{{ route('admin.toko.foto.store', $produk) }}" enctype="multipart/form-data" class="mt-4 space-y-3">
+                <form method="POST" action="{{ route('admin.toko.foto.store', $produk) }}" enctype="multipart/form-data" class="mt-4 space-y-3" data-unggah-foto>
                     @csrf
                     <div>
                         <label for="berkas-foto" class="mb-1 block font-bold">Tambah foto</label>
-                        <input type="file" id="berkas-foto" name="foto[]" multiple accept="image/jpeg,image/png,image/webp" class="isian" required>
-                        <p class="mt-1 text-sm text-redup">JPG, PNG, atau WebP, maksimal {{ $batasFoto }} per foto. Kalau gagal, coba unggah satu per satu.</p>
+                        {{-- Daftar accept diatur FotoProdukRequest::accept(); sengaja tanpa HEIC agar iPhone mengubahnya ke JPG. --}}
+                        <input type="file" id="berkas-foto" name="foto[]" multiple accept="{{ $acceptFoto }}"
+                            class="isian" required aria-describedby="foto-bantuan foto-status">
+                        <p id="foto-bantuan" class="mt-1 text-sm text-redup">Pilih langsung dari galeri HP. Foto besar otomatis diperkecil dan diubah ke JPG sebelum diunggah, jadi lebih cepat di sinyal lemah. Jenis: {{ $jenisFoto }}. Kalau gagal, coba unggah satu per satu.</p>
+                        <p id="foto-status" data-status-foto role="status" aria-live="polite" class="mt-1 text-sm font-bold" hidden></p>
                     </div>
                     <x-tombol>Unggah foto</x-tombol>
                 </form>

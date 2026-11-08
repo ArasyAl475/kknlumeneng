@@ -128,17 +128,17 @@
         </div>
     </div>
 
-    {{-- 7. Spesifikasi --}}
-    @if (! empty($produk->spesifikasi))
-        <x-kartu judul="Spesifikasi" class="mt-6">
-            <dl class="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-x-4 gap-y-2">
-                @foreach ($produk->spesifikasi as $baris)
+    {{-- 7. Spesifikasi Produk: tabel ala Shopee; Stok dan Dikirim Dari selalu ada --}}
+    <x-kartu judul="Spesifikasi Produk" class="mt-6">
+        <dl class="divide-y divide-garis-halus">
+            @foreach ($produk->spesifikasiPublik($pengaturan['lokasi_kirim']) as $baris)
+                <div class="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-x-4 py-2 first:pt-0 last:pb-0">
                     <dt class="text-redup">{{ $baris['label'] }}</dt>
                     <dd class="font-bold">{{ $baris['nilai'] }}</dd>
-                @endforeach
-            </dl>
-        </x-kartu>
-    @endif
+                </div>
+            @endforeach
+        </dl>
+    </x-kartu>
 
     {{-- 8. Deskripsi --}}
     @if ($produk->deskripsi)
