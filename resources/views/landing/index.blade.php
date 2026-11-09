@@ -4,233 +4,481 @@
 
 @php
     $ews = $modul['ews'] ?? null;
-    $ikonStatus = ['hijau' => 'aman', 'kuning' => 'waspada', 'merah' => 'awas'];
+    $adaEws = $ews && $ews['tersedia'];
+    $toko = $modul['toko'] ?? null;
+    $limbah = $modul['limbah'] ?? null;
+    $ikonStatus = ['hijau' => 'aman', 'kuning' => 'waspada', 'merah' => 'awas', 'kosong' => 'kosong'];
     $warna = $status['warna'] ?? 'kosong';
-
-    $warnaRing = [
-        'hijau'  => 'ring-aman',
-        'kuning' => 'ring-waspada',
-        'merah'  => 'ring-awas',
-        'kosong' => 'ring-garis',
+    $statistik = $profil ? array_slice($profil->statistik(), 0, 4) : [];
+    $tagline = $profil?->nilai('tagline') ?: 'Desa di lereng perbukitan Paninggaran: kebun kopi, jamur tiram, dan warga yang siaga bencana.';
+    $saranStatus = [
+        'hijau' => 'Kondisi lereng terpantau normal. Tetap waspada saat hujan deras berjam-jam.',
+        'kuning' => 'Tanah mulai jenuh air atau lereng mulai bergerak. Hindari lereng dan siapkan jalur evakuasi.',
+        'merah' => 'Bahaya longsor. Segera menjauh dari lereng dan ikuti arahan perangkat desa.',
+        'kosong' => 'Sensor belum mengirim data. Pastikan alat sudah terpasang.',
     ];
-    $warnaGlow = [
-        'hijau'  => 'shadow-[0_0_30px_rgba(15,107,69,0.3)]',
-        'kuning' => 'shadow-[0_0_30px_rgba(242,183,5,0.3)]',
-        'merah'  => 'shadow-[0_0_30px_rgba(166,27,20,0.4)]',
-        'kosong' => '',
+    $sensorBeranda = [
+        ['tanah', 'Kelembapan tanah', 'Tanah terlalu basah lebih mudah bergerak.'],
+        ['hujan', 'Curah hujan', 'Hujan deras menambah beban lereng.'],
+        ['miring', 'Kemiringan', 'Perubahan sudut kecil bisa jadi tanda awal.'],
+        ['udara', 'Kelembapan udara', 'Membantu membaca cuaca sekitar lereng.'],
     ];
+    // Bento: ukuran kartu berbeda-beda agar tidak monoton. Kartu berfoto memakai slot Desain Web.
+    $bento = [
+        'profil' => ['kelas' => 'col-span-2 lg:row-span-2', 'gambar' => 'profil.hero', 'besar' => true],
+        'ews' => ['kelas' => 'col-span-2', 'gambar' => null, 'gelap' => true],
+        'berita' => ['kelas' => '', 'gambar' => null],
+        'galeri' => ['kelas' => '', 'gambar' => 'galeri.hero'],
+        'toko' => ['kelas' => 'col-span-2', 'gambar' => 'toko.hero'],
+        'edukasi' => ['kelas' => '', 'gambar' => null],
+        'limbah' => ['kelas' => '', 'gambar' => null],
+    ];
+    $beritaUtama = $beritaTerbaru->first();
 @endphp
 
-@section('isi')
+@if ($fotoTerbaru->isNotEmpty())
+    @push('skrip')
+        @vite('resources/js/profil/galeri.js')
+    @endpush
+@endif
 
-    {{-- ══════════════════════════════════════════
-         HERO SECTION
-    ══════════════════════════════════════════ --}}
-    <section class="mb-10">
-        <div class="grid items-stretch gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:gap-6">
+{{-- ══════════ HERO: foto penuh, teks di kiri, bagian bawah memudar ke krem ══════════ --}}
+@section('hero')
+    <section class="relative isolate flex min-h-[min(86svh,56rem)] items-center overflow-hidden bg-navy text-white" aria-labelledby="judul-hero">
+        <x-gambar-situs kunci="beranda.hero" :prioritas="true" class="hero-dekat absolute inset-0 -z-20 size-full" />
+        {{-- Navy dari kiri agar teks terbaca, lalu memudar ke krem di bawah: tidak ada batas lurus ke bagian berikutnya. --}}
+        <div class="absolute inset-0 -z-10 bg-gradient-to-r from-navy-tua/90 via-navy/55 to-navy/10" aria-hidden="true"></div>
+        <div class="absolute inset-x-0 bottom-0 -z-10 h-2/5 bg-gradient-to-b from-transparent via-navy/30 to-kertas" aria-hidden="true"></div>
 
-            {{-- Teks hero --}}
-            <div class="flex flex-col justify-center rounded-2xl bg-kopi-tua p-6 text-white sm:p-8">
-                <span class="inline-flex w-fit items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-bold uppercase tracking-wider">
-                    <svg class="size-3.5 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
-                    {{ __('landing.hero.program') }}
-                </span>
-
-                <h1 class="mt-4 text-[clamp(1.6rem,5.5vw,2.6rem)] leading-tight font-bold text-balance">
-                    {{ __('landing.hero.judul') }}
-                </h1>
-
-                <p class="mt-3 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg">
-                    {{ __('landing.hero.tujuan') }}
+        <div class="teks-di-foto mx-auto w-full max-w-6xl px-4 pb-32 pt-32 sm:pt-36">
+            <div class="max-w-2xl">
+                <p class="kaca-terang inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold motion-safe:animate-muncul">
+                    <x-ikon nama="lokasi" class="size-4 text-aksen-terang" />
+                    Kec. Paninggaran · Kab. Pekalongan
                 </p>
+                <h1 id="judul-hero" class="mt-5 leading-none motion-safe:animate-muncul [animation-delay:90ms]">
+                    <span class="block text-[clamp(1.4rem,4.5vw,2.2rem)] font-medium tracking-tight text-white/90">Selamat datang di Desa</span>
+                    <span class="mt-1 block text-[clamp(3.2rem,12vw,6.8rem)] font-extrabold tracking-[-0.04em]">Lumeneng</span>
+                </h1>
+                <p class="mt-5 max-w-xl text-lg text-white/90 sm:text-xl motion-safe:animate-muncul [animation-delay:180ms]">{{ $tagline }}</p>
 
-                @if ($ews && $ews['tersedia'])
-                    <div class="mt-6">
-                        <a href="{{ route($ews['rute']) }}"
-                           class="inline-flex min-h-14 items-center gap-3 rounded-xl bg-white px-6 text-base font-bold text-kopi-tua shadow-lg transition-all hover:bg-kertas hover:shadow-xl active:scale-95">
-                            <x-ikon nama="aman" class="size-5 text-kopi" />
-                            {{ __('landing.hero.tombol') }}
-                            <svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                        </a>
-                    </div>
-                @endif
-            </div>
-
-            {{-- STATUS CARD --}}
-            <section data-warna="{{ $warna }}"
-                     aria-labelledby="judul-status"
-                     class="status-pekat {{ $warnaGlow[$warna] }} rounded-2xl p-5 ring-4 ring-inset ring-white/20 sm:p-6">
-
-                <div class="flex items-center justify-between">
-                    <h2 id="judul-status" class="text-sm font-bold uppercase tracking-wider opacity-80">
-                        {{ __('landing.status.judul') }}
-                    </h2>
-                    <span class="inline-flex size-3 rounded-full bg-white/60 ring-2 ring-white/30"
-                          style="animation: pulse 2s cubic-bezier(0.4,0,0.6,1) infinite;"
-                          aria-hidden="true"></span>
+                <div class="mt-8 flex flex-wrap gap-3 motion-safe:animate-muncul [animation-delay:270ms]">
+                    @if ($modul['profil']['tersedia'] ?? false)
+                        <x-tombol varian="aksen" :href="route('profil.index')" class="min-h-13 rounded-full px-7 text-lg shadow-lg">
+                            Jelajahi Desa <x-ikon nama="panah" class="size-5" />
+                        </x-tombol>
+                    @endif
+                    <x-tombol varian="kaca" href="#layanan" class="min-h-13 rounded-full px-6 text-lg">
+                        <x-ikon nama="menu" class="size-5" /><span>Lihat layanan</span>
+                    </x-tombol>
                 </div>
 
-                @if ($status)
-                    <p class="mt-4 flex items-center gap-3 text-[clamp(2.5rem,10vw,3.5rem)] font-bold leading-none">
-                        <x-ikon :nama="$ikonStatus[$warna]" class="size-[1em] shrink-0" />
-                        <span>{{ $status['status'] }}</span>
-                    </p>
-
-                    @if ($status['lokasi'])
-                        <p class="mt-3 text-base font-bold opacity-90">
-                            <svg class="mr-1 inline size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s7.5-7 7.5-12.5a7.5 7.5 0 0 0-15 0C4.5 15 12 22 12 22Z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
-                            {{ $status['lokasi'] }}
-                        </p>
-                    @endif
-
-                    @if ($status['waktu'])
-                        <p class="mt-2 text-sm opacity-70">
-                            {{ __('landing.status.data_terakhir', ['waktu' => $status['waktu']]) }}
-                        </p>
-                    @endif
-
-                    @if ($status['ada_offline'])
-                        <p class="mt-3 rounded-lg bg-black/20 px-3 py-2 text-sm font-bold">
-                            ⚠ {{ __('landing.status.alat_mati') }}
-                        </p>
-                    @endif
-                @else
-                    <div class="mt-4">
-                        <p class="flex items-center gap-3 text-2xl font-bold">
-                            <x-ikon nama="kosong" class="size-8 shrink-0" />
-                            {{ __('landing.status.belum_ada') }}
-                        </p>
-                        <p class="mt-2 text-sm opacity-70">Sensor belum mengirim data. Pastikan alat sudah terpasang.</p>
-                    </div>
+                {{-- Pil status ringkas: status longsor langsung terbaca di HP tanpa menggulir. Warna padat, bukan kaca. --}}
+                @if ($adaEws)
+                    <a href="#kondisi" data-warna="{{ $warna }}" class="status-pekat mt-7 inline-flex min-h-11 items-center gap-2.5 rounded-full py-2 pl-3 pr-4 font-bold shadow-lg [text-shadow:none] motion-safe:animate-muncul [animation-delay:360ms] hover:brightness-110">
+                        <x-ikon :nama="$ikonStatus[$warna]" class="size-5 shrink-0" />
+                        <span>Status longsor: {{ $status['status'] ?? 'Belum ada data' }}</span>
+                        <x-ikon nama="panah" class="size-4 rotate-90" />
+                    </a>
                 @endif
-            </section>
+            </div>
         </div>
+
+        <a href="{{ $adaEws ? '#kondisi' : '#layanan' }}" class="tanda-gulir absolute bottom-24 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-1 text-sm font-bold text-white/85 hover:text-white sm:flex focus-visible:outline-white" aria-label="Gulir ke bagian berikutnya">
+            <span>Gulir</span>
+            <svg class="size-5" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+    </section>
+@endsection
+
+@section('isi-rapat', true)
+@section('header-transparan', true)
+
+@section('isi')
+    {{-- ══════════ 1. KONDISI LERENG HARI INI (bagian sendiri, tidak menumpang di foto) ══════════ --}}
+    @if ($adaEws)
+        <section id="kondisi" aria-labelledby="judul-kondisi" class="scroll-mt-24 pt-4" data-muncul>
+            <div class="grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+                <div>
+                    <p class="kicker">Peringatan dini longsor</p>
+                    <h2 id="judul-kondisi" class="mt-2 text-[clamp(1.7rem,4vw,2.5rem)] font-extrabold leading-tight text-navy text-balance">Kondisi lereng <span class="text-biru">hari ini</span></h2>
+                    <p class="mt-3 text-lg text-redup">Sensor di lereng mengirim data tanah, hujan, dan kemiringan secara berkala. Cek di sini sebelum beraktivitas di kebun.</p>
+                    <p class="mt-3 flex items-start gap-2 text-sm text-redup"><x-ikon nama="info" class="mt-0.5 size-4 shrink-0 text-biru" />Alat bantu warga, bukan peringatan resmi BPBD.</p>
+                    <x-tombol :href="route($ews['rute'])" class="mt-6 min-h-12 px-6">
+                        {{ __('landing.hero.tombol') }} <x-ikon nama="panah" class="size-5" />
+                    </x-tombol>
+                </div>
+
+                {{-- Kotak status: warna + ikon + kata. Waspada/Awas berdenyut halus agar menarik perhatian. --}}
+                <article data-warna="{{ $warna }}" aria-labelledby="judul-status"
+                         @class(['status-pekat relative overflow-hidden rounded-3xl p-6 shadow-angkat sm:p-8', 'denyut-status' => in_array($warna, ['kuning', 'merah'], true)])>
+                    <span class="pointer-events-none absolute -right-10 -top-10 size-48 rounded-full bg-white/10" aria-hidden="true"></span>
+                    <span class="pointer-events-none absolute -bottom-16 -left-8 size-40 rounded-full bg-black/5" aria-hidden="true"></span>
+                    <h3 id="judul-status" class="relative text-sm font-bold uppercase tracking-[0.12em] opacity-85">{{ __('landing.status.judul') }}</h3>
+                    @if ($status)
+                        <p class="relative mt-3 flex items-center gap-4 font-judul text-[clamp(2.4rem,8vw,3.6rem)] font-extrabold leading-none">
+                            <x-ikon :nama="$ikonStatus[$warna]" class="ikon-goyang size-[1em] shrink-0" />
+                            <span>{{ $status['status'] }}</span>
+                        </p>
+                        <p class="relative mt-4 max-w-md rounded-xl bg-black/10 px-4 py-3 leading-relaxed">{{ $saranStatus[$warna] }}</p>
+                        <div class="relative mt-4 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm sm:text-base">
+                            @if ($status['lokasi'])
+                                <span class="inline-flex items-center gap-1.5 font-bold"><x-ikon nama="lokasi" class="size-4" />{{ $status['lokasi'] }}</span>
+                            @endif
+                            @if ($status['waktu'])
+                                <span class="inline-flex items-center gap-1.5 opacity-90"><x-ikon nama="jam" class="size-4" />{{ __('landing.status.data_terakhir', ['waktu' => $status['waktu']]) }}</span>
+                            @endif
+                        </div>
+                        @if ($status['ada_offline'])
+                            <p class="relative mt-4 flex items-center gap-2 rounded-lg bg-black/20 px-3 py-2 text-sm font-bold">
+                                <x-ikon nama="offline" class="size-5 shrink-0" />{{ __('landing.status.alat_mati') }}
+                            </p>
+                        @endif
+                    @else
+                        <p class="relative mt-3 flex items-center gap-3 font-judul text-2xl font-extrabold">
+                            <x-ikon nama="kosong" class="size-9 shrink-0" />{{ __('landing.status.belum_ada') }}
+                        </p>
+                        <p class="relative mt-3 opacity-90">{{ $saranStatus['kosong'] }}</p>
+                    @endif
+                </article>
+            </div>
+        </section>
+    @endif
+
+    {{-- ══════════ 2. LAYANAN: bento grid, kartu masuk bergantian ══════════ --}}
+    <section id="layanan" aria-labelledby="judul-modul" class="latar-pudar mt-6 scroll-mt-16 [--ke:#ffffff] [--pudar:6rem]">
+        <div class="mx-auto max-w-2xl text-center" data-muncul>
+            <p class="kicker justify-center">Layanan desa</p>
+            <h2 id="judul-modul" class="mt-2 text-[clamp(1.7rem,4vw,2.5rem)] font-extrabold leading-tight text-navy">{{ __('landing.modul.judul') }}</h2>
+            <p class="mt-2 text-lg text-redup">Semua informasi Desa Lumeneng dalam satu pintu, bisa dibuka dari HP.</p>
+        </div>
+
+        <ul class="mt-10 grid auto-rows-[minmax(9.5rem,auto)] grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4" data-stagger>
+            @foreach ($modul as $kunci => $m)
+                @php
+                    $b = $bento[$kunci] ?? ['kelas' => '', 'gambar' => null];
+                    $berfoto = (bool) $b['gambar'];
+                    $gelap = $b['gelap'] ?? false;
+                    $besar = $b['besar'] ?? false;
+                @endphp
+                <li class="{{ $b['kelas'] }}" style="--i: {{ $loop->index }}">
+                    @if ($m['tersedia'])
+                        <a href="{{ route($m['rute']) }}" @class([
+                            'group relative isolate flex h-full flex-col justify-end overflow-hidden rounded-2xl p-5 transition-[transform,box-shadow] duration-300 motion-safe:hover:-translate-y-1 hover:shadow-angkat sm:p-6',
+                            'text-white focus-visible:outline-offset-4' => $berfoto || $gelap,
+                            'pola-kontur bg-gradient-to-br from-navy to-biru-tua' => ! $berfoto && $gelap,
+                            'border border-garis-halus bg-permukaan shadow-kartu' => ! $berfoto && ! $gelap,
+                        ])>
+                            @if ($berfoto)
+                                <x-gambar-situs :kunci="$b['gambar']" class="absolute inset-0 -z-20 size-full motion-safe:transition-transform motion-safe:duration-700 group-hover:scale-105" />
+                                <span class="absolute inset-0 -z-10 bg-gradient-to-t from-navy-tua/95 via-navy/55 to-navy/5" aria-hidden="true"></span>
+                            @endif
+                            <span @class([
+                                'mb-auto flex size-12 items-center justify-center rounded-xl transition-colors duration-300',
+                                'kaca-terang text-white' => $berfoto,
+                                'bg-white/12 text-aksen-terang' => ! $berfoto && $gelap,
+                                'bg-biru-muda text-biru group-hover:bg-biru group-hover:text-white' => ! $berfoto && ! $gelap,
+                            ])>
+                                <x-ikon :nama="$m['ikon']" class="size-6" />
+                            </span>
+                            <span class="mt-6 block">
+                                <span @class([
+                                    'flex items-center gap-2 font-judul font-extrabold leading-snug',
+                                    'text-2xl sm:text-3xl' => $besar,
+                                    'text-lg' => ! $besar,
+                                    'text-navy group-hover:text-biru' => ! $berfoto && ! $gelap,
+                                    'teks-di-foto' => $berfoto,
+                                ])>
+                                    {{ $m['nama'] }}
+                                    <x-ikon nama="panah" class="size-4 shrink-0 motion-safe:transition-transform motion-safe:duration-200 group-hover:translate-x-1" />
+                                </span>
+                                <span @class([
+                                    'mt-1 block text-sm',
+                                    'line-clamp-2' => ! $besar,
+                                    'max-w-md text-base' => $besar,
+                                    'text-white/85' => $berfoto || $gelap,
+                                    'text-redup' => ! $berfoto && ! $gelap,
+                                ])>{{ $m['deskripsi'] }}</span>
+                            </span>
+                        </a>
+                    @else
+                        <div class="flex h-full flex-col justify-end rounded-2xl border-2 border-dashed border-garis-halus bg-permukaan/60 p-5 sm:p-6">
+                            <span class="mb-auto flex size-12 items-center justify-center rounded-xl bg-kosong-lembut text-redup"><x-ikon :nama="$m['ikon']" class="size-6" /></span>
+                            <span class="mt-6 block font-judul text-lg font-extrabold text-redup">{{ $m['nama'] }}</span>
+                            <span class="mt-1 inline-flex w-fit items-center gap-1 rounded-full bg-kosong-lembut px-2.5 py-0.5 text-xs font-bold text-redup">
+                                <x-ikon nama="jam" class="size-3.5" />{{ __('landing.modul.segera') }}
+                            </span>
+                        </div>
+                    @endif
+                </li>
+            @endforeach
+        </ul>
     </section>
 
-    {{-- ══════════════════════════════════════════
-         MODUL / FITUR
-    ══════════════════════════════════════════ --}}
-    <section aria-labelledby="judul-modul" class="mb-10">
-        <div class="mb-4 flex items-center gap-3">
-            <div class="h-1 w-6 rounded-full bg-kopi"></div>
-            <h2 id="judul-modul" class="text-xl font-bold sm:text-2xl">{{ __('landing.modul.judul') }}</h2>
-        </div>
+    {{-- ══════════ 3. KABAR DESA: info + pengumuman di kiri, berita utama berfoto di kanan ══════════ --}}
+    @if ($beritaTerbaru->isNotEmpty() || $pengumuman->isNotEmpty())
+        <section aria-labelledby="judul-kabar" class="mt-12">
+            <div @class(['grid gap-10 lg:items-stretch', 'lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]' => $beritaUtama])>
+                <div class="flex flex-col" data-muncul>
+                    <p class="kicker">Berita</p>
+                    <h2 id="judul-kabar" class="mt-2 text-[clamp(1.7rem,4vw,2.5rem)] font-extrabold leading-tight text-navy">Kabar terbaru dari desa</h2>
+                    <p class="mt-3 text-lg text-redup">Kegiatan warga, pengumuman penting, dan bacaan bermanfaat langsung dari pemerintah desa.</p>
 
-        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            @foreach ($modul as $kunci => $m)
-                <article class="group flex flex-col rounded-2xl border-2 border-garis-halus bg-permukaan p-5 transition-all hover:border-kopi hover:shadow-md sm:p-6">
-                    <div class="flex items-start gap-4">
-                        <span class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-kopi/10 text-kopi transition-colors group-hover:bg-kopi group-hover:text-white">
-                            <x-ikon :nama="$m['ikon']" class="size-6" />
-                        </span>
-                        <div class="min-w-0 flex-1">
-                            <h3 class="font-bold leading-snug">{{ $m['nama'] }}</h3>
-                            <p class="mt-1 text-sm text-redup">{{ $m['deskripsi'] }}</p>
+                    @if ($pengumuman->isNotEmpty())
+                        <div class="mt-7 rounded-2xl border border-aksen/20 bg-gradient-to-br from-aksen-lembut to-permukaan p-5">
+                            <h3 class="flex items-center gap-2 font-judul text-lg font-extrabold text-aksen-tua">
+                                <x-ikon nama="pengumuman" class="size-5" /> Pengumuman
+                            </h3>
+                            <ol class="mt-3 space-y-1">
+                                @foreach ($pengumuman as $p)
+                                    <li class="group relative flex items-start gap-3 rounded-xl px-2 py-2.5 transition-colors duration-200 hover:bg-white">
+                                        <span class="flex size-12 shrink-0 flex-col items-center justify-center rounded-lg bg-white font-judul leading-none text-aksen-tua shadow-sm" aria-hidden="true">
+                                            <span class="text-base font-extrabold">{{ $p->diterbitkan_pada?->format('d') }}</span>
+                                            <span class="mt-0.5 text-[0.7rem] font-bold uppercase">{{ $p->diterbitkan_pada?->translatedFormat('M') }}</span>
+                                        </span>
+                                        <span class="min-w-0">
+                                            <a href="{{ route('berita.show', $p->slug) }}" class="block font-bold leading-snug after:absolute after:inset-0 group-hover:text-biru group-hover:underline">{{ $p->judul }}</a>
+                                            <time class="text-sm text-redup" datetime="{{ $p->diterbitkan_pada?->toDateString() }}">{{ $p->diterbitkan_pada?->format('d-m-Y') }}</time>
+                                        </span>
+                                    </li>
+                                @endforeach
+                            </ol>
                         </div>
-                    </div>
+                    @endif
 
-                    <div class="mt-4 pt-4 border-t border-garis-halus">
-                        @if ($m['tersedia'])
-                            <a href="{{ route($m['rute']) }}"
-                               class="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-kopi px-4 font-bold text-white transition-all hover:bg-kopi-tua active:scale-95"
-                               aria-label="{{ isset($m['tombol']) ? $m['nama'] : __('landing.modul.buka').' '.$m['nama'] }}">
-                                {{ $m['tombol'] ?? __('landing.modul.buka') }}
-                                <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                            </a>
-                        @else
-                            <span class="inline-flex min-h-11 w-full items-center justify-center rounded-xl border-2 border-dashed border-garis-halus px-4 text-sm font-bold text-redup">
-                                🕐 {{ __('landing.modul.segera') }}
-                            </span>
+                    {{-- Di layar lebar tombol turun ke dasar kolom, sejajar garis bawah kotak berita dan artikel di sebelahnya. --}}
+                    <div class="mt-6 flex flex-wrap gap-3 lg:mt-auto lg:pt-6">
+                        <x-tombol :href="route('berita.index')">Semua berita <x-ikon nama="panah" class="size-5" /></x-tombol>
+                        @if ($pengumuman->isNotEmpty())
+                            <x-tombol varian="kedua" :href="route('berita.index', ['jenis' => 'pengumuman'])">Semua pengumuman</x-tombol>
                         @endif
                     </div>
-                </article>
-            @endforeach
-        </div>
-    </section>
+                </div>
 
-    {{-- ══════════════════════════════════════════
-         INFO BAWAH: TENTANG + KONTAK
-    ══════════════════════════════════════════ --}}
-    <div class="grid gap-6 md:grid-cols-2">
+                @if ($beritaUtama)
+                    <div data-muncul>
+                        {{-- Berita utama: judul di atas foto dengan gradasi gelap agar terbaca. --}}
+                        <article class="group relative isolate flex min-h-[22rem] flex-col justify-end overflow-hidden rounded-3xl bg-navy p-6 text-white shadow-angkat sm:min-h-[26rem] sm:p-8">
+                            @if ($beritaUtama->urlGambar())
+                                <img src="{{ $beritaUtama->urlGambar() }}" alt="" loading="lazy" decoding="async" class="absolute inset-0 -z-20 size-full object-cover motion-safe:transition-transform motion-safe:duration-700 group-hover:scale-105">
+                            @else
+                                <x-gambar-situs kunci="berita.hero" class="absolute inset-0 -z-20 size-full" />
+                            @endif
+                            <span class="absolute inset-0 -z-10 bg-gradient-to-t from-navy-tua via-navy-tua/60 to-transparent" aria-hidden="true"></span>
+                            <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+                                @include('profil.partials.jenis', ['berita' => $beritaUtama])
+                                <time datetime="{{ $beritaUtama->diterbitkan_pada?->toDateString() }}" class="teks-di-foto text-white/90">{{ $beritaUtama->diterbitkan_pada?->format('d-m-Y') }}</time>
+                            </p>
+                            <h3 class="teks-di-foto mt-3 text-2xl font-extrabold leading-tight text-balance sm:text-3xl">
+                                <a href="{{ route('berita.show', $beritaUtama->slug) }}" class="after:absolute after:inset-0 focus-visible:outline-white">{{ $beritaUtama->judul }}</a>
+                            </h3>
+                            <p class="teks-di-foto mt-2 line-clamp-2 max-w-xl text-white/90">{{ $beritaUtama->ringkasan }}</p>
+                            <span class="mt-4 inline-flex items-center gap-1.5 font-bold text-aksen-terang" aria-hidden="true">Baca selengkapnya <x-ikon nama="panah" class="size-4 motion-safe:transition-transform group-hover:translate-x-1" /></span>
+                        </article>
 
-        {{-- TENTANG PROGRAM --}}
-        <section aria-labelledby="judul-tentang" class="rounded-2xl border-2 border-garis-halus bg-permukaan p-5 sm:p-6">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="h-1 w-5 rounded-full bg-kopi"></div>
-                <h2 id="judul-tentang" class="text-lg font-bold">{{ __('landing.tentang.judul') }}</h2>
+                        @if ($beritaTerbaru->count() > 1)
+                            <ul class="mt-4 grid gap-4 sm:grid-cols-2" data-stagger>
+                                @foreach ($beritaTerbaru->skip(1) as $b)
+                                    <li class="group relative flex gap-3 rounded-2xl border border-garis-halus bg-permukaan p-3 shadow-kartu transition-shadow duration-300 hover:shadow-angkat" style="--i: {{ $loop->index }}">
+                                        <span class="relative size-20 shrink-0 overflow-hidden rounded-xl bg-biru-lembut">
+                                            @if ($b->urlGambar())
+                                                <img src="{{ $b->urlGambar() }}" alt="" loading="lazy" decoding="async" class="size-full object-cover motion-safe:transition-transform motion-safe:duration-500 group-hover:scale-110">
+                                            @else
+                                                <span class="flex size-full items-center justify-center text-biru"><x-ikon nama="berita" class="size-7" /></span>
+                                            @endif
+                                        </span>
+                                        <span class="min-w-0">
+                                            @include('profil.partials.jenis', ['berita' => $b])
+                                            <a href="{{ route('berita.show', $b->slug) }}" class="mt-1 line-clamp-2 block font-judul font-bold leading-snug after:absolute after:inset-0 group-hover:text-biru">{{ $b->judul }}</a>
+                                            <time class="text-sm text-redup" datetime="{{ $b->diterbitkan_pada?->toDateString() }}">{{ $b->diterbitkan_pada?->format('d-m-Y') }}</time>
+                                        </span>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @endif
+                    </div>
+                @endif
             </div>
+        </section>
+    @endif
 
-            @foreach (__('landing.tentang.isi') as $paragraf)
-                <p class="mt-2 text-sm leading-relaxed text-redup first:mt-0">{{ $paragraf }}</p>
-            @endforeach
+    {{-- ══════════ 4. DESA DALAM ANGKA: pita navy berlatar foto, tepi atas-bawah memudar ══════════ --}}
+    @if ($statistik)
+        <section aria-labelledby="judul-statistik" class="latar-pudar mt-8 text-white [--ke-tengah:var(--color-biru-tua)]">
+            <div class="lapis-pudar" aria-hidden="true">
+                <x-gambar-situs kunci="beranda.angka" class="size-full opacity-35" />
+                <span class="pola-kontur absolute inset-0"></span>
+            </div>
+            <div class="grid items-center gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+                <div data-muncul>
+                    <p class="kicker kicker--terang">Sekilas desa</p>
+                    <h2 id="judul-statistik" class="mt-2 text-[clamp(1.7rem,4vw,2.5rem)] font-extrabold leading-tight">Desa dalam angka</h2>
+                    <p class="mt-3 text-lg text-white/85">Data kependudukan dan wilayah Desa Lumeneng dari pemerintah desa.</p>
+                    <a href="{{ route('profil.index') }}" class="mt-5 inline-flex min-h-11 items-center gap-1.5 font-bold text-aksen-terang hover:text-white hover:underline focus-visible:outline-white">Profil lengkap desa <x-ikon nama="panah" class="size-4" /></a>
+                </div>
+                <dl class="grid grid-cols-2 gap-3 sm:gap-4" data-stagger>
+                    @foreach ($statistik as $angka)
+                        <div class="kaca rounded-2xl p-5 transition-colors duration-300 hover:bg-white/15 sm:p-6" style="--i: {{ $loop->index }}">
+                            <dt class="text-sm font-bold text-white/80">{{ $angka['label'] }}</dt>
+                            <dd class="mt-2 flex flex-wrap items-baseline gap-x-2">
+                                <span class="font-judul text-[clamp(2rem,6vw,3rem)] font-extrabold leading-none tabular-nums" data-hitung>{{ $angka['nilai'] }}</span>
+                                <span class="font-bold text-aksen-terang">{{ $angka['satuan'] }}</span>
+                            </dd>
+                        </div>
+                    @endforeach
+                </dl>
+            </div>
+        </section>
+    @endif
 
-            <div class="mt-6 border-t border-garis-halus pt-4">
-                <h3 class="mb-3 font-bold">{{ __('landing.mitra.judul') }}</h3>
-                <ul class="space-y-3">
-                    @foreach (__('landing.mitra.daftar') as $mitra)
-                        <li class="flex items-start gap-3">
-                            <span class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-kopi/10 text-xs font-bold text-kopi">
-                                {{ mb_substr($mitra['nama'], 0, 2) }}
-                            </span>
-                            <div>
-                                <p class="font-bold leading-snug">{{ $mitra['nama'] }}</p>
-                                @if ($mitra['peran'])
-                                    <p class="text-sm text-redup">{{ $mitra['peran'] }}</p>
-                                @endif
-                            </div>
+    {{-- ══════════ 5. SIAGA BENCANA: foto di kiri, sensor + nomor darurat di kanan ══════════ --}}
+    <section aria-labelledby="judul-siaga" class="mt-16 grid items-center gap-10 lg:grid-cols-2">
+        <div class="relative" data-muncul>
+            <x-gambar-situs kunci="ews.hero" class="aspect-[4/3] w-full rounded-3xl shadow-angkat lg:aspect-[4/5]" />
+            <div class="pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-t from-navy-tua/75 via-transparent to-transparent" aria-hidden="true"></div>
+            <p class="kaca absolute bottom-5 left-5 right-5 rounded-2xl px-4 py-3 text-white">
+                <span class="block text-xs font-bold uppercase tracking-[0.12em] text-aksen-terang">Siaga bersama</span>
+                <span class="block font-judul font-extrabold">Karang Taruna Giri · 25 kader tanggap bencana</span>
+            </p>
+        </div>
+
+        <div data-muncul>
+            <p class="kicker">Siaga bencana</p>
+            <h2 id="judul-siaga" class="mt-2 text-[clamp(1.6rem,3.6vw,2.3rem)] font-extrabold leading-tight text-navy text-balance">{{ __('landing.hero.judul') }}</h2>
+            <p class="mt-3 text-lg text-redup">{{ __('landing.hero.tujuan') }}</p>
+
+            @if ($adaEws)
+                <ul class="mt-6 grid gap-3 sm:grid-cols-2" data-stagger>
+                    @foreach ($sensorBeranda as [$ikon, $nama, $isi])
+                        <li class="flex gap-3 rounded-xl border border-garis-halus bg-permukaan p-3 transition-colors duration-200 hover:border-biru/40" style="--i: {{ $loop->index }}">
+                            <span class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-biru-muda text-biru"><x-ikon :nama="$ikon" class="size-5" /></span>
+                            <span><span class="block font-bold leading-snug">{{ $nama }}</span><span class="block text-sm text-redup">{{ $isi }}</span></span>
                         </li>
                     @endforeach
                 </ul>
-            </div>
-        </section>
+            @endif
 
-        {{-- KONTAK & DARURAT --}}
-        <section aria-labelledby="judul-kontak" class="rounded-2xl border-2 border-awas/20 bg-awas-lembut p-5 sm:p-6">
-            <div class="flex items-center gap-3 mb-4">
-                <span class="flex size-10 items-center justify-center rounded-full bg-awas/10 text-awas">
-                    <x-ikon nama="telepon" class="size-5" />
-                </span>
-                <h2 id="judul-kontak" class="text-lg font-bold">{{ __('landing.kontak.judul') }}</h2>
-            </div>
-
-            <div class="flex items-start gap-2 rounded-xl bg-white/60 p-3 text-sm">
-                <x-ikon nama="lokasi" class="mt-0.5 size-5 shrink-0 text-kopi" />
-                <span>{{ __('landing.kontak.lokasi') }}</span>
-            </div>
-
-            <div class="mt-4">
-                <p class="text-sm font-bold text-awas">{{ __('landing.kontak.darurat_judul') }}</p>
+            {{-- Biru keabuan padat: beda dari latar krem dan dari kartu sensor putih di atasnya; judul merah tetap menandai darurat. --}}
+            <div id="judul-kontak" class="mt-6 scroll-mt-24 rounded-2xl border border-biru/15 bg-gradient-to-br from-[#edf2fa] to-[#dfe8f5] p-5 shadow-kartu">
+                <h3 class="flex items-center gap-2 font-judul text-lg font-extrabold text-awas"><x-ikon nama="telepon" class="size-5" />{{ __('landing.kontak.judul') }}</h3>
+                <p class="mt-2 flex items-start gap-2 text-sm text-redup"><x-ikon nama="lokasi" class="mt-0.5 size-4 shrink-0" />{{ __('landing.kontak.lokasi') }}</p>
+                <p class="mt-3 text-sm font-bold text-awas">{{ __('landing.kontak.darurat_judul') }}</p>
                 @if (__('landing.kontak.darurat_nomor'))
-                    <a href="tel:{{ __('landing.kontak.darurat_nomor') }}"
-                       class="mt-2 flex min-h-14 items-center justify-center gap-3 rounded-xl bg-awas px-4 text-2xl font-bold text-white shadow-md transition-all hover:bg-awas-tua active:scale-95">
-                        <x-ikon nama="telepon" class="size-6" />
-                        {{ __('landing.kontak.darurat_nomor') }}
+                    <a href="tel:{{ __('landing.kontak.darurat_nomor') }}" class="mt-2 flex min-h-14 items-center justify-center gap-3 rounded-xl bg-awas px-4 text-2xl font-bold text-white shadow-md hover:bg-awas-tua">
+                        <x-ikon nama="telepon" class="size-6" />{{ __('landing.kontak.darurat_nomor') }}
                     </a>
                 @else
-                    <div class="mt-2 rounded-xl bg-white/60 p-4">
-                        <p class="text-sm text-redup">{{ __('landing.kontak.darurat_kosong') }}</p>
-                    </div>
+                    <p class="mt-2 rounded-xl bg-white px-4 py-3 text-sm shadow-sm">{{ __('landing.kontak.darurat_kosong') }}</p>
                 @endif
-            </div>
-
-            {{-- Tips Keselamatan --}}
-            <div class="mt-4 rounded-xl bg-kopi-tua/5 p-4 border border-kopi/20">
-                <p class="text-xs font-bold uppercase tracking-wide text-kopi">Tips Keselamatan</p>
-                <ul class="mt-2 space-y-1.5 text-sm text-redup">
-                    <li class="flex gap-2"><span class="shrink-0">🏃</span> Segera menjauh dari lereng saat hujan deras</li>
-                    <li class="flex gap-2"><span class="shrink-0">📱</span> Simpan nomor kader Karang Taruna di HP</li>
-                    <li class="flex gap-2"><span class="shrink-0">👁️</span> Pantau status ini setiap pagi dan malam</li>
+                <ul class="mt-4 grid gap-2 border-t border-biru/15 pt-4 text-sm sm:grid-cols-3">
+                    <li class="flex gap-2"><x-ikon nama="hujan" class="size-5 shrink-0 text-biru" />Menjauh dari lereng saat hujan deras.</li>
+                    <li class="flex gap-2"><x-ikon nama="telepon" class="size-5 shrink-0 text-biru" />Simpan nomor kader di HP.</li>
+                    <li class="flex gap-2"><x-ikon nama="jam" class="size-5 shrink-0 text-biru" />Cek status pagi dan malam.</li>
                 </ul>
             </div>
+        </div>
+    </section>
+
+    {{-- ══════════ 6. GALERI: susunan mozaik, foto bergiliran ══════════ --}}
+    @if ($fotoTerbaru->isNotEmpty())
+        <section aria-labelledby="judul-galeri" class="latar-pudar mt-8 [--ke:var(--color-krem-tua)] [--pudar:6rem]">
+            <div class="flex flex-wrap items-end justify-between gap-3" data-muncul>
+                <div>
+                    <p class="kicker">Potret Desa Lumeneng</p>
+                    <h2 id="judul-galeri" class="mt-2 text-[clamp(1.7rem,4vw,2.5rem)] font-extrabold leading-tight text-navy">Galeri desa</h2>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    @if ($fotoGilir->isNotEmpty())
+                        {{-- Foto berganti sendiri, jadi wajib ada tombol untuk menghentikannya (WCAG 2.2.2). --}}
+                        <button type="button" data-gilir-jeda aria-pressed="false" hidden
+                                class="inline-flex min-h-11 items-center gap-2 rounded-[0.7rem] border border-garis bg-permukaan px-4 font-judul font-bold transition-colors duration-200 hover:border-biru hover:bg-biru-lembut aria-pressed:border-biru aria-pressed:bg-biru aria-pressed:text-white">
+                            <svg class="size-5" viewBox="0 0 24 24" aria-hidden="true"><path data-ikon-jeda d="M9 5v14M15 5v14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path data-ikon-putar d="M8 5v14l11-7Z" fill="currentColor" hidden/></svg>
+                            <span data-teks>Jeda pergantian foto</span>
+                        </button>
+                    @endif
+                    <x-tombol varian="kedua" :href="route('galeri.index')">Lihat semua foto <x-ikon nama="panah" class="size-5" /></x-tombol>
+                </div>
+            </div>
+            <ul data-galeri data-stagger @if ($fotoGilir->isNotEmpty()) data-gilir @endif class="mt-8 grid auto-rows-[9rem] grid-cols-2 gap-3 sm:auto-rows-[11rem] sm:grid-cols-4 sm:gap-4">
+                @foreach ($fotoTerbaru as $foto)
+                    <li @class([
+                        'relative [&>a]:h-full [&_img]:!aspect-auto [&_img]:h-full',
+                        'col-span-2 row-span-2' => $loop->index === 0,
+                    ]) style="--i: {{ $loop->index }}">@include('profil.partials.kotak-foto')</li>
+                @endforeach
+            </ul>
+            @if ($fotoGilir->isNotEmpty())
+                {{-- Foto cadangan untuk digilir (resources/js/landing/gilir.js). Isi <template> tidak dimuat browser sampai dipakai. --}}
+                <template data-gilir-cadangan>
+                    @foreach ($fotoGilir as $foto)
+                        @include('profil.partials.kotak-foto')
+                    @endforeach
+                </template>
+                @push('skrip')
+                    @vite('resources/js/landing/gilir.js')
+                @endpush
+            @endif
         </section>
+    @endif
 
-    </div>
+    {{-- ══════════ 7. PRODUK WARGA: foto kiri, teks kanan ══════════ --}}
+    @if (($toko['tersedia'] ?? false) || ($limbah['tersedia'] ?? false))
+        <section aria-labelledby="judul-produk" class="mt-16 grid items-center gap-10 lg:grid-cols-2">
+            <div class="relative" data-muncul>
+                <x-gambar-situs kunci="beranda.produk" class="aspect-[4/3] w-full rounded-3xl shadow-angkat" />
+                <span class="absolute left-5 top-5 inline-flex items-center gap-2 rounded-full bg-aksen px-4 py-2 font-judul text-sm font-extrabold text-white shadow-lg" aria-hidden="true">
+                    <x-ikon nama="daun" class="size-4" /> Ekonomi sirkular
+                </span>
+            </div>
+            <div data-muncul>
+                <p class="kicker">Produk warga</p>
+                <h2 id="judul-produk" class="mt-2 text-[clamp(1.7rem,4vw,2.5rem)] font-extrabold leading-tight text-navy text-balance">Dari kebun warga, <span class="text-biru">langsung ke rumah Anda</span></h2>
+                <p class="mt-3 text-lg text-redup">Kopi, baglog dari cangkang kopi, dan jamur tiram buatan warga. Limbah kopi tidak dibuang, tetapi diolah lagi menjadi media tanam jamur.</p>
+                <ol class="mt-6 grid gap-3 sm:grid-cols-3" data-stagger>
+                    @foreach (['Panen kopi warga', 'Cangkang jadi baglog', 'Jamur sampai pembeli'] as $teks)
+                        <li class="flex items-center gap-3 rounded-xl bg-permukaan p-3 shadow-kartu sm:flex-col sm:items-start" style="--i: {{ $loop->index }}">
+                            <span class="font-judul text-2xl font-extrabold text-aksen" aria-hidden="true">{{ $loop->iteration }}</span>
+                            <span class="font-bold leading-snug">{{ $teks }}</span>
+                        </li>
+                    @endforeach
+                </ol>
+                <div class="mt-6 flex flex-wrap gap-3">
+                    @if ($toko['tersedia'] ?? false)
+                        <x-tombol :href="route($toko['rute'])" class="min-h-12 px-6"><x-ikon nama="toko" class="size-5" /><span>Belanja di Toko Desa</span></x-tombol>
+                    @endif
+                    @if ($limbah['tersedia'] ?? false)
+                        <x-tombol varian="kedua" :href="route($limbah['rute'])" class="min-h-12 px-6"><x-ikon nama="tanah" class="size-5" /><span>{{ $limbah['nama'] }}</span></x-tombol>
+                    @endif
+                </div>
+            </div>
+        </section>
+    @endif
 
-    <style>
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-        }
-    </style>
-
+    {{-- ══════════ 8. TENTANG PROGRAM: teks kiri, foto kanan ══════════ --}}
+    <section aria-labelledby="judul-tentang" class="mt-20 grid items-center gap-10 lg:grid-cols-2">
+        <div class="lg:order-2" data-muncul>
+            <x-gambar-situs kunci="beranda.tentang" class="aspect-[4/3] w-full rounded-3xl shadow-angkat" />
+        </div>
+        <div data-muncul>
+            <p class="kicker">{{ __('landing.hero.program') }}</p>
+            <h2 id="judul-tentang" class="mt-2 text-[clamp(1.7rem,4vw,2.5rem)] font-extrabold leading-tight text-navy">{{ __('landing.tentang.judul') }}</h2>
+            @foreach (__('landing.tentang.isi') as $paragraf)
+                <p class="mt-3 text-redup">{{ $paragraf }}</p>
+            @endforeach
+            <h3 class="mt-6 font-extrabold text-navy">{{ __('landing.mitra.judul') }}</h3>
+            <ul class="mt-3 grid gap-3 sm:grid-cols-2" data-stagger>
+                @foreach (__('landing.mitra.daftar') as $mitra)
+                    <li class="flex items-start gap-3 rounded-xl border border-garis-halus bg-permukaan p-3 transition-shadow duration-300 hover:shadow-kartu" style="--i: {{ $loop->index }}">
+                        <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-biru-muda font-judul text-sm font-extrabold text-biru" aria-hidden="true">{{ mb_substr($mitra['nama'], 0, 2) }}</span>
+                        <span>
+                            <span class="block font-bold leading-snug">{{ $mitra['nama'] }}</span>
+                            @if ($mitra['peran'])
+                                <span class="block text-sm text-redup">{{ $mitra['peran'] }}</span>
+                            @endif
+                        </span>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    </section>
 @endsection

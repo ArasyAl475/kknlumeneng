@@ -3,7 +3,7 @@ import { Chart, Legend, LinearScale, LineController, LineElement, PointElement, 
 // Hanya bagian yang dipakai, agar unduhan tetap kecil di sinyal lemah.
 Chart.register(Legend, LinearScale, LineController, LineElement, PointElement, Tooltip);
 
-const WARNA_GARIS = '#164e32';
+const WARNA_GARIS = '#1e40af';
 const angka = (nilai) => Number(nilai).toLocaleString('id-ID', { maximumFractionDigits: 2 });
 
 function labelWaktu(ms, rentangDetik) {

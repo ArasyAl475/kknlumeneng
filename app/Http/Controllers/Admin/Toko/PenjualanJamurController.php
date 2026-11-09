@@ -16,7 +16,7 @@ class PenjualanJamurController extends Controller
         return view('admin.toko.penjualan-jamur.index', [
             'ringkasan' => $rekap->penjualan(),
             'keuangan' => $rekap->keuanganJamur(),
-            'penjualan' => PenjualanJamur::query()->orderByDesc('tanggal_penjualan')->orderByDesc('id')->paginate(20),
+            'penjualan' => PenjualanJamur::query()->orderByDesc('tanggal_penjualan')->orderByDesc('id')->paginate(10),
         ]);
     }
 

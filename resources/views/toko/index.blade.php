@@ -6,8 +6,13 @@
     @vite('resources/js/toko/publik.js')
 @endpush
 
+@section('hero')
+    <x-pita-judul judul="Toko Desa Lumeneng" gambar="toko.hero" label="Produk warga" ikon="toko" :jejak="[['Toko Desa', null]]"
+        keterangan="Kopi, baglog dari limbah kulit kopi, dan olahan jamur tiram buatan warga. Produk kami sama di semua tempat; pilih marketplace yang paling Anda kenal." />
+@endsection
+
 @section('isi')
-    <x-judul-halaman judul="Toko Desa Lumeneng" keterangan="Kopi, baglog dari limbah kulit kopi, dan olahan jamur tiram buatan warga. Produk kami sama di semua tempat; pilih marketplace yang paling Anda kenal." />
+    <h2 class="mb-4 text-xl font-extrabold text-navy">Pilih tempat belanja</h2>
 
     @if ($marketplace->isEmpty())
         <section class="toko-kartu toko-bagian">
