@@ -15,7 +15,7 @@ class PanenKopiController extends Controller
     {
         return view('admin.toko.panen-kopi.index', [
             'ringkasan' => $rekap->kopi(),
-            'panen' => PanenKopi::query()->orderByDesc('tanggal_panen')->orderByDesc('id')->paginate(20),
+            'panen' => PanenKopi::query()->orderByDesc('tanggal_panen')->orderByDesc('id')->paginate(10),
         ]);
     }
 

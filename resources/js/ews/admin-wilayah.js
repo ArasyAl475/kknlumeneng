@@ -23,7 +23,7 @@ JSON.parse(wadah.dataset.lainnya).forEach((w) => {
     L.polygon(w.poligon, { color: '#56605a', weight: 1, fillOpacity: 0.1, interactive: false }).bindTooltip(label).addTo(lain);
 });
 
-const gaya = { color: '#164e32', weight: 3, fillOpacity: 0.25 };
+const gaya = { color: '#1e40af', weight: 3, fillOpacity: 0.25 };
 let bentuk = null;
 
 const tulisIsian = () => {

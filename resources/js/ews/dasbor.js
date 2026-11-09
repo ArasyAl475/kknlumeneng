@@ -85,15 +85,52 @@ function tampilkanSensor() {
     el('sensor-wilayah').textContent = w ? `· ${w.nama}` : '';
     el('sensor-waktu').textContent = w?.waktu ? `Data ${w.waktu} WIB` : '';
 
-    wadah.replaceChildren(...Object.values(w?.sensor ?? {}).map((s) => {
+    // Batang pengukur hanya beranimasi saat kartu pertama kali tampil, bukan di setiap pembaruan berkala.
+    const pertama = !wadah.dataset.sudahTampil;
+    wadah.dataset.sudahTampil = '1';
+
+    wadah.replaceChildren(...Object.entries(w?.sensor ?? {}).map(([kunci, s]) => {
         const kartu = cetak('cetak-sensor');
         kartu.dataset.warna = s.warna;
         kartu.querySelector('[data-isi="ikon"]').setAttribute('href', `#i-${s.ikon}`);
         isi(kartu, 'nama', s.nama);
         isi(kartu, 'teks', s.nilai === null ? '-' : s.teks);
         isi(kartu, 'lencana', '').append(lencana(s.warna, s.kata));
+        isiMeter(kartu, kunci, s.nilai, pertama);
         return kartu;
     }));
+}
+
+// Batang pengukur hanya gambar bantu (nilai sebenarnya ada di teks). Persen: 0–100.
+// Kemiringan: dari tengah ke kiri/kanan sesuai arah, penuh pada 45 derajat.
+function isiMeter(kartu, kunci, nilai, beranimasi) {
+    const meter = kartu.querySelector('[data-isi="meter"]');
+    const batang = kartu.querySelector('[data-isi="isi-meter"]');
+    if (!meter || !batang) return;
+
+    let kiri = 0;
+    let lebar = 0;
+    if (nilai !== null) {
+        if (kunci === 'kemiringan') {
+            meter.dataset.jenis = 'sudut';
+            const separuh = Math.min(50, (Math.abs(nilai) / 45) * 50);
+            kiri = nilai >= 0 ? 50 : 50 - separuh;
+            lebar = separuh;
+        } else {
+            lebar = Math.max(0, Math.min(100, nilai));
+        }
+    }
+
+    const pasang = () => {
+        batang.style.left = `${kiri}%`;
+        batang.style.width = `${lebar}%`;
+    };
+    if (beranimasi) {
+        batang.style.left = kunci === 'kemiringan' ? '50%' : '0%';
+        requestAnimationFrame(() => requestAnimationFrame(pasang));
+    } else {
+        pasang();
+    }
 }
 
 function tampilkanLog() {

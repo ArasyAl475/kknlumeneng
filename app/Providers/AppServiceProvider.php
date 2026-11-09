@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\Desain\GambarSitus;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -13,7 +14,8 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        // Satu salinan per permintaan, agar semua slot gambar cukup dibaca dengan satu kueri.
+        $this->app->singleton(GambarSitus::class);
     }
 
     public function boot(): void

@@ -27,6 +27,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias(['admin' => PastikanAdmin::class]);
         $middleware->redirectUsersTo(fn () => route('admin.beranda'));
 
+        // Cloudflare Tunnel meneruskan pengunjung dari laptop sendiri (127.0.0.1). Hanya alamat itu
+        // yang dipercaya, agar skema https dan IP asli pengunjung terbaca tanpa bisa dipalsukan dari luar.
+        $middleware->trustProxies(at: ['127.0.0.1', '::1']);
+
         // Hak akses diperiksa sebelum data rute dicari. Jika terbalik, non-admin bisa menebak
         // ID mana yang ada dari beda jawaban 404 dan 403.
         $middleware->prependToPriorityList(before: SubstituteBindings::class, prepend: PastikanAdmin::class);

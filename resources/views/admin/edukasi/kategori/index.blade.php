@@ -13,7 +13,7 @@
         @if ($kategori->isEmpty())
             <p class="text-redup">Belum ada kategori. Tambahkan kategori pertama sebelum menulis materi.</p>
         @endif
-        <ul class="divide-y divide-garis-halus">
+        <ul class="divide-y divide-garis-halus" data-paginasi="10">
             @foreach ($kategori as $k)
                 <li class="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
                     <div class="min-w-0 flex-1 basis-56">

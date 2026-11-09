@@ -26,7 +26,7 @@ class MateriController extends Controller
                 ->with('kategori:id,nama')
                 ->latest('diterbitkan_pada')
                 ->latest('id')
-                ->paginate(12)
+                ->paginate(9)
                 ->withQueryString(),
         ]);
     }

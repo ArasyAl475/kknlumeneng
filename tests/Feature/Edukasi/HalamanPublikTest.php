@@ -128,7 +128,7 @@ class HalamanPublikTest extends TestCase
 
         $this->get("/edukasi/{$materi->slug}")->assertOk()
             ->assertSee('Isi penjelasan')
-            ->assertSeeInOrder(['1. Langkah Pertama', '2. Langkah Kedua']);
+            ->assertSeeInOrder(['Langkah 1: ', 'Langkah Pertama', 'Langkah 2: ', 'Langkah Kedua']);
     }
 
     public function test_isi_materi_ditampilkan_aman_dari_skrip(): void
