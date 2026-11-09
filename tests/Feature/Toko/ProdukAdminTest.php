@@ -68,16 +68,90 @@ class ProdukAdminTest extends TestCase
         $this->assertDatabaseHas('toko_aktivitas', ['aksi' => 'tambah_produk']);
     }
 
-    public function test_produk_boleh_tanpa_harga_varian_dan_spesifikasi(): void
+    public function test_produk_boleh_tanpa_varian_spesifikasi_dan_tautan(): void
     {
         $this->post(route('admin.toko.produk.store'), [
-            'nama' => 'Abon Jamur', 'tersedia' => '1', 'tampil' => '1',
+            'nama' => 'Abon Jamur', 'harga' => '18000', 'tersedia' => '1', 'tampil' => '1',
         ])->assertSessionHasNoErrors();
 
         $produk = Produk::query()->sole();
-        $this->assertNull($produk->harga);
+        $this->assertSame(18000, $produk->harga);
         $this->assertNull($produk->spesifikasi);
-        $this->assertNull($produk->hargaTeks());
+        $this->assertSame('Rp 18.000', $produk->hargaTeks());
+    }
+
+    public function test_isian_utama_tersimpan_berurutan_dan_yang_kosong_dibuang(): void
+    {
+        $this->post(route('admin.toko.produk.store'), $this->isian([
+            'utama' => [
+                'merek' => 'Kopi Lumeneng',
+                'kategori' => 'Makanan & Minuman',
+                'tipe_paket' => '',
+                'jenis_biji_bijian' => '  Arabika ',
+            ],
+        ]))->assertSessionHasNoErrors();
+
+        // Urutan mengikuti Produk::SPESIFIKASI_UTAMA, bukan urutan kiriman; baris tambahan (Berat) menyusul.
+        $this->assertSame([
+            ['label' => 'Kategori', 'nilai' => 'Makanan & Minuman'],
+            ['label' => 'Merek', 'nilai' => 'Kopi Lumeneng'],
+            ['label' => 'Jenis Biji-Bijian', 'nilai' => 'Arabika'],
+            ['label' => 'Berat', 'nilai' => '250 g'],
+        ], Produk::query()->sole()->spesifikasi);
+    }
+
+    public function test_isian_utama_terlalu_panjang_ditolak(): void
+    {
+        $this->post(route('admin.toko.produk.store'), $this->isian(['utama' => ['merek' => str_repeat('a', 201)]]))
+            ->assertSessionHasErrors('utama.merek');
+    }
+
+    public function test_form_ubah_memisahkan_isian_utama_dari_baris_tambahan(): void
+    {
+        $produk = Produk::factory()->create(['spesifikasi' => [
+            ['label' => 'merek', 'nilai' => 'Kopi Lumeneng'],
+            ['label' => 'Berat', 'nilai' => '250 g'],
+        ]]);
+
+        $this->get(route('admin.toko.produk.edit', $produk))->assertOk()
+            ->assertSee('name="utama[merek]"', false)
+            ->assertSee('value="Kopi Lumeneng"', false)
+            ->assertSee('name="spesifikasi[0][label]"', false)
+            ->assertSee('value="Berat"', false)
+            ->assertSee('Spesifikasi tambahan');
+    }
+
+    public function test_nama_dan_harga_wajib_diisi_dengan_pesan_yang_jelas(): void
+    {
+        $this->post(route('admin.toko.produk.store'), $this->isian(['nama' => '', 'harga' => '']))
+            ->assertSessionHasErrors([
+                'nama' => 'Nama produk wajib diisi.',
+                'harga' => 'Harga wajib diisi. Tulis angkanya saja, misalnya 25000.',
+            ]);
+
+        $this->assertSame(0, Produk::query()->count());
+    }
+
+    public function test_harga_nol_ditolak(): void
+    {
+        $this->post(route('admin.toko.produk.store'), $this->isian(['harga' => '0']))
+            ->assertSessionHasErrors(['harga' => 'Harga harus lebih dari 0.']);
+    }
+
+    public function test_alert_galat_dan_penanda_wajib_tampil_di_formulir(): void
+    {
+        $this->get(route('admin.toko.produk.create'))
+            ->assertOk()
+            ->assertSee('(wajib)')
+            ->assertSee('aria-required="true"', false);
+
+        $this->from(route('admin.toko.produk.create'))
+            ->followingRedirects()
+            ->post(route('admin.toko.produk.store'), $this->isian(['harga' => '']))
+            ->assertSee('role="alert"', false)
+            ->assertSee('Periksa kembali isian berikut')
+            ->assertSee('Harga wajib diisi')
+            ->assertSee('aria-invalid="true"', false);
     }
 
     public function test_tautan_dari_situs_lain_ditolak(): void

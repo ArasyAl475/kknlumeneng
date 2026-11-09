@@ -26,7 +26,6 @@ class AlatController extends Controller
             'batasMenit' => $batas,
             // Hanya ada/tidaknya yang diperlihatkan, nilainya tidak pernah dikirim ke tampilan.
             'adaKunciApi' => filled(config('ews.api_key')),
-            'adaTelegram' => filled(config('ews.telegram.token')) && filled(config('ews.telegram.chat_id')),
         ]);
     }
 }

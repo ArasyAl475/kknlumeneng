@@ -9,11 +9,6 @@
             <x-ikon nama="awas" class="mt-0.5 size-5 shrink-0" />EWS_API_KEY di .env masih kosong: semua kiriman alat ditolak.
         </div>
     @endunless
-    @unless ($adaTelegram)
-        <div role="status" data-warna="kuning" class="status-lembut status-garis mb-4 flex items-start gap-2 rounded-md border p-3 font-bold">
-            <x-ikon nama="waspada" class="mt-0.5 size-5 shrink-0" />Telegram belum diatur: pemberitahuan tidak akan terkirim.
-        </div>
-    @endunless
 
     <x-kartu>
         @if ($alat->isEmpty())

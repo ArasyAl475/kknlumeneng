@@ -7,7 +7,7 @@
     <meta name="description" content="Katalog produk sirkular Koci: jamur tiram putih organik, bibit baglog sirkular, kopi konservasi, dan kompos bernutrisi tinggi Desa Lumeneng.">
     <meta name="theme-color" content="#1e4d2b">
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/toko/publik.js'])
 </head>
 <body class="bg-surface text-on-surface min-h-screen flex flex-col antialiased selection:bg-primary-fixed selection:text-on-primary-fixed">
 

@@ -12,7 +12,7 @@ class SimulasiRequest extends FormRequest
         return [
             'wilayah_id' => ['required', 'integer', Rule::exists('ews_wilayah', 'id')->whereNull('deleted_at')],
             'kelembapan_tanah' => ['nullable', 'numeric', 'between:0,100'],
-            'curah_hujan' => ['nullable', 'numeric', 'between:0,1000'],
+            'intensitas_hujan' => ['nullable', 'numeric', 'between:0,100'],
             'kemiringan' => ['nullable', 'numeric', 'between:-90,90'],
             'kelembapan_udara' => ['nullable', 'numeric', 'between:0,100'],
             'kabel_putus' => ['nullable', 'boolean'],
@@ -24,7 +24,7 @@ class SimulasiRequest extends FormRequest
      */
     public function bacaan(): array
     {
-        return collect(['kelembapan_tanah', 'curah_hujan', 'kemiringan', 'kelembapan_udara'])
+        return collect(['kelembapan_tanah', 'intensitas_hujan', 'kemiringan', 'kelembapan_udara'])
             ->mapWithKeys(fn (string $s) => [$s => $this->validated($s) === null ? null : (float) $this->validated($s)])
             ->all();
     }

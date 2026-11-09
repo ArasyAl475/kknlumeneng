@@ -157,6 +157,20 @@ class HalamanHasilTest extends TestCase
         $this->assertSame(4, substr_count($html, 'ikon-seri'));
     }
 
+    public function test_navbar_halaman_hasil_sama_dengan_halaman_lain(): void
+    {
+        // Dipaksa menyala agar tes tidak bergantung pada isi .env di komputer masing-masing.
+        config(['modul.ews.aktif' => true, 'modul.toko.aktif' => true, 'modul.edukasi.aktif' => true, 'modul.limbah.aktif' => true]);
+
+        $respons = $this->get('/toko/hasil')->assertOk()
+            ->assertSee('data-navbar-publik', false)
+            ->assertSee('History Limbah');
+
+        foreach (['landing', 'ews.index', 'toko.index', 'edukasi.index', 'toko.hasil'] as $rute) {
+            $respons->assertSee('href="'.route($rute).'"', false);
+        }
+    }
+
     public function test_menu_toko_tersembunyi_saat_modul_mati(): void
     {
         config(['modul.toko.aktif' => false]);

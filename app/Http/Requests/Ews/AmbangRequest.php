@@ -11,8 +11,8 @@ class AmbangRequest extends FormRequest
         return [
             'kelembapan_tanah_waspada' => ['required', 'numeric', 'between:1,99'],
             'kelembapan_tanah_validasi' => ['required', 'numeric', 'gt:kelembapan_tanah_waspada', 'max:100'],
-            'curah_hujan_waspada' => ['required', 'numeric', 'between:0.1,999'],
-            'curah_hujan_validasi' => ['required', 'numeric', 'gt:curah_hujan_waspada', 'max:1000'],
+            'intensitas_hujan_waspada' => ['required', 'numeric', 'between:1,99'],
+            'intensitas_hujan_validasi' => ['required', 'numeric', 'gt:intensitas_hujan_waspada', 'max:100'],
             'kemiringan_waspada' => ['required', 'numeric', 'between:0.1,89'],
             'kemiringan_validasi' => ['required', 'numeric', 'gt:kemiringan_waspada', 'max:90'],
         ];
@@ -22,7 +22,7 @@ class AmbangRequest extends FormRequest
     {
         return [
             'kelembapan_tanah_validasi.gt' => 'Batas validasi kelembapan tanah harus lebih besar dari batas waspada.',
-            'curah_hujan_validasi.gt' => 'Batas validasi curah hujan harus lebih besar dari batas waspada.',
+            'intensitas_hujan_validasi.gt' => 'Batas validasi intensitas hujan harus lebih besar dari batas waspada.',
             'kemiringan_validasi.gt' => 'Batas validasi kemiringan harus lebih besar dari batas waspada.',
         ];
     }
@@ -32,8 +32,8 @@ class AmbangRequest extends FormRequest
         return [
             'kelembapan_tanah_waspada' => 'batas waspada kelembapan tanah',
             'kelembapan_tanah_validasi' => 'batas validasi kelembapan tanah',
-            'curah_hujan_waspada' => 'batas waspada curah hujan',
-            'curah_hujan_validasi' => 'batas validasi curah hujan',
+            'intensitas_hujan_waspada' => 'batas waspada intensitas hujan',
+            'intensitas_hujan_validasi' => 'batas validasi intensitas hujan',
             'kemiringan_waspada' => 'batas waspada kemiringan',
             'kemiringan_validasi' => 'batas validasi kemiringan',
         ];
@@ -47,7 +47,7 @@ class AmbangRequest extends FormRequest
         $d = $this->validated();
         $hasil = [];
 
-        foreach (['kelembapan_tanah', 'curah_hujan', 'kemiringan'] as $sensor) {
+        foreach (['kelembapan_tanah', 'intensitas_hujan', 'kemiringan'] as $sensor) {
             $hasil[$sensor] = ['waspada' => (float) $d["{$sensor}_waspada"], 'validasi' => (float) $d["{$sensor}_validasi"]];
         }
 

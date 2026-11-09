@@ -5,13 +5,10 @@ namespace App\Services\Ews;
 use App\Models\Ews\Pembacaan;
 use App\Models\Ews\Pengaturan;
 use App\Models\Ews\Wilayah;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class PenerimaPembacaan
 {
-    public function __construct(private PemberitahuTelegram $telegram) {}
-
     /**
      * Pintu tunggal data sensor masuk, dipakai API alat maupun simulator.
      *
@@ -22,8 +19,8 @@ class PenerimaPembacaan
         $hasil = PenilaianStatus::nilai($bacaan, Pengaturan::ambang(), $kabelPutus);
 
         // Kunci baris wilayah supaya dua kiriman bersamaan tidak membuat dua laporan
-        // "menunggu" atau dua pesan Awas untuk wilayah yang sama.
-        [$pembacaan, $mulaiAwas] = DB::transaction(function () use ($wilayah, $bacaan, $hasil, $kabelPutus) {
+        // "menunggu" untuk wilayah yang sama.
+        $pembacaan = DB::transaction(function () use ($wilayah, $bacaan, $hasil, $kabelPutus) {
             $wilayah = Wilayah::query()->lockForUpdate()->findOrFail($wilayah->id);
 
             $menunggu = $hasil['perlu_validasi'] && ! $this->validasiSudahDiminta($wilayah);
@@ -31,7 +28,7 @@ class PenerimaPembacaan
             $pembacaan = Pembacaan::query()->create([
                 'wilayah_id' => $wilayah->id,
                 'kelembapan_tanah' => $bacaan['kelembapan_tanah'] ?? null,
-                'curah_hujan' => $bacaan['curah_hujan'] ?? null,
+                'intensitas_hujan' => $bacaan['intensitas_hujan'] ?? null,
                 'kemiringan' => $bacaan['kemiringan'] ?? null,
                 'kelembapan_udara' => $bacaan['kelembapan_udara'] ?? null,
                 'kabel_putus' => $kabelPutus,
@@ -41,8 +38,7 @@ class PenerimaPembacaan
                 'validasi' => $menunggu ? Pembacaan::VALIDASI_MENUNGGU : null,
             ]);
 
-            $mulaiAwas = $kabelPutus && ! $wilayah->status_awas;
-            if ($mulaiAwas) {
+            if ($kabelPutus && ! $wilayah->status_awas) {
                 $wilayah->update([
                     'status_awas' => true,
                     'awas_sumber' => 'Kabel EWS putus (otomatis)',
@@ -50,25 +46,13 @@ class PenerimaPembacaan
                 ]);
             }
 
-            return [$pembacaan, $mulaiAwas];
+            return $pembacaan;
         });
 
-        Cache::forget($this->kunciOffline($wilayah));
         DataDasbor::lupakan();
         $pembacaan->setRelation('wilayah', $wilayah);
 
-        if ($mulaiAwas) {
-            $this->telegram->awasKabelPutus($pembacaan);
-        } elseif ($pembacaan->validasi === Pembacaan::VALIDASI_MENUNGGU) {
-            $this->telegram->perluValidasi($pembacaan);
-        }
-
         return $pembacaan;
-    }
-
-    public function kunciOffline(Wilayah $wilayah): string
-    {
-        return "ews:offline-diberitahu:{$wilayah->id}";
     }
 
     // Alat mengirim terus-menerus; admin hanya boleh diminta memvalidasi sekali.
