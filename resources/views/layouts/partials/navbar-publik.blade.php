@@ -1,12 +1,13 @@
 {{-- Bilah atas + header publik. Dipakai layouts/app dan toko/kerangka agar menunya selalu sama.
-     Di halaman yang memasang @section('header-transparan') header menjadi transparan di atas foto, lalu padat putih
-     setelah digulir (resources/js/app.js). Di halaman lain header selalu putih. --}}
+     Di semua halaman header mula-mula transparan, lalu menjadi putih padat setelah digulir (resources/js/app.js).
+     Halaman berfoto di bagian atas (@section('hero'): sampul Beranda/Profil atau pita judul) membuat header
+     melayang di atas foto dengan teks putih. Halaman tanpa foto (detail berita, materi, produk) memakai teks gelap. --}}
 @php
     // "Beranda" ditulis eksplisit: banyak warga tidak tahu bahwa logo bisa diketuk untuk kembali.
     $menu = ['beranda' => ['nama' => 'Beranda', 'rute' => 'landing', 'ikon' => 'beranda']] + \App\Support\Modul::tersedia();
     $aktif = fn (array $modul) => request()->routeIs($modul['pola'] ?? $modul['rute']);
-    // Hanya halaman berfoto besar (Beranda, Profil) yang menandai header-transparan; pita judul biasa tetap header putih.
-    $transparan = $__env->hasSection('header-transparan');
+    // Semua bagian hero berlatar gelap (foto + lapisan navy), jadi teks putih di atasnya tetap terbaca.
+    $transparan = $__env->hasSection('header-transparan') || $__env->hasSection('hero');
 @endphp
 
 {{-- Bilah navy tipis ala portal pemerintah; di HP kecil disembunyikan agar layar tidak sesak. --}}
@@ -28,12 +29,13 @@
     </div>
 </div>
 
-<header data-navbar-publik @if ($transparan) data-header-transparan @endif
+<header data-navbar-publik data-header-transparan
     @class([
-        'group/header sticky top-0 z-[1000] h-[4.25rem] transition-[background-color,box-shadow,color] duration-200',
+        'group/header sticky top-0 z-[1000] h-[4.25rem] transition-[background-color,box-shadow,color,border-color] duration-200 data-[padat]:bg-white data-[padat]:text-tinta data-[padat]:shadow-[0_6px_24px_-12px_rgb(15_42_92/0.35)]',
         // Margin negatif: foto hero naik ke bawah header, sehingga header tampak melayang di atas foto.
-        '-mb-[4.25rem] text-white data-[padat]:bg-white data-[padat]:text-tinta data-[padat]:shadow-[0_6px_24px_-12px_rgb(15_42_92/0.35)]' => $transparan,
-        'border-b border-garis-halus bg-white/95 text-tinta shadow-[0_6px_24px_-16px_rgb(15_42_92/0.35)] backdrop-blur' => ! $transparan,
+        '-mb-[4.25rem] text-white' => $transparan,
+        // Tanpa foto: latar halaman tetap terlihat di balik header; garis bawah baru muncul saat padat.
+        'border-b border-transparent text-tinta data-[padat]:border-garis-halus' => ! $transparan,
     ])>
     @if ($transparan)
         {{-- Gradasi tipis agar menu putih tetap terbaca di atas foto yang bagian atasnya terang. --}}

@@ -1,4 +1,5 @@
-{{-- Menu admin modul Profil Desa: dua dropdown, profil desa dan berita. --}}
+{{-- Menu admin modul Profil Desa: dua dropdown, profil desa serta berita dan galeri.
+     Berita dan galeri digabung karena keduanya sama-sama konten yang ditulis admin; sidebar jadi lebih pendek. --}}
 @include('layouts.partials.grup-menu-admin', [
     'kunci' => 'profil',
     'judul' => 'Profil Desa',
@@ -15,19 +16,11 @@
 
 @include('layouts.partials.grup-menu-admin', [
     'kunci' => 'berita',
-    'judul' => 'Berita & Artikel',
+    'judul' => 'Berita & Galeri',
     'ikon' => 'berita',
     'butir' => [
-        [['admin.profil.berita.index', 'admin.profil.berita.edit', 'admin.profil.berita.pratinjau'], 'admin.profil.berita.index', 'Semua tulisan', 'log'],
-        ['admin.profil.berita.create', 'admin.profil.berita.create', 'Tulis baru', 'tulis'],
-    ],
-])
-
-@include('layouts.partials.grup-menu-admin', [
-    'kunci' => 'galeri',
-    'judul' => 'Galeri Foto',
-    'ikon' => 'galeri',
-    'butir' => [
+        [['admin.profil.berita.index', 'admin.profil.berita.edit', 'admin.profil.berita.pratinjau'], 'admin.profil.berita.index', 'Semua berita', 'log'],
+        ['admin.profil.berita.create', 'admin.profil.berita.create', 'Tulis berita baru', 'tulis'],
         [['admin.profil.galeri.index', 'admin.profil.galeri.edit'], 'admin.profil.galeri.index', 'Semua foto', 'galeri'],
         ['admin.profil.galeri.create', 'admin.profil.galeri.create', 'Tambah foto desa', 'unggah'],
     ],

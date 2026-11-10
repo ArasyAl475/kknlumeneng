@@ -213,6 +213,29 @@ class DasborTest extends TestCase
         $this->getJson('/api/ews/data')->assertJsonCount(1, 'log')->assertJsonPath('log.0.keterangan', 'baru');
     }
 
+    public function test_log_dibatasi_50_kejadian_terbaru(): void
+    {
+        $wilayah = Wilayah::factory()->create();
+
+        // Status bolak-balik Aman <-> Waspada: tiap kiriman = satu kejadian (60 kejadian, menit ke-1 sampai ke-60).
+        foreach (range(1, 60) as $menit) {
+            $waspada = $menit % 2 === 1;
+            (new Pembacaan)->forceFill([
+                'wilayah_id' => $wilayah->id,
+                'status' => $waspada ? 'Waspada' : 'Aman',
+                'warna' => $waspada ? 'kuning' : 'hijau',
+                'pemicu' => "kiriman {$menit}",
+                'created_at' => now()->subHours(2)->addMinutes($menit),
+            ])->save();
+        }
+
+        $log = $this->getJson('/api/ews/data')->assertJsonCount(50, 'log')->json('log');
+
+        // Yang terbaru (kiriman 60) paling atas; 10 kejadian terlama (kiriman 1 sampai 10) sudah tidak tampil.
+        $this->assertSame('kiriman 60', $log[0]['keterangan']);
+        $this->assertSame('kiriman 11', $log[49]['keterangan']);
+    }
+
     public function test_grafik_mengembalikan_garis_ambang_dan_nilai_tertinggi_per_kelompok(): void
     {
         $wilayah = Wilayah::factory()->create();

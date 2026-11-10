@@ -36,6 +36,10 @@
     $beritaUtama = $beritaTerbaru->first();
 @endphp
 
+@push('skrip')
+    @vite('resources/js/landing/hero-gulir.js')
+@endpush
+
 @if ($fotoTerbaru->isNotEmpty())
     @push('skrip')
         @vite('resources/js/profil/galeri.js')
@@ -44,7 +48,10 @@
 
 {{-- ══════════ HERO: foto penuh, teks di kiri, bagian bawah memudar ke krem ══════════ --}}
 @section('hero')
-    <section class="relative isolate flex min-h-[min(86svh,56rem)] items-center overflow-hidden bg-navy text-white" aria-labelledby="judul-hero">
+    {{-- data-hero-gulir: saat digulir ke bawah, teks hero memudar sambil naik dan sedikit bergeser ke samping
+         (resources/js/landing/hero-gulir.js mengisi --p, gayanya ada di app.css bagian .hero-geser).
+         Tiap .hero-geser membungkus satu bagian; animasi muncul-awal tetap di elemen dalamnya agar tidak bentrok. --}}
+    <section data-hero-gulir class="relative isolate flex min-h-[min(86svh,56rem)] items-center overflow-hidden bg-navy text-white" aria-labelledby="judul-hero">
         <x-gambar-situs kunci="beranda.hero" :prioritas="true" class="hero-dekat absolute inset-0 -z-20 size-full" />
         {{-- Navy dari kiri agar teks terbaca, lalu memudar ke krem di bawah: tidak ada batas lurus ke bagian berikutnya. --}}
         <div class="absolute inset-0 -z-10 bg-gradient-to-r from-navy-tua/90 via-navy/55 to-navy/10" aria-hidden="true"></div>
@@ -52,42 +59,55 @@
 
         <div class="teks-di-foto mx-auto w-full max-w-6xl px-4 pb-32 pt-32 sm:pt-36">
             <div class="max-w-2xl">
-                <p class="kaca-terang inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold motion-safe:animate-muncul">
-                    <x-ikon nama="lokasi" class="size-4 text-aksen-terang" />
-                    Kec. Paninggaran · Kab. Pekalongan
-                </p>
+                {{-- --d = kapan bagian ini mulai memudar (0 sampai 1), --gx/--gy = jarak geser akhirnya.
+                     Bagian atas pergi lebih dulu dan geserannya pendek; makin ke bawah makin jauh dan menyamping. --}}
+                <div class="hero-geser" style="--d:0;--gx:14px;--gy:-56px">
+                    <p class="kaca-terang inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold motion-safe:animate-muncul">
+                        <x-ikon nama="lokasi" class="size-4 text-aksen-terang" />
+                        Kec. Paninggaran · Kab. Pekalongan
+                    </p>
+                </div>
                 <h1 id="judul-hero" class="mt-5 leading-none motion-safe:animate-muncul [animation-delay:90ms]">
-                    <span class="block text-[clamp(1.4rem,4.5vw,2.2rem)] font-medium tracking-tight text-white/90">Selamat datang di Desa</span>
-                    <span class="mt-1 block text-[clamp(3.2rem,12vw,6.8rem)] font-extrabold tracking-[-0.04em]">Lumeneng</span>
+                    <span class="hero-geser block" style="--d:0.04;--gx:22px;--gy:-72px"><span class="block text-[clamp(1.4rem,4.5vw,2.2rem)] font-medium tracking-tight text-white/90">Selamat datang di Desa</span></span>
+                    <span class="hero-geser mt-1 block" style="--d:0.08;--gx:40px;--gy:-104px"><span class="block text-[clamp(3.2rem,12vw,6.8rem)] font-extrabold tracking-[-0.04em]">Lumeneng</span></span>
                 </h1>
-                <p class="mt-5 max-w-xl text-lg text-white/90 sm:text-xl motion-safe:animate-muncul [animation-delay:180ms]">{{ $tagline }}</p>
+                <div class="hero-geser mt-5" style="--d:0.12;--gx:50px;--gy:-112px">
+                    <p class="max-w-xl text-lg text-white/90 sm:text-xl motion-safe:animate-muncul [animation-delay:180ms]">{{ $tagline }}</p>
+                </div>
 
-                <div class="mt-8 flex flex-wrap gap-3 motion-safe:animate-muncul [animation-delay:270ms]">
-                    @if ($modul['profil']['tersedia'] ?? false)
-                        <x-tombol varian="aksen" :href="route('profil.index')" class="min-h-13 rounded-full px-7 text-lg shadow-lg">
-                            Jelajahi Desa <x-ikon nama="panah" class="size-5" />
+                <div class="hero-geser mt-8" style="--d:0.16;--gx:62px;--gy:-124px">
+                    <div class="flex flex-wrap gap-3 motion-safe:animate-muncul [animation-delay:270ms]">
+                        @if ($modul['profil']['tersedia'] ?? false)
+                            <x-tombol varian="aksen" :href="route('profil.index')" class="min-h-13 rounded-full px-7 text-lg shadow-lg">
+                                Jelajahi Desa <x-ikon nama="panah" class="size-5" />
+                            </x-tombol>
+                        @endif
+                        <x-tombol varian="kaca" href="#layanan" class="min-h-13 rounded-full px-6 text-lg">
+                            <x-ikon nama="menu" class="size-5" /><span>Lihat layanan</span>
                         </x-tombol>
-                    @endif
-                    <x-tombol varian="kaca" href="#layanan" class="min-h-13 rounded-full px-6 text-lg">
-                        <x-ikon nama="menu" class="size-5" /><span>Lihat layanan</span>
-                    </x-tombol>
+                    </div>
                 </div>
 
                 {{-- Pil status ringkas: status longsor langsung terbaca di HP tanpa menggulir. Warna padat, bukan kaca. --}}
                 @if ($adaEws)
-                    <a href="#kondisi" data-warna="{{ $warna }}" class="status-pekat mt-7 inline-flex min-h-11 items-center gap-2.5 rounded-full py-2 pl-3 pr-4 font-bold shadow-lg [text-shadow:none] motion-safe:animate-muncul [animation-delay:360ms] hover:brightness-110">
-                        <x-ikon :nama="$ikonStatus[$warna]" class="size-5 shrink-0" />
-                        <span>Status longsor: {{ $status['status'] ?? 'Belum ada data' }}</span>
-                        <x-ikon nama="panah" class="size-4 rotate-90" />
-                    </a>
+                    <div class="hero-geser mt-7" style="--d:0.2;--gx:72px;--gy:-136px">
+                        <a href="#kondisi" data-warna="{{ $warna }}" class="status-pekat inline-flex min-h-11 items-center gap-2.5 rounded-full py-2 pl-3 pr-4 font-bold shadow-lg [text-shadow:none] motion-safe:animate-muncul [animation-delay:360ms] hover:brightness-110">
+                            <x-ikon :nama="$ikonStatus[$warna]" class="size-5 shrink-0" />
+                            <span>Status longsor: {{ $status['status'] ?? 'Belum ada data' }}</span>
+                            <x-ikon nama="panah" class="size-4 rotate-90" />
+                        </a>
+                    </div>
                 @endif
             </div>
         </div>
 
-        <a href="{{ $adaEws ? '#kondisi' : '#layanan' }}" class="tanda-gulir absolute bottom-24 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-1 text-sm font-bold text-white/85 hover:text-white sm:flex focus-visible:outline-white" aria-label="Gulir ke bagian berikutnya">
-            <span>Gulir</span>
-            <svg class="size-5" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </a>
+        {{-- Penanda gulir hilang paling dulu begitu halaman mulai digulir. --}}
+        <div class="hero-geser absolute bottom-24 left-1/2 hidden -translate-x-1/2 sm:block" style="--d:0;--gx:0px;--gy:-24px;--cepat:3">
+            <a href="{{ $adaEws ? '#kondisi' : '#layanan' }}" class="tanda-gulir flex flex-col items-center gap-1 text-sm font-bold text-white/85 hover:text-white focus-visible:outline-white" aria-label="Gulir ke bagian berikutnya">
+                <span>Gulir</span>
+                <svg class="size-5" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+        </div>
     </section>
 @endsection
 
@@ -109,38 +129,20 @@
                     </x-tombol>
                 </div>
 
-                {{-- Kotak status: warna + ikon + kata. Waspada/Awas berdenyut halus agar menarik perhatian. --}}
-                <article data-warna="{{ $warna }}" aria-labelledby="judul-status"
-                         @class(['status-pekat relative overflow-hidden rounded-3xl p-6 shadow-angkat sm:p-8', 'denyut-status' => in_array($warna, ['kuning', 'merah'], true)])>
-                    <span class="pointer-events-none absolute -right-10 -top-10 size-48 rounded-full bg-white/10" aria-hidden="true"></span>
-                    <span class="pointer-events-none absolute -bottom-16 -left-8 size-40 rounded-full bg-black/5" aria-hidden="true"></span>
-                    <h3 id="judul-status" class="relative text-sm font-bold uppercase tracking-[0.12em] opacity-85">{{ __('landing.status.judul') }}</h3>
-                    @if ($status)
-                        <p class="relative mt-3 flex items-center gap-4 font-judul text-[clamp(2.4rem,8vw,3.6rem)] font-extrabold leading-none">
-                            <x-ikon :nama="$ikonStatus[$warna]" class="ikon-goyang size-[1em] shrink-0" />
-                            <span>{{ $status['status'] }}</span>
-                        </p>
-                        <p class="relative mt-4 max-w-md rounded-xl bg-black/10 px-4 py-3 leading-relaxed">{{ $saranStatus[$warna] }}</p>
-                        <div class="relative mt-4 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm sm:text-base">
-                            @if ($status['lokasi'])
-                                <span class="inline-flex items-center gap-1.5 font-bold"><x-ikon nama="lokasi" class="size-4" />{{ $status['lokasi'] }}</span>
-                            @endif
-                            @if ($status['waktu'])
-                                <span class="inline-flex items-center gap-1.5 opacity-90"><x-ikon nama="jam" class="size-4" />{{ __('landing.status.data_terakhir', ['waktu' => $status['waktu']]) }}</span>
-                            @endif
-                        </div>
-                        @if ($status['ada_offline'])
-                            <p class="relative mt-4 flex items-center gap-2 rounded-lg bg-black/20 px-3 py-2 text-sm font-bold">
-                                <x-ikon nama="offline" class="size-5 shrink-0" />{{ __('landing.status.alat_mati') }}
-                            </p>
-                        @endif
-                    @else
-                        <p class="relative mt-3 flex items-center gap-3 font-judul text-2xl font-extrabold">
-                            <x-ikon nama="kosong" class="size-9 shrink-0" />{{ __('landing.status.belum_ada') }}
-                        </p>
-                        <p class="relative mt-3 opacity-90">{{ $saranStatus['kosong'] }}</p>
-                    @endif
-                </article>
+                {{-- Kotak status (komponen yang sama dengan dasbor EWS): warna + bentuk ikon + kata. --}}
+                <x-kartu-status
+                    :warna="$warna"
+                    :status="$status['status'] ?? null"
+                    :saran="$status ? $saranStatus[$warna] : __('landing.status.belum_ada')"
+                    :lokasi="$status['lokasi'] ?? null"
+                    :pemicu="$status['pemicu'] ?? null"
+                    :waktu="$status['waktu'] ?? null"
+                    :jumlah-wilayah="$status['jumlah_wilayah'] ?? null"
+                    :jumlah-offline="$status['jumlah_offline'] ?? 0"
+                    :label="__('landing.status.judul')"
+                    :offline="($status['ada_offline'] ?? false) ? __('landing.status.alat_mati') : null"
+                    :detail="route($ews['rute']).'#sensor'"
+                    :bagikan="route($ews['rute'])" />
             </div>
         </section>
     @endif

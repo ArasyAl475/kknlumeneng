@@ -31,12 +31,12 @@ class MenuAdminTest extends TestCase
     {
         $html = $this->get(route('admin.beranda'))->assertOk()->getContent();
 
-        foreach (['profil', 'berita', 'galeri', 'ews', 'toko', 'panen', 'edukasi'] as $kunci) {
+        foreach (['profil', 'berita', 'ews', 'toko', 'panen', 'edukasi'] as $kunci) {
             // Satu untuk menu HP, satu untuk menu layar lebar.
             $this->assertSame(2, substr_count($html, '<details data-menu="'.$kunci.'"'), $kunci);
         }
 
-        $this->get(route('admin.beranda'))->assertSeeInOrder(['Profil Desa', 'Berita &amp; Artikel', 'Galeri Foto', 'Peringatan Dini', 'Toko Desa', 'Hasil Panen &amp; Limbah', 'Edukasi'], false);
+        $this->get(route('admin.beranda'))->assertSeeInOrder(['Profil Desa', 'Berita &amp; Galeri', 'Peringatan Dini', 'Toko Desa', 'Panen &amp; Limbah', 'Edukasi'], false);
     }
 
     public function test_semua_dropdown_tertutup_di_beranda_admin(): void
@@ -49,7 +49,7 @@ class MenuAdminTest extends TestCase
         $halaman = [
             'admin.profil.kontak.edit' => 'profil',
             'admin.profil.berita.index' => 'berita',
-            'admin.profil.galeri.create' => 'galeri',
+            'admin.profil.galeri.create' => 'berita',
             'admin.ews.alat' => 'ews',
             'admin.toko.panen-kopi.index' => 'panen',
             'admin.edukasi.kategori.index' => 'edukasi',

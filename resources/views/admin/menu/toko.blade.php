@@ -14,7 +14,7 @@
 {{-- Pencatatan hasil panen dan limbah kopi yang tampil di halaman publik History Limbah (/toko/hasil). --}}
 @include('layouts.partials.grup-menu-admin', [
     'kunci' => 'panen',
-    'judul' => 'Hasil Panen & Limbah',
+    'judul' => 'Panen & Limbah',
     'ikon' => 'kopi',
     'butir' => [
         ['admin.toko.panen-kopi.*', 'admin.toko.panen-kopi.index', 'Panen kopi', 'kopi'],
