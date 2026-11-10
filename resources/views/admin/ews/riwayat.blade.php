@@ -43,7 +43,7 @@
                                 <td class="px-2 py-2 whitespace-nowrap">{{ $p->created_at->format('d-m-Y H:i') }}</td>
                                 <td class="px-2 py-2">{{ $p->wilayah->nama }}</td>
                                 <td class="px-2 py-2"><x-lencana :status="$p->status" /></td>
-                                @foreach (['kelembapan_tanah', 'curah_hujan', 'kemiringan', 'kelembapan_udara'] as $s)
+                                @foreach (['kelembapan_tanah', 'intensitas_hujan', 'kemiringan', 'kelembapan_udara'] as $s)
                                     <td class="px-2 py-2 whitespace-nowrap">{{ $p->{$s} === null ? '-' : \App\Services\Ews\Sensor::teks($s, $p->{$s}) }}</td>
                                 @endforeach
                                 <td class="min-w-40 px-2 py-2">{{ $p->pemicu }}</td>

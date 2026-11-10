@@ -18,34 +18,34 @@
 }
 
 .hasil {
-    /* Token warna Stitch (skema Material 3). */
-    /* Latar halaman: hijau mint. Pilihan lain ada di bagian bawah README src/ dan di percakapan; ganti nilai ini saja. */
-    --h-bg: #c3e6cd;
+    /* Token warna dipetakan ke palet situs (navy, biru, krem, oranye). Hijau khusus status longsor. */
+    /* Latar halaman: krem hangat, sama dengan halaman publik lain. */
+    --h-bg: #f8f4ec;
     --h-putih: #ffffff;
-    --h-sf-rendah: #ebf7ed;
-    --h-sf: #e5f1e7;
-    --h-sf-tinggi: #e0ebe1;
-    --h-teks: #141e18;
-    --h-teks-2: #404942;
-    --h-outline: #717972;
-    --h-garis: #c0c9c0;
-    --h-garis-halus: rgb(192 201 192 / 0.5);
-    --h-primer: #00361f;
-    --h-primer-kontainer: #164e32;
-    --h-di-primer-kontainer: #86be9a;
-    --h-sekunder: #006c49;
-    --h-sekunder-kontainer: #6cf8bb;
-    --h-di-sekunder-kontainer: #00714d;
-    --h-tersier-fixed: #97f5cc;
-    --h-di-tersier-fixed: #002115;
-    --h-tersier-kontainer: #004f38;
-    --h-tersier-dim: #7bd8b1;
+    --h-sf-rendah: #fbf8f2;
+    --h-sf: #f3ede2;
+    --h-sf-tinggi: #ede5d6;
+    --h-teks: #0f172a;
+    --h-teks-2: #475569;
+    --h-outline: #64748b;
+    --h-garis: #cbd5e1;
+    --h-garis-halus: rgb(203 213 225 / 0.5);
+    --h-primer: #0f2a5c;
+    --h-primer-kontainer: #1e40af;
+    --h-di-primer-kontainer: #bfdbfe;
+    --h-sekunder: #1e40af;
+    --h-sekunder-kontainer: #dbeafe;
+    --h-di-sekunder-kontainer: #1e3a8a;
+    --h-tersier-fixed: #fdba74;
+    --h-di-tersier-fixed: #431407;
+    --h-tersier-kontainer: #1e3a8a;
+    --h-tersier-dim: #93c5fd;
     --h-galat: #ba1a1a;
     --h-galat-kontainer: #ffdad6;
     --h-di-galat-kontainer: #93000a;
 
-    --h-bayangan: 0 2px 8px -2px rgb(22 78 50 / 0.04), 0 1px 3px 0 rgb(0 0 0 / 0.02);
-    --h-bayangan-hero: 0 10px 25px -5px rgb(22 78 50 / 0.25);
+    --h-bayangan: 0 2px 8px -2px rgb(30 64 175 / 0.04), 0 1px 3px 0 rgb(0 0 0 / 0.02);
+    --h-bayangan-hero: 0 10px 25px -5px rgb(30 64 175 / 0.25);
     --h-r: 0.25rem;
     --h-r-lg: 0.5rem;
     --h-r-xl: 0.75rem;
@@ -59,8 +59,9 @@ body.hasil {
     min-height: 100dvh;
     background: var(--h-bg);
     color: var(--h-teks);
-    font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    font-size: 15px;
+    /* Isi memakai huruf isi situs (Atkinson), judul memakai Plus Jakarta Sans dari app.css. */
+    font-family: var(--font-sans);
+    font-size: 16px;
     line-height: 22px;
     font-variant-numeric: tabular-nums;
 }
@@ -138,7 +139,8 @@ body.hasil {
     box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
 }
 
-.hasil-kepala :focus-visible {
+.hasil-kepala :focus-visible,
+.hasil [data-navbar-publik] :focus-visible {
     outline-color: #fff;
 }
 
@@ -304,6 +306,64 @@ body.hasil {
     line-height: 24px;
 }
 
+/* HP: footer dirapatkan dan tautan dibuat baris penuh (mudah disentuh jempol, ada tanda panah). */
+@media (max-width: 767px) {
+    .hasil-kaki {
+        margin-top: 32px;
+    }
+
+    .hasil-kaki__isi {
+        gap: 28px;
+        padding-block: 32px 28px;
+    }
+
+    .hasil-kaki__nama {
+        margin-bottom: 8px;
+    }
+
+    .hasil-kaki__daftar a {
+        justify-content: space-between;
+        width: 100%;
+        min-height: 52px;
+        border-bottom: 1px solid rgb(255 255 255 / 0.14);
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .hasil-kaki__daftar li:first-child a {
+        border-top: 1px solid rgb(255 255 255 / 0.14);
+    }
+
+    .hasil-kaki__daftar a::after {
+        content: '';
+        width: 8px;
+        height: 8px;
+        border-top: 2px solid currentColor;
+        border-right: 2px solid currentColor;
+        opacity: 0.7;
+        transform: rotate(45deg);
+    }
+
+    .hasil-kaki__daftar a[aria-current='page'] {
+        color: var(--h-sekunder-kontainer);
+    }
+
+    .hasil-kaki__bawah-isi {
+        flex-direction: column-reverse;
+        align-items: stretch;
+        gap: 4px;
+        padding-block: 16px;
+        text-align: center;
+    }
+
+    .hasil-kaki__atas {
+        justify-content: center;
+        min-height: 48px;
+        border-radius: 999px;
+        box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.3);
+    }
+}
+
 .hasil-kaki__nama {
     display: flex;
     align-items: center;
@@ -316,7 +376,7 @@ body.hasil {
 
 .hasil-kaki__redup {
     margin-top: 8px;
-    color: var(--h-primer-fixed, #b6f0c9);
+    color: var(--h-primer-fixed, #bfdbfe);
 }
 
 .hasil-kaki__judul {
@@ -379,7 +439,7 @@ body.hasil {
     min-height: 64px;
     padding-block: 8px;
     font-size: 14px;
-    color: var(--h-primer-fixed, #b6f0c9);
+    color: var(--h-primer-fixed, #bfdbfe);
 }
 
 .hasil-kaki__atas {
@@ -491,7 +551,7 @@ body.hasil {
     padding: 8px 14px;
     border-radius: 999px;
     background: rgb(255 255 255 / 0.55);
-    box-shadow: inset 0 0 0 1px rgb(0 54 31 / 0.08);
+    box-shadow: inset 0 0 0 1px rgb(15 42 92 / 0.08);
     font-size: 13px;
     font-weight: 600;
     white-space: nowrap;
@@ -550,7 +610,7 @@ body.hasil {
     padding: 4px;
     border-radius: 999px;
     background: rgb(255 255 255 / 0.55);
-    box-shadow: inset 0 0 0 1px rgb(0 54 31 / 0.08);
+    box-shadow: inset 0 0 0 1px rgb(15 42 92 / 0.08);
 }
 
 .segmen--atas .segmen__item {
@@ -566,7 +626,7 @@ body.hasil {
 .segmen--atas .segmen__item.is-aktif {
     background: var(--h-primer-kontainer);
     color: #fff;
-    box-shadow: 0 2px 6px rgb(0 54 31 / 0.25);
+    box-shadow: 0 2px 6px rgb(15 42 92 / 0.25);
 }
 
 /* Tombol Kustom: kapsul bergaris tipis, terpisah dari pilihan rentang di sebelahnya. */
@@ -577,7 +637,7 @@ body.hasil {
     min-height: 48px;
     padding: 0 14px;
     border-radius: 999px;
-    box-shadow: inset 0 0 0 1.5px rgb(22 78 50 / 0.45);
+    box-shadow: inset 0 0 0 1.5px rgb(30 64 175 / 0.45);
     font-size: 14px;
     font-weight: 600;
     color: var(--h-primer-kontainer);
@@ -594,7 +654,7 @@ body.hasil {
     gap: 2px;
     border-radius: 999px;
     background: var(--h-sf-rendah);
-    box-shadow: inset 0 0 0 1px rgb(0 54 31 / 0.1);
+    box-shadow: inset 0 0 0 1px rgb(15 42 92 / 0.1);
 }
 
 .segmen--kecil .segmen__item {
@@ -611,7 +671,7 @@ body.hasil {
     background: var(--h-primer-kontainer);
     color: #fff;
     font-weight: 700;
-    box-shadow: 0 2px 6px rgb(0 54 31 / 0.25);
+    box-shadow: 0 2px 6px rgb(15 42 92 / 0.25);
 }
 
 .tombol-filter__jumlah {
@@ -646,7 +706,7 @@ body.hasil {
     gap: 8px;
     min-height: 44px;
     padding: 0 14px 0 16px;
-    border: 1px solid rgb(0 108 73 / 0.2);
+    border: 1px solid rgb(30 64 175 / 0.2);
     border-radius: 999px;
     background: var(--h-sf-rendah);
     font-size: 14px;
@@ -698,7 +758,7 @@ body.hasil {
 .lencana--mint { background: var(--h-sekunder-kontainer); color: var(--h-di-sekunder-kontainer); }
 .lencana--netral { background: var(--h-sf); color: var(--h-teks-2); }
 .lencana--tersier { background: var(--h-tersier-fixed); color: var(--h-di-tersier-fixed); font-weight: 700; padding: 4px 10px; }
-.lencana--gelap { background: rgb(0 79 56 / 0.6); color: var(--h-tersier-dim); }
+.lencana--gelap { background: rgb(30 58 138 / 0.6); color: var(--h-tersier-dim); }
 
 .hasil-merek__lencana {
     border-radius: 999px;
@@ -719,11 +779,11 @@ body.hasil {
     background: #fff;
     color: var(--h-teks);
     overflow: hidden;
-    box-shadow: 0 16px 32px -8px rgb(22 78 50 / 0.12);
+    box-shadow: 0 16px 32px -8px rgb(30 64 175 / 0.12);
 }
 
 .lembar::backdrop {
-    background: rgb(22 78 50 / 0.3);
+    background: rgb(30 64 175 / 0.3);
     backdrop-filter: blur(4px);
 }
 
@@ -816,7 +876,7 @@ body.hasil {
     min-height: 44px;
     margin-top: 6px;
     padding: 8px 12px;
-    border: 1px solid rgb(192 201 192 / 0.8);
+    border: 1px solid rgb(203 213 225 / 0.8);
     border-radius: var(--h-r-lg);
     background: var(--h-sf-rendah);
     color: var(--h-teks);
@@ -893,7 +953,7 @@ body.hasil {
     gap: 4px;
     margin-bottom: 20px;
     padding-bottom: 16px;
-    border-bottom: 1px solid rgb(192 201 192 / 0.3);
+    border-bottom: 1px solid rgb(203 213 225 / 0.3);
 }
 
 .bagian__judul {
@@ -994,6 +1054,14 @@ body.hasil {
     margin-bottom: 10px;
 }
 
+/* Saat kartu angka berjajar, judul satu baris diberi tinggi dua baris supaya angka, keterangan, dan batang
+   persen di tiap kartu sejajar (judul "Limbah kopi (cangkang)" memang dua baris). Di HP kartu bertumpuk, jadi tidak perlu. */
+@media (min-width: 640px) {
+    .kartu--angka .kartu__atas {
+        min-height: 40px;
+    }
+}
+
 .kartu__label {
     font-size: 14px;
     font-weight: 600;
@@ -1014,7 +1082,7 @@ body.hasil {
     flex: none;
     border-radius: var(--h-r-lg);
     background: rgb(255 255 255 / 0.1);
-    color: #6ffbbe;
+    color: #fdba74;
 }
 
 .medalion--terang {
@@ -1031,13 +1099,12 @@ body.hasil {
 .kartu__kaki {
     margin-top: auto;
     padding-top: 12px;
-    border-top: 1px solid rgb(192 201 192 / 0.3);
+    border-top: 1px solid rgb(203 213 225 / 0.3);
     font-size: 14px;
 }
 
 .kartu__ket + .kartu__kaki,
-.meter + .kartu__kaki,
-.rincian-singkat + .kartu__kaki {
+.meter + .kartu__kaki {
     margin-top: 16px;
 }
 
@@ -1049,12 +1116,12 @@ body.hasil {
 
 .kartu-hero .kartu__kaki {
     margin-top: 16px;
-    border-top-color: rgb(134 190 154 / 0.2);
-    color: rgb(134 190 154 / 0.95);
+    border-top-color: rgb(147 197 253 / 0.2);
+    color: rgb(147 197 253 / 0.95);
 }
 
 .kartu-hero .kartu__kaki p {
-    color: #d8f0e1;
+    color: #dbeafe;
 }
 
 /* ---------- Angka ---------- */
@@ -1130,7 +1197,7 @@ body.hasil {
 }
 
 .kartu-hero .delta svg {
-    color: #6ffbbe;
+    color: #fdba74;
 }
 
 .meter {
@@ -1146,11 +1213,6 @@ body.hasil {
     height: 100%;
     border-radius: 999px;
     background: var(--h-sekunder);
-}
-
-.rincian-singkat dd {
-    font-weight: 700;
-    color: var(--h-teks);
 }
 
 /* ---------- Baris utama 7:5 ---------- */
@@ -1316,7 +1378,7 @@ body.hasil {
     display: grid;
     gap: 2px 20px;
     padding-block: 12px;
-    border-top: 1px solid rgb(192 201 192 / 0.3);
+    border-top: 1px solid rgb(203 213 225 / 0.3);
 }
 
 @media (min-width: 1280px) {
@@ -1365,7 +1427,7 @@ body.hasil {
     min-height: 192px;
     margin-top: 20px;
     padding-block: 16px 8px;
-    border-block: 1px solid rgb(192 201 192 / 0.3);
+    border-block: 1px solid rgb(203 213 225 / 0.3);
 }
 
 .grafik__gulir {
@@ -1475,14 +1537,14 @@ body.hasil {
     padding: 10px 16px;
     text-align: right;
     white-space: nowrap;
-    border-top: 1px solid rgb(192 201 192 / 0.3);
+    border-top: 1px solid rgb(203 213 225 / 0.3);
 }
 
 .tabel-data thead th {
     position: sticky;
     top: 0;
     background: var(--h-sf-rendah);
-    border-block: 1px solid rgb(192 201 192 / 0.4);
+    border-block: 1px solid rgb(203 213 225 / 0.4);
     font-weight: 700;
 }
 
@@ -1496,7 +1558,7 @@ body.hasil {
 .grafik-kosong {
     position: relative;
     min-height: 240px;
-    border-block: 1px solid rgb(192 201 192 / 0.3);
+    border-block: 1px solid rgb(203 213 225 / 0.3);
     overflow: hidden;
 }
 
@@ -1641,7 +1703,7 @@ body.hasil {
     gap: 8px;
     margin-bottom: 8px;
     padding-bottom: 8px;
-    border-bottom: 1px solid rgb(192 201 192 / 0.3);
+    border-bottom: 1px solid rgb(203 213 225 / 0.3);
 }
 
 .media__kepala h3 {
@@ -1667,7 +1729,7 @@ body.hasil {
     justify-content: space-between;
     gap: 0 12px;
     padding-block: 8px;
-    border-bottom: 1px solid rgb(192 201 192 / 0.2);
+    border-bottom: 1px solid rgb(203 213 225 / 0.2);
 }
 
 .media dl > div:last-child {
@@ -1707,13 +1769,23 @@ body.hasil {
 }
 
 /* ---------- Rincian panen kopi: catatan timbang ---------- */
-.timbang {
+/* HP: tiap catatan jadi kartu bergaris dengan jarak antar kartu; judul kolom tampil sebagai label di atas isinya. */
+.timbang,
+.timbang tbody,
+.timbang tfoot {
+    display: block;
     width: 100%;
-    margin-top: 12px;
-    border-collapse: collapse;
 }
 
-/* HP: tiap catatan jadi kartu kecil; judul kolom tampil sebagai label di atas isinya. */
+.timbang {
+    margin-top: 16px;
+}
+
+.timbang tbody {
+    display: grid;
+    gap: 12px;
+}
+
 .timbang thead {
     position: absolute;
     width: 1px;
@@ -1726,15 +1798,23 @@ body.hasil {
 .timbang tfoot tr {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 8px 16px;
-    padding-block: 14px;
-    border-bottom: 1px solid rgb(192 201 192 / 0.3);
+    gap: 10px 16px;
+    padding: 16px;
+    border-radius: var(--h-r-xl);
+}
+
+.timbang tbody tr {
+    border: 1px solid var(--h-garis);
+    background: var(--h-putih);
 }
 
 .timbang__tanggal {
     grid-column: 1 / -1;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgb(203 213 225 / 0.4);
     text-align: left;
-    font-weight: 700;
+    font-size: 16px;
+    font-weight: 800;
 }
 
 .timbang td {
@@ -1745,7 +1825,8 @@ body.hasil {
 .timbang td[data-sel]::before {
     content: attr(data-sel);
     display: block;
-    font-size: 12px;
+    margin-bottom: 2px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--h-teks-2);
 }
@@ -1756,18 +1837,41 @@ body.hasil {
 }
 
 .timbang__angka {
-    font-weight: 700;
+    font-size: 18px;
+    font-weight: 800;
     font-variant-numeric: tabular-nums;
 }
 
+/* Berat bersih jadi angka yang paling menonjol di tiap kartu. */
+.timbang td[data-sel='Berat Bersih (kg)'] {
+    color: var(--h-sekunder);
+}
+
+.timbang tfoot {
+    margin-top: 12px;
+}
+
 .timbang tfoot tr {
-    border-bottom: 0;
     background: var(--h-sf-rendah);
-    padding-inline: 12px;
-    border-radius: var(--h-r-lg);
+    box-shadow: inset 0 0 0 2px var(--h-primer-kontainer);
 }
 
 @media (min-width: 768px) {
+    .timbang {
+        display: table;
+        margin-top: 12px;
+        border-collapse: collapse;
+    }
+
+    .timbang tbody {
+        display: table-row-group;
+    }
+
+    .timbang tfoot {
+        display: table-footer-group;
+        margin-top: 0;
+    }
+
     .timbang thead {
         position: static;
         width: auto;
@@ -1780,18 +1884,31 @@ body.hasil {
     .timbang tfoot tr {
         display: table-row;
         padding: 0;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .timbang tbody tr {
+        background: none;
     }
 
     .timbang tbody tr:hover {
-        background: rgb(235 247 237 / 0.5);
+        background: rgb(239 246 255 / 0.5);
     }
 
     .timbang th,
     .timbang td {
         padding: 12px 16px;
-        border-bottom: 1px solid rgb(192 201 192 / 0.3);
+        border-bottom: 1px solid rgb(203 213 225 / 0.3);
         vertical-align: middle;
         text-align: left;
+    }
+
+    .timbang__tanggal {
+        padding-bottom: 12px;
+        font-size: inherit;
+        font-weight: 700;
     }
 
     .timbang thead tr {
@@ -1800,7 +1917,7 @@ body.hasil {
 
     .timbang thead th {
         padding-block: 14px;
-        border-block: 1px solid rgb(192 201 192 / 0.4);
+        border-block: 1px solid rgb(203 213 225 / 0.4);
         font-size: 14px;
         color: var(--h-teks-2);
     }
@@ -1811,16 +1928,15 @@ body.hasil {
 
     .timbang .timbang__angka {
         text-align: right;
+        font-size: inherit;
+        font-weight: 700;
     }
 
     .timbang tfoot th,
     .timbang tfoot td {
         border-bottom: 0;
         border-top: 2px solid var(--h-primer-kontainer);
-    }
-
-    .timbang tfoot tr {
-        border-radius: 0;
+        background: var(--h-sf-rendah);
     }
 }
 

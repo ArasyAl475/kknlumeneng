@@ -29,18 +29,15 @@
     <noscript><style>[data-buka-filter] { display: none; } .lembar { display: block; position: static; width: auto; height: auto; margin-top: 1rem; border-radius: 0.75rem; } .lembar__kepala button { display: none; }</style></noscript>
 @endpush
 
-@section('isi')
-    {{-- KEPALA HALAMAN: judul + penanda status + pilihan waktu (berlaku untuk semua bagian di bawahnya) --}}
-    <section class="kepala-halaman" aria-label="Judul dan pilihan data">
-        <div class="kepala-halaman__teks">
-            <p class="kepala-halaman__label">
-                @include('toko.partials.ikon', ['nama' => 'terverifikasi', 'kelas' => 'size-5'])
-                Sistem Informasi Agraria Terpadu Desa Lumeneng
-            </p>
-            <h1>Hasil Panen dan Penjualan Komoditas Desa</h1>
-            <p class="kepala-halaman__deskripsi">Portal transparansi publik hasil bumi Desa Lumeneng: memantau perkembangan panen kopi rakyat,<br class="kepala-halaman__putus"> inovasi pemanfaatan cangkang kopi, dan produksi jamur tiram warga.</p>
-        </div>
+@section('hero')
+    <x-pita-judul judul="Hasil Panen dan Penjualan Komoditas Desa" gambar="hasil.hero" label="Sistem Informasi Agraria Terpadu Desa Lumeneng" ikon="tanah"
+        :jejak="[['Hasil Panen', null]]"
+        keterangan="Portal transparansi publik hasil bumi Desa Lumeneng: memantau perkembangan panen kopi rakyat, inovasi pemanfaatan cangkang kopi, dan produksi jamur tiram warga." />
+@endsection
 
+@section('isi')
+    {{-- KEPALA HALAMAN: penanda status + pilihan waktu (berlaku untuk semua bagian di bawahnya). Judul ada di pita judul. --}}
+    <section class="kepala-halaman" aria-label="Pilihan data">
         <div class="kepala-halaman__kontrol">
             <div class="status-pill"><span class="status-pill__titik" aria-hidden="true"></span>Transparansi Terbuka untuk Warga</div>
 
@@ -194,10 +191,8 @@
                 @if ($jamur['total'] <= 0)
                     <p class="kartu__ket">Belum ada catatan panen jamur.</p>
                 @else
-                    <dl class="kartu__ket rincian-singkat">
-                        <dt>Panen jamur dengan cangkang kopi</dt>
-                        <dd>{{ FormatHasil::kg($jamur['cangkang']) }} ({{ FormatHasil::persen($jamur['persen_cangkang']) }})</dd>
-                    </dl>
+                    <p class="kartu__ket">{{ FormatHasil::persen($jamur['persen_cangkang']) }} memakai cangkang kopi</p>
+                    <div class="meter" aria-hidden="true"><span class="meter__isi" style="width: {{ min($jamur['persen_cangkang'], 100) }}%"></span></div>
                     @if (! empty($perubahan['jamur']))
                         <div class="kartu__kaki">@include('toko.partials.perubahan', ['p' => $perubahan['jamur'], 'label' => $labelLalu])</div>
                     @endif

@@ -7,7 +7,7 @@ class Sensor
     // Keterangan tampilan tiap sensor. Aturan penilaiannya tetap di PenilaianStatus.
     public const DAFTAR = [
         'kelembapan_tanah' => ['nama' => 'Kelembapan tanah', 'satuan' => '%', 'ikon' => 'tanah'],
-        'curah_hujan' => ['nama' => 'Curah hujan', 'satuan' => ' mm/jam', 'ikon' => 'hujan'],
+        'intensitas_hujan' => ['nama' => 'Intensitas hujan', 'satuan' => '%', 'ikon' => 'hujan'],
         'kemiringan' => ['nama' => 'Kemiringan', 'satuan' => '°', 'ikon' => 'miring'],
         'kelembapan_udara' => ['nama' => 'Kelembapan udara', 'satuan' => '%', 'ikon' => 'udara'],
     ];

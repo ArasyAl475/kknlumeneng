@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Toko;
 
+use App\Models\Toko\Produk;
 use App\Services\Toko\DaftarMarketplace;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
@@ -36,7 +37,9 @@ class ProdukRequest extends FormRequest
         $aturan = [
             'nama' => ['required', 'string', 'max:120'],
             'deskripsi' => ['nullable', 'string', 'max:5000'],
-            'harga' => ['nullable', 'integer', 'min:0', 'max:100000000'],
+            // Harga wajib karena pembeli memutuskan membeli dari harga. Varian berharga tidak menggantikannya:
+            // harga ini jadi harga dasar bila varian dihapus atau semua variannya tidak tersedia.
+            'harga' => ['required', 'integer', 'min:1', 'max:100000000'],
             'tersedia' => ['required', 'boolean'],
             'tampil' => ['required', 'boolean'],
             'urutan' => ['nullable', 'integer', 'min:0', 'max:999'],
@@ -49,6 +52,8 @@ class ProdukRequest extends FormRequest
             'varian.*.harga' => ['nullable', 'integer', 'min:0', 'max:100000000'],
             'varian.*.tersedia' => ['nullable', 'boolean'],
 
+            'utama' => ['nullable', 'array'],
+
             'spesifikasi' => ['nullable', 'array', 'max:'.self::MAKS_BARIS],
             'spesifikasi.*.label' => ['nullable', 'string', 'max:60', 'required_with:spesifikasi.*.nilai'],
             'spesifikasi.*.nilai' => ['nullable', 'string', 'max:200', 'required_with:spesifikasi.*.label'],
@@ -56,6 +61,11 @@ class ProdukRequest extends FormRequest
 
         foreach (DaftarMarketplace::KUNCI as $kunci) {
             $aturan["tautan.{$kunci}"] = ['nullable', 'string', 'max:500', self::aturanTautan($kunci)];
+        }
+
+        // Isian utama semuanya boleh kosong: tidak semua berlaku untuk tiap produk (jamur tidak punya biji-bijian).
+        foreach (array_keys(Produk::SPESIFIKASI_UTAMA) as $kunci) {
+            $aturan["utama.{$kunci}"] = ['nullable', 'string', 'max:200'];
         }
 
         return $aturan;
@@ -87,12 +97,21 @@ class ProdukRequest extends FormRequest
             $nama["tautan.{$kunci}"] = 'tautan '.DaftarMarketplace::nama($kunci);
         }
 
+        foreach (Produk::SPESIFIKASI_UTAMA as $kunci => $label) {
+            $nama["utama.{$kunci}"] = mb_strtolower($label);
+        }
+
         return $nama;
     }
 
     public function messages(): array
     {
         return [
+            'nama.required' => 'Nama produk wajib diisi.',
+            'nama.max' => 'Nama produk terlalu panjang. Tulis paling banyak 120 huruf.',
+            'harga.required' => 'Harga wajib diisi. Tulis angkanya saja, misalnya 25000.',
+            'harga.min' => 'Harga harus lebih dari 0.',
+            'harga.max' => 'Harga terlalu besar. Periksa lagi jumlah nolnya.',
             'varian.*.nama.required_with' => 'Varian yang diberi harga juga perlu diberi nama, misalnya "250 g".',
             'spesifikasi.*.label.required_with' => 'Isi nama spesifikasinya juga, misalnya "Berat".',
             'spesifikasi.*.nilai.required_with' => 'Isi spesifikasinya juga, misalnya "250 g".',
@@ -127,9 +146,15 @@ class ProdukRequest extends FormRequest
                     'tersedia' => (bool) ($b['tersedia'] ?? true),
                 ])
                 ->values()->all(),
-            'spesifikasi' => collect($data['spesifikasi'] ?? [])
-                ->filter(fn (array $b) => filled($b['label'] ?? null) && filled($b['nilai'] ?? null))
-                ->map(fn (array $b) => ['label' => trim($b['label']), 'nilai' => trim($b['nilai'])])
+            // Isian utama disimpan lebih dulu dengan urutan tetap, lalu baris tambahan buatan admin.
+            'spesifikasi' => collect(Produk::SPESIFIKASI_UTAMA)
+                ->map(fn (string $label, string $kunci) => ['label' => $label, 'nilai' => trim((string) ($data['utama'][$kunci] ?? ''))])
+                ->filter(fn (array $b) => $b['nilai'] !== '')
+                ->concat(
+                    collect($data['spesifikasi'] ?? [])
+                        ->filter(fn (array $b) => filled($b['label'] ?? null) && filled($b['nilai'] ?? null))
+                        ->map(fn (array $b) => ['label' => trim($b['label']), 'nilai' => trim($b['nilai'])]),
+                )
                 ->values()->all(),
         ];
     }

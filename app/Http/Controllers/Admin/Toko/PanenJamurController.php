@@ -16,7 +16,7 @@ class PanenJamurController extends Controller
         return view('admin.toko.panen-jamur.index', [
             'ringkasan' => $rekap->jamur(),
             'keuangan' => $rekap->keuanganJamur(),
-            'panen' => PanenJamur::query()->orderByDesc('tanggal_panen')->orderByDesc('id')->paginate(20),
+            'panen' => PanenJamur::query()->orderByDesc('tanggal_panen')->orderByDesc('id')->paginate(10),
         ]);
     }
 

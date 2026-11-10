@@ -3,31 +3,30 @@
 @section('judul', 'Toko Desa di '.$nama)
 @section('deskripsi', 'Produk Desa Lumeneng yang bisa dibeli lewat '.$nama.'.')
 
-@section('isi')
-    <a href="{{ route('toko.index') }}" class="tautan inline-flex min-h-11 items-center gap-1">
-        <svg class="size-5" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Pilih marketplace lain
-    </a>
+@push('kepala')
+    @vite('resources/js/toko/publik.js')
+@endpush
 
-    <header class="mt-2 flex flex-wrap items-center gap-4 rounded-lg bg-kopi-tua p-4 text-white">
+@section('hero')
+    <x-pita-judul :judul="$nama" gambar="toko.hero" label="Toko Desa Lumeneng di" ikon="toko" :jejak="[['Toko Desa', route('toko.index')], [$nama, null]]" keterangan="Produk warga Desa Lumeneng yang bisa dibeli lewat {{ $nama }}.">
         @include('toko.partials.logo', ['kunci' => $kunci, 'besar' => true])
-        <div class="min-w-0 flex-1">
-            <h1 class="text-2xl font-bold sm:text-3xl">{{ $nama }}</h1>
-            <p>Toko Desa Lumeneng di {{ $nama }}</p>
-        </div>
         @if ($marketplace->url_toko)
-            <a href="{{ $marketplace->url_toko }}" target="_blank" rel="noopener nofollow" class="inline-flex min-h-11 items-center gap-2 rounded-md border border-white/70 px-4 font-bold hover:bg-kopi focus-visible:outline-white">
+            <x-tombol varian="terang" :href="$marketplace->url_toko" target="_blank" rel="noopener nofollow">
                 Buka toko di {{ $nama }}@include('toko.partials.ikon-keluar')
-            </a>
+            </x-tombol>
         @endif
-    </header>
+    </x-pita-judul>
+@endsection
+
+@section('isi')
 
     @if ($produk->isEmpty())
-        <x-kartu class="mt-4">
-            <p class="font-bold">Belum ada produk di {{ $nama }}.</p>
+        <section class="toko-kartu toko-bagian">
+            <p class="font-semibold">Belum ada produk di {{ $nama }}.</p>
             <p class="mt-1 text-redup">Coba marketplace lain, atau kembali lagi nanti.</p>
-        </x-kartu>
+        </section>
     @else
-        <ul class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        <ul class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4" data-paginasi="12">
             @foreach ($produk as $p)
                 @include('toko.partials.kartu-produk', ['produk' => $p, 'kunci' => $kunci])
             @endforeach

@@ -13,7 +13,9 @@
         "ext-gd": "*",
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0",
-        "phpoffice/phpspreadsheet": "^5.10"
+        "php-mqtt/client": "^2.3",
+        "phpoffice/phpspreadsheet": "^5.10",
+        "symfony/html-sanitizer": "^7.4"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -29,7 +31,10 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
-        }
+        },
+        "files": [
+            "app/Support/helpers.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

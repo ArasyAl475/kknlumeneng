@@ -1,6 +1,6 @@
 # Web Terpadu Desa Lumeneng
 
-Landing page, **EWS (peringatan dini longsor)**, panel **Admin**, **Toko**, dan **Edukasi** untuk
+Landing page, **Profil Desa & Berita**, **EWS (peringatan dini longsor)**, panel **Admin**, **Toko**, dan **Edukasi** untuk
 program KKN / Aksara Peduli di Desa Lumeneng, Kec. Paninggaran, Kab. Pekalongan.
 Mitra EWS: Karang Taruna Giri.
 
@@ -29,7 +29,7 @@ Data contoh untuk dashboard EWS: `php artisan ews:simulasi --riwayat=24`
 
 - Tempat modul Toko dan Edukasi sudah disiapkan: rute di `routes/web/`, `routes/admin/`, `routes/api/`.
 - Struktur folder dan aturan kode ada di [`CLAUDE.md`](CLAUDE.md).
-- Nyalakan menunya dengan `MODUL_TOKO=true` atau `MODUL_EDUKASI=true` di `.env`.
+- Menu Profil Desa, Berita, Toko, Edukasi, dan History Limbah tampil secara bawaan. Untuk menyembunyikan, isi `MODUL_PROFIL=false`, `MODUL_TOKO=false`, atau `MODUL_EDUKASI=false` di `.env`.
 - Dengan Claude Code: `/fitur-baru toko <yang ingin dibuat>`.
 
 ## Dokumen lain

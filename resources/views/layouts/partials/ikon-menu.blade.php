@@ -40,8 +40,44 @@
         @case('profil')
             <circle cx="12" cy="8" r="4" /><path d="M20 21a8 8 0 0 0-16 0" />
             @break
+        @case('desa')
+            <path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6" />
+            @break
+        @case('berita')
+            <path d="M4 5h13v14a2 2 0 0 0 2 2H6a2 2 0 0 1-2-2ZM17 9h3v10a2 2 0 0 1-2 2M8 9h5M8 13h5M8 17h3" />
+            @break
+        @case('galeri')
+            <rect x="3" y="4" width="18" height="16" rx="2.5" /><circle cx="9" cy="9.5" r="1.8" /><path d="m21 15.5-5-5L5 20" />
+            @break
+        @case('unggah')
+            <path d="M12 16V4M7 9l5-5 5 5M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+            @break
+        @case('tulis')
+            <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+            @break
+        @case('visi')
+            <circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1" />
+            @break
+        @case('kontak')
+            <path d="M5 3h4l2 5-2.5 1.5a11 11 0 0 0 6 6L16 13l5 2v4a2 2 0 0 1-2 2C10.7 21 3 13.3 3 5a2 2 0 0 1 2-2Z" />
+            @break
+        @case('lembaga')
+            <circle cx="9" cy="8" r="3.5" /><path d="M2.5 20a6.5 6.5 0 0 1 13 0" /><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M21.5 20a6.5 6.5 0 0 0-4-6" />
+            @break
+        @case('peringatan')
+            <path d="M12 3 2 20h20L12 3Z" /><path d="M12 10v4M12 17h.01" />
+            @break
+        @case('buku')
+            <path d="M12 6c-2-1.5-5-2-8.5-2v15c3.5 0 6.5.5 8.5 2 2-1.5 5-2 8.5-2V4C17 4 14 4.5 12 6Zm0 0v15" />
+            @break
+        @case('kategori')
+            <path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9-9-9Z" /><circle cx="8" cy="8" r="1.5" />
+            @break
         @case('situs')
             <path d="M3 12 12 3l9 9v9H3z" /><path d="M9 21v-9h6v9" />
+            @break
+        @case('desain')
+            <path d="M12 21a9 9 0 1 1 9-9c0 2.5-2 3.6-3.6 3.6h-1.6a1.8 1.8 0 0 0-1.3 3.1A1.8 1.8 0 0 1 12 21Z" /><circle cx="7.5" cy="10.5" r="1" /><circle cx="12" cy="7.5" r="1" /><circle cx="16.5" cy="10.5" r="1" />
             @break
         @case('keluar')
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />

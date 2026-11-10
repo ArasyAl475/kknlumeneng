@@ -17,7 +17,7 @@ class DasborTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        config(['ews.api_key' => 'k', 'ews.telegram.token' => null]);
+        config(['ews.api_key' => 'k']);
         Http::preventStrayRequests();
     }
 
@@ -49,7 +49,7 @@ class DasborTest extends TestCase
     public function test_struktur_data_dan_sensor_kosong_bukan_nol(): void
     {
         $wilayah = Wilayah::factory()->create(['nama' => 'Lereng Uji']);
-        Pembacaan::factory()->create(['wilayah_id' => $wilayah->id, 'kelembapan_tanah' => 63.4, 'curah_hujan' => null, 'kemiringan' => -7.5, 'kelembapan_udara' => 88]);
+        Pembacaan::factory()->create(['wilayah_id' => $wilayah->id, 'kelembapan_tanah' => 63.4, 'intensitas_hujan' => null, 'kemiringan' => -7.5, 'kelembapan_udara' => 88]);
 
         $d = $this->getJson('/api/ews/data')->assertOk()->assertJsonStructure([
             'utama' => ['status', 'warna', 'lokasi', 'pemicu', 'waktu', 'saran'],
@@ -59,9 +59,9 @@ class DasborTest extends TestCase
 
         $this->assertSame('63,4%', $d['kelembapan_tanah']['teks']);
         $this->assertSame('Waspada', $d['kelembapan_tanah']['kata']);
-        $this->assertNull($d['curah_hujan']['nilai']);
-        $this->assertSame('Tidak ada data', $d['curah_hujan']['teks']);
-        $this->assertSame('Tidak ada data', $d['curah_hujan']['kata']);
+        $this->assertNull($d['intensitas_hujan']['nilai']);
+        $this->assertSame('Tidak ada data', $d['intensitas_hujan']['teks']);
+        $this->assertSame('Tidak ada data', $d['intensitas_hujan']['kata']);
         $this->assertSame('7,5°', $d['kemiringan']['teks'], 'kemiringan tampil mutlak');
         $this->assertSame('Hanya informasi', $d['kelembapan_udara']['kata']);
     }
@@ -76,13 +76,13 @@ class DasborTest extends TestCase
     public function test_status_utama_adalah_yang_terburuk(): void
     {
         Pembacaan::factory()->create();
-        Pembacaan::factory()->create(['status' => 'Waspada', 'warna' => 'kuning', 'pemicu' => 'Curah hujan 12 mm/jam', 'wilayah_id' => Wilayah::factory()->create(['nama' => 'Terburuk'])]);
+        Pembacaan::factory()->create(['status' => 'Waspada', 'warna' => 'kuning', 'pemicu' => 'Intensitas hujan 45%', 'wilayah_id' => Wilayah::factory()->create(['nama' => 'Terburuk'])]);
         Pembacaan::factory()->create();
 
         $this->getJson('/api/ews/data')
             ->assertJsonPath('utama.status', 'Waspada')
             ->assertJsonPath('utama.lokasi', 'Terburuk')
-            ->assertJsonPath('utama.pemicu', 'Curah hujan 12 mm/jam');
+            ->assertJsonPath('utama.pemicu', 'Intensitas hujan 45%');
     }
 
     public function test_awas_ditahan_walau_data_terbaru_normal(): void
@@ -183,19 +183,19 @@ class DasborTest extends TestCase
         $buat = fn (string $status, string $warna, ?string $pemicu = null) => Pembacaan::factory()->create(['wilayah_id' => $wilayah->id, 'status' => $status, 'warna' => $warna, 'pemicu' => $pemicu]);
 
         $buat('Aman', 'hijau');
-        $buat('Waspada', 'kuning', 'Curah hujan 12 mm/jam');
-        $buat('Waspada', 'kuning', 'Curah hujan 13 mm/jam');
+        $buat('Waspada', 'kuning', 'Intensitas hujan 45%');
+        $buat('Waspada', 'kuning', 'Intensitas hujan 46%');
         $buat('Aman', 'hijau');
 
         $log = $this->getJson('/api/ews/data')->assertJsonCount(2, 'log')->json('log');
         $this->assertSame('Aman', $log[0]['status']);
         $this->assertSame('Kembali normal', $log[0]['keterangan']);
-        $this->assertSame('Curah hujan 12 mm/jam', $log[1]['keterangan']);
+        $this->assertSame('Intensitas hujan 45%', $log[1]['keterangan']);
     }
 
     public function test_bacaan_pertama_aman_bukan_kejadian_walau_wilayah_lain_punya_kejadian(): void
     {
-        Pembacaan::factory()->create(['status' => 'Waspada', 'warna' => 'kuning', 'pemicu' => 'Curah hujan 12 mm/jam']);
+        Pembacaan::factory()->create(['status' => 'Waspada', 'warna' => 'kuning', 'pemicu' => 'Intensitas hujan 45%']);
         Pembacaan::factory()->create();
 
         $this->getJson('/api/ews/data')->assertJsonCount(1, 'log')->assertJsonPath('log.0.status', 'Waspada');
@@ -213,10 +213,33 @@ class DasborTest extends TestCase
         $this->getJson('/api/ews/data')->assertJsonCount(1, 'log')->assertJsonPath('log.0.keterangan', 'baru');
     }
 
+    public function test_log_dibatasi_50_kejadian_terbaru(): void
+    {
+        $wilayah = Wilayah::factory()->create();
+
+        // Status bolak-balik Aman <-> Waspada: tiap kiriman = satu kejadian (60 kejadian, menit ke-1 sampai ke-60).
+        foreach (range(1, 60) as $menit) {
+            $waspada = $menit % 2 === 1;
+            (new Pembacaan)->forceFill([
+                'wilayah_id' => $wilayah->id,
+                'status' => $waspada ? 'Waspada' : 'Aman',
+                'warna' => $waspada ? 'kuning' : 'hijau',
+                'pemicu' => "kiriman {$menit}",
+                'created_at' => now()->subHours(2)->addMinutes($menit),
+            ])->save();
+        }
+
+        $log = $this->getJson('/api/ews/data')->assertJsonCount(50, 'log')->json('log');
+
+        // Yang terbaru (kiriman 60) paling atas; 10 kejadian terlama (kiriman 1 sampai 10) sudah tidak tampil.
+        $this->assertSame('kiriman 60', $log[0]['keterangan']);
+        $this->assertSame('kiriman 11', $log[49]['keterangan']);
+    }
+
     public function test_grafik_mengembalikan_garis_ambang_dan_nilai_tertinggi_per_kelompok(): void
     {
         $wilayah = Wilayah::factory()->create();
-        $buat = fn (int $menitLalu, ?float $hujan) => (new Pembacaan)->forceFill(['wilayah_id' => $wilayah->id, 'status' => 'Aman', 'warna' => 'hijau', 'curah_hujan' => $hujan, 'created_at' => now()->startOfHour()->subMinutes($menitLalu)])->save();
+        $buat = fn (int $menitLalu, ?float $hujan) => (new Pembacaan)->forceFill(['wilayah_id' => $wilayah->id, 'status' => 'Aman', 'warna' => 'hijau', 'intensitas_hujan' => $hujan, 'created_at' => now()->startOfHour()->subMinutes($menitLalu)])->save();
 
         // Dalam satu kelompok 10 menit yang sama: puncak 18 tidak boleh hilang.
         $buat(31, 2);
@@ -225,11 +248,11 @@ class DasborTest extends TestCase
         $buat(60 * 25, 99);   // di luar rentang
         $buat(5, null);       // sensor kosong dilewati
 
-        $d = $this->getJson("/api/ews/grafik?wilayah={$wilayah->id}&sensor=curah_hujan&rentang=24j")->assertOk()->json();
+        $d = $this->getJson("/api/ews/grafik?wilayah={$wilayah->id}&sensor=intensitas_hujan&rentang=24j")->assertOk()->json();
 
         $this->assertSame([18], array_map(fn ($t) => (int) $t['y'], $d['titik']));
-        $this->assertEquals(['waspada' => 10, 'validasi' => 20], $d['ambang']);
-        $this->assertSame('mm/jam', $d['satuan']);
+        $this->assertEquals(['waspada' => 40, 'validasi' => 70], $d['ambang']);
+        $this->assertSame('%', $d['satuan']);
     }
 
     public function test_grafik_kemiringan_mutlak_udara_tanpa_ambang(): void
@@ -245,10 +268,10 @@ class DasborTest extends TestCase
     {
         $wilayah = Wilayah::factory()->create();
         foreach ([300, 60] as $menit) {
-            (new Pembacaan)->forceFill(['wilayah_id' => $wilayah->id, 'status' => 'Aman', 'warna' => 'hijau', 'curah_hujan' => 1, 'created_at' => now()->subMinutes($menit)])->save();
+            (new Pembacaan)->forceFill(['wilayah_id' => $wilayah->id, 'status' => 'Aman', 'warna' => 'hijau', 'intensitas_hujan' => 1, 'created_at' => now()->subMinutes($menit)])->save();
         }
 
-        $titik = $this->getJson("/api/ews/grafik?wilayah={$wilayah->id}&sensor=curah_hujan&rentang=24j")->json('titik');
+        $titik = $this->getJson("/api/ews/grafik?wilayah={$wilayah->id}&sensor=intensitas_hujan&rentang=24j")->json('titik');
 
         $this->assertCount(3, $titik);
         $this->assertNull($titik[1]['y']);
@@ -259,8 +282,8 @@ class DasborTest extends TestCase
         $wilayah = Wilayah::factory()->create();
 
         $this->getJson("/api/ews/grafik?wilayah={$wilayah->id}&sensor=password&rentang=24j")->assertUnprocessable();
-        $this->getJson("/api/ews/grafik?wilayah={$wilayah->id}&sensor=curah_hujan&rentang=1tahun")->assertUnprocessable();
-        $this->getJson('/api/ews/grafik?wilayah=99999&sensor=curah_hujan&rentang=24j')->assertUnprocessable();
+        $this->getJson("/api/ews/grafik?wilayah={$wilayah->id}&sensor=intensitas_hujan&rentang=1tahun")->assertUnprocessable();
+        $this->getJson('/api/ews/grafik?wilayah=99999&sensor=intensitas_hujan&rentang=24j')->assertUnprocessable();
     }
 
     public function test_nama_wilayah_di_halaman_tetap_diamankan(): void

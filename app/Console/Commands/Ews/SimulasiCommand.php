@@ -62,7 +62,7 @@ class SimulasiCommand extends Command
 
         $bacaan = [
             'kelembapan_tanah' => $acak(25, 45),
-            'curah_hujan' => $acak(0, 8),
+            'intensitas_hujan' => $acak(0, 25),
             'kemiringan' => $acak(-2, 3),
             'kelembapan_udara' => $acak(65, 95),
         ];
@@ -72,13 +72,13 @@ class SimulasiCommand extends Command
         }
 
         return match ($skenario) {
-            'waspada' => ['kelembapan_tanah' => $acak(52, 75), 'curah_hujan' => $acak(10, 18)] + $bacaan,
-            'validasi' => ['kelembapan_tanah' => $acak(82, 96), 'curah_hujan' => $acak(20, 45), 'kemiringan' => $acak(3, 8)] + $bacaan,
+            'waspada' => ['kelembapan_tanah' => $acak(52, 75), 'intensitas_hujan' => $acak(42, 65)] + $bacaan,
+            'validasi' => ['kelembapan_tanah' => $acak(82, 96), 'intensitas_hujan' => $acak(72, 95), 'kemiringan' => $acak(3, 8)] + $bacaan,
             default => $bacaan,
         };
     }
 
-    // Riwayat untuk grafik ditulis langsung, tanpa lewat penerima, supaya tidak memicu validasi atau Telegram.
+    // Riwayat untuk grafik ditulis langsung, tanpa lewat penerima, supaya tidak memicu validasi.
     private function isiRiwayat(Wilayah $wilayah, int $jam): void
     {
         if ($jam <= 0) {
@@ -92,7 +92,7 @@ class SimulasiCommand extends Command
             $gelombang = (sin($menit / 180) + 1) / 2;
             $bacaan = [
                 'kelembapan_tanah' => round(30 + $gelombang * 32 + lcg_value() * 3, 2),
-                'curah_hujan' => round(max(0, $gelombang * 16 - 3 + lcg_value() * 2), 2),
+                'intensitas_hujan' => round(max(0, $gelombang * 45 - 5 + lcg_value() * 4), 2),
                 'kemiringan' => round(0.5 + $gelombang * 3 + lcg_value() * 0.4, 2),
                 'kelembapan_udara' => round(68 + $gelombang * 24, 2),
             ];

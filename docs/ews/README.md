@@ -1,4 +1,4 @@
-# Dokumen EWS
+ok# Dokumen EWS
 - `ATURAN_EWS.md`: aturan status, ambang, alur validasi (sumber kebenaran).
 - `API_ALAT.md`: kontrak API untuk pembuat alat (ESP32). Kontrak tetap.
   Catatan: jika di dalamnya tertulis "Admin → Daftar wilayah" dan "Admin → Ambang batas sensor",

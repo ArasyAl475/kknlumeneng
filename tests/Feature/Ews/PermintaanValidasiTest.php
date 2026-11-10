@@ -18,7 +18,7 @@ class PermintaanValidasiTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        config(['ews.validasi_jeda_menit' => 30, 'ews.telegram.token' => null, 'ews.telegram.chat_id' => null]);
+        config(['ews.validasi_jeda_menit' => 30]);
         Http::preventStrayRequests();
     }
 

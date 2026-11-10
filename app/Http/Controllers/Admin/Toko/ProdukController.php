@@ -82,11 +82,16 @@ class ProdukController extends Controller
     private function dataForm(Produk $produk, Request $request): array
     {
         $kembali = $request->query('kembali');
+        $spesifikasi = $produk->spesifikasiTerpisah();
 
         return [
             'produk' => $produk,
+            'spesifikasiUtama' => $spesifikasi['utama'],
+            'spesifikasiTambahan' => $spesifikasi['tambahan'],
             'kembali' => is_string($kembali) && DaftarMarketplace::ada($kembali) ? $kembali : null,
             'batasFoto' => FotoProdukRequest::batasTeks(),
+            'jenisFoto' => FotoProdukRequest::jenisTeks(),
+            'acceptFoto' => FotoProdukRequest::accept(),
         ];
     }
 }

@@ -12,7 +12,7 @@ class RingkasanEws
      * Ringkasan status terburuk untuk halaman depan, diambil dari layanan yang sama dengan dashboard.
      * Halaman depan harus tetap tampil walau modul EWS mati atau basis datanya bermasalah.
      *
-     * @return array{status: string, warna: string, lokasi: ?string, waktu: ?string, ada_offline: bool}|null
+     * @return array{status: string, warna: string, lokasi: ?string, pemicu: ?string, waktu: ?string, ada_offline: bool, jumlah_wilayah: int, jumlah_offline: int}|null
      */
     public function ambil(): ?array
     {
