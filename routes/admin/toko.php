@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\Toko\PanenKopiController;
 use App\Http\Controllers\Admin\Toko\PengaturanController;
 use App\Http\Controllers\Admin\Toko\PenjualanJamurController;
 use App\Http\Controllers\Admin\Toko\ProdukController;
+use App\Http\Controllers\Admin\Toko\ShopeeController;
 use App\Services\Toko\DaftarMarketplace;
 use App\Services\Toko\IsianHasilPanen;
 use Illuminate\Support\Facades\Route;
@@ -36,6 +37,14 @@ Route::prefix('toko')->name('toko.')->group(function () {
     Route::put('pengaturan', [PengaturanController::class, 'update'])->name('pengaturan.update');
 
     Route::get('aktivitas', AktivitasController::class)->name('aktivitas');
+
+    // Koneksi Shopee Open Platform. Dibatasi lajunya karena tiap klik memanggil server Shopee.
+    Route::middleware('throttle:10,1')->prefix('shopee')->name('shopee.')->group(function () {
+        Route::post('hubungkan', [ShopeeController::class, 'hubungkan'])->name('hubungkan');
+        Route::get('kembali/{nonce}', [ShopeeController::class, 'kembali'])->whereAlphaNumeric('nonce')->name('kembali');
+        Route::post('sinkron', [ShopeeController::class, 'sinkron'])->name('sinkron');
+        Route::delete('putuskan', [ShopeeController::class, 'putuskan'])->name('putuskan');
+    });
 
     // Pencatatan hasil panen (tampil di halaman publik /toko/hasil).
     Route::resource('panen-kopi', PanenKopiController::class)->except('show')->parameters(['panen-kopi' => 'panenKopi']);
