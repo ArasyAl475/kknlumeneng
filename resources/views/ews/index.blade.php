@@ -8,7 +8,10 @@
 
 @php
     $utama = $data['utama'];
-    $ikonStatus = ['hijau' => 'aman', 'kuning' => 'waspada', 'merah' => 'awas', 'kosong' => 'kosong'];
+    // Kalimat yang sama dengan yang ditulis dasbor.js saat pembaruan berkala.
+    $teksOffline = collect($data['offline'])
+        ->map(fn (array $alat) => "Alat tidak mengirim data: {$alat['nama']} (terakhir {$alat['waktu']} WIB).")
+        ->implode(' ') ?: null;
 @endphp
 
 @section('hero')
@@ -28,59 +31,26 @@
     {{-- ══════════════════════════════════════
          PANEL STATUS UTAMA
     ══════════════════════════════════════ --}}
-    <section id="panel"
-             data-warna="{{ $utama['warna'] }}"
-             class="status-pekat rounded-2xl p-6 shadow-angkat ring-1 ring-black/10 sm:p-8"
-             aria-labelledby="panel-judul">
-
-        <div class="flex flex-wrap items-start justify-between gap-4">
-            <div>
-                <p class="text-sm font-bold uppercase tracking-wider opacity-75">Status desa saat ini</p>
-                <h2 id="panel-judul"
-                    class="mt-2 flex items-center gap-3 text-[clamp(2.25rem,9vw,3.75rem)] leading-none font-bold">
-                    <svg class="size-[1em] shrink-0" aria-hidden="true">
-                        <use id="panel-ikon" href="#i-{{ $ikonStatus[$utama['warna']] }}"></use>
-                    </svg>
-                    <span id="panel-status">{{ $utama['status'] ?? 'Belum ada data' }}</span>
-                </h2>
-            </div>
-
-            {{-- Animasi denyut tanda aktif --}}
-            <span class="relative flex size-5 mt-2" aria-hidden="true">
-                <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-50"></span>
-                <span class="relative inline-flex size-5 rounded-full bg-white/70"></span>
-            </span>
-        </div>
-
-        <p id="panel-saran" class="mt-4 max-w-2xl rounded-xl bg-black/15 px-4 py-3 text-base leading-relaxed sm:text-lg">
-            {{ $utama['saran'] }}
-        </p>
-
-        <div class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-            <p>
-                <svg class="mr-1 inline size-4 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s7.5-7 7.5-12.5a7.5 7.5 0 0 0-15 0C4.5 15 12 22 12 22Z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
-                <span id="panel-lokasi" class="font-bold">{{ $utama['lokasi'] }}</span>
-                <span id="panel-pemicu"> {{ $utama['pemicu'] }}</span>
-            </p>
-            <p class="opacity-75">
-                Data terakhir: <span id="panel-waktu" class="font-bold">{{ $utama['waktu'] ? $utama['waktu'].' WIB' : '-' }}</span>
-            </p>
-        </div>
-    </section>
+    {{-- Komponen yang sama dengan kartu status di beranda. Elemen ber-id panel-* diperbarui oleh dasbor.js. --}}
+    <x-kartu-status
+        :langsung="true"
+        tingkat="h2"
+        judul-id="panel-judul"
+        label="Status desa saat ini"
+        :warna="$utama['warna']"
+        :status="$utama['status']"
+        :saran="$utama['saran']"
+        :lokasi="$utama['lokasi']"
+        :pemicu="$utama['pemicu']"
+        :waktu="$utama['waktu']"
+        :jumlah-wilayah="count($data['wilayah'])"
+        :jumlah-offline="count($data['offline'])"
+        :offline="$teksOffline"
+        detail="#sensor"
+        :bagikan="route('ews.index')" />
 
     {{-- SR live region --}}
     <p id="pengumuman" class="sr-only" aria-live="polite"></p>
-
-    {{-- Banner alat offline --}}
-    <div id="banner-alat" role="status" data-warna="kosong"
-         @class(['status-lembut status-garis mt-3 flex items-start gap-3 rounded-xl border-2 p-4 font-bold', 'hidden' => ! $data['offline']])>
-        <x-ikon nama="offline" class="mt-0.5 size-6 shrink-0" />
-        <span id="banner-alat-teks">
-            @foreach ($data['offline'] as $alat)
-                Alat tidak mengirim data: {{ $alat['nama'] }} (terakhir {{ $alat['waktu'] }} WIB).
-            @endforeach
-        </span>
-    </div>
 
     {{-- Disclaimer --}}
     <div class="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-waspada-lembut px-4 py-2.5 text-sm">
@@ -119,7 +89,8 @@
     {{-- ══════════════════════════════════════
          BACAAN SENSOR
     ══════════════════════════════════════ --}}
-    <section class="mt-8" aria-labelledby="judul-sensor">
+    {{-- id="sensor": tujuan tombol "Detail sensor lingkungan" di kartu status (juga dari beranda). --}}
+    <section id="sensor" class="mt-8" aria-labelledby="judul-sensor">
         <div class="mb-3 flex flex-wrap items-baseline justify-between gap-x-4">
             <div class="flex items-center gap-3">
                 <span class="h-6 w-1.5 rounded-full bg-aksen" aria-hidden="true"></span>
@@ -222,7 +193,7 @@
         </div>
 
         <div class="overflow-hidden rounded-[0.9rem] border border-garis-halus bg-permukaan shadow-kartu">
-            <ul id="log" class="divide-y divide-garis-halus" data-paginasi="8"></ul>
+            <ul id="log" class="divide-y divide-garis-halus" data-paginasi="10"></ul>
             <p id="log-kosong" class="hidden px-5 py-8 text-center text-redup">
                 Belum ada perubahan status yang tercatat.
             </p>

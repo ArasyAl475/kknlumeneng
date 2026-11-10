@@ -13,10 +13,12 @@ class DataDasbor
 
     private const DETIK_CACHE = 8;
 
-    private const JUMLAH_LOG = 10;
+    // 5 halaman x 10 kejadian di dashboard. Kejadian ke-51 dan seterusnya tidak ditampilkan lagi,
+    // jadi saat status sering bolak-balik (alat kirim tiap 30 detik saat hujan) daftarnya tetap pendek.
+    private const JUMLAH_LOG = 50;
 
-    // Cukup untuk beberapa jam kiriman semua alat; log hanya perlu perubahan terbaru.
-    private const BARIS_ACUAN_LOG = 400;
+    // Cukup untuk menemukan 50 kejadian: sekitar 16 jam kiriman 30 detik, atau 20 hari kiriman 15 menit.
+    private const BARIS_ACUAN_LOG = 2000;
 
     /**
      * Banyak warga membuka dashboard bersamaan saat hujan: satu hasil dibagi ke semua pengunjung
@@ -42,7 +44,7 @@ class DataDasbor
     }
 
     /**
-     * @return array{status: string, warna: string, lokasi: ?string, waktu: ?string, ada_offline: bool}|null
+     * @return array{status: string, warna: string, lokasi: ?string, pemicu: ?string, waktu: ?string, ada_offline: bool, jumlah_wilayah: int, jumlah_offline: int}|null
      */
     public function ringkasan(): ?array
     {
@@ -56,8 +58,11 @@ class DataDasbor
             'status' => $data['utama']['status'],
             'warna' => $data['utama']['warna'],
             'lokasi' => $data['utama']['lokasi'],
+            'pemicu' => $data['utama']['pemicu'],
             'waktu' => $data['utama']['waktu'],
             'ada_offline' => $data['offline'] !== [],
+            'jumlah_wilayah' => count($data['wilayah']),
+            'jumlah_offline' => count($data['offline']),
         ];
     }
 

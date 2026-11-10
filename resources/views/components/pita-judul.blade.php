@@ -1,8 +1,9 @@
 @props(['judul', 'keterangan' => null, 'gambar' => null, 'label' => null, 'ikon' => null, 'jejak' => [], 'ringkas' => false])
 {{-- Pita judul halaman data: foto latar (slot Desain Web) + lapisan navy + jejak halaman + judul tegas.
      Dipakai di @section('hero') agar lebarnya penuh layar. $jejak: [['Label', url|null], ...].
-     $ringkas: lebih pendek, untuk halaman yang isinya harus segera terlihat (Peringatan Dini). --}}
-<section {{ $attributes->class(['relative isolate overflow-hidden bg-navy text-white']) }}>
+     $ringkas: lebih pendek, untuk halaman yang isinya harus segera terlihat (Peringatan Dini).
+     pt-[4.25rem] = tinggi header: header transparan melayang di atas foto ini (navbar-publik), jadi isi turun di bawahnya. --}}
+<section {{ $attributes->class(['relative isolate overflow-hidden bg-navy pt-[4.25rem] text-white']) }}>
     @if ($gambar)
         <x-gambar-situs :kunci="$gambar" :prioritas="true" class="absolute inset-0 -z-20 size-full" />
     @endif

@@ -35,20 +35,48 @@ function lencana(warna, kata) {
     return node;
 }
 
+// Teks penanda dan tingkat di kartu status; harus sama dengan $teks di components/kartu-status.blade.php.
+const TEKS_KARTU = {
+    hijau: { penanda: 'Kondisi normal', tingkat: 'Tingkat 1' },
+    kuning: { penanda: 'Perhatian warga', tingkat: 'Tingkat 2' },
+    merah: { penanda: 'Darurat aktif', tingkat: 'Tingkat 3' },
+    kosong: { penanda: 'Menunggu data', tingkat: null },
+};
+
+// Isi satu bagian kartu status; nilai kosong berarti bagiannya disembunyikan.
+// `wadah`: elemen yang ikut disembunyikan (mis. kotak sel), bawaannya elemen itu sendiri.
+function isiBagian(id, nilai, wadah = (e) => e) {
+    const teks = el(id);
+    teks.textContent = nilai ?? '';
+    wadah(teks).hidden = !nilai;
+}
+
 function tampilkanPanel() {
-    const { utama, offline } = data;
+    const { utama, offline, wilayah } = data;
+    const teks = TEKS_KARTU[utama.warna] ?? TEKS_KARTU.kosong;
     el('panel').dataset.warna = utama.warna;
     el('panel-ikon').setAttribute('href', `#i-${IKON[utama.warna]}`);
     el('panel-status').textContent = utama.status ?? 'Belum ada data';
+    el('panel-penanda').textContent = teks.penanda;
+    isiBagian('panel-tingkat', teks.tingkat);
+    isiBagian('panel-pemicu', utama.pemicu);
     el('panel-saran').textContent = utama.saran;
-    el('panel-lokasi').textContent = utama.lokasi ?? '';
-    el('panel-pemicu').textContent = utama.pemicu ?? '';
-    el('panel-waktu').textContent = utama.waktu ? `${utama.waktu} WIB` : '-';
+    isiBagian('panel-lokasi', utama.lokasi, (e) => e.closest('[data-sel]'));
+    isiBagian('panel-waktu', utama.waktu ? `${utama.waktu} WIB` : null, (e) => e.closest('[data-sel]'));
 
-    el('banner-alat').classList.toggle('hidden', offline.length === 0);
-    el('banner-alat-teks').textContent = offline
-        .map((a) => `Alat tidak mengirim data: ${a.nama} (terakhir ${a.waktu} WIB).`)
-        .join(' ');
+    // Ringkasan alat: berapa wilayah dipantau dan berapa alatnya masih mengirim data.
+    el('panel-alat').hidden = wilayah.length === 0;
+    el('panel-jumlah-wilayah').textContent = `${wilayah.length} wilayah`;
+    const aktif = el('panel-jumlah-aktif');
+    aktif.classList.toggle('kartu-status__nilai--kurang', offline.length > 0);
+    aktif.querySelector('use').setAttribute('href', offline.length > 0 ? '#i-offline' : '#i-alat');
+    aktif.querySelector('span').textContent = `${wilayah.length - offline.length} dari ${wilayah.length}`;
+
+    isiBagian(
+        'panel-peringatan-teks',
+        offline.map((a) => `Alat tidak mengirim data: ${a.nama} (terakhir ${a.waktu} WIB).`).join(' '),
+        () => el('panel-peringatan'),
+    );
 
     if (utama.status !== statusSebelum) {
         el('pengumuman').textContent = `Status berubah menjadi ${utama.status ?? 'belum ada data'}. ${utama.saran}`;

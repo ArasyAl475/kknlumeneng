@@ -81,7 +81,7 @@ document.querySelectorAll('[data-sorot-bagian]').forEach((nav) => {
     bagianTujuan.forEach((b) => pengamat.observe(b));
 });
 
-// ---------- Header di atas foto hero berubah padat setelah digulir ----------
+// ---------- Header transparan berubah putih padat setelah digulir (semua halaman publik) ----------
 const header = document.querySelector('[data-header-transparan]');
 if (header) {
     const perbarui = () => header.toggleAttribute('data-padat', window.scrollY > 24);
@@ -178,6 +178,51 @@ function pasangPaginasi(wadah) {
 }
 
 document.querySelectorAll('[data-paginasi]').forEach(pasangPaginasi);
+
+// ---------- Tombol "Bagikan" di kartu status longsor (components/kartu-status) ----------
+// HP: membuka lembar bagikan bawaan (WhatsApp, dll.). Browser tanpa fitur itu: teks + tautan disalin.
+// Teks diambil dari kartu saat tombol ditekan, jadi selalu status terbaru (dasbor memperbaruinya berkala).
+document.querySelectorAll('[data-bagikan-status]').forEach((tombol) => {
+    const bisaBagikan = typeof navigator.share === 'function';
+    const bisaSalin = Boolean(navigator.clipboard?.writeText);
+    if (!bisaBagikan && !bisaSalin) return;
+    tombol.hidden = false;
+
+    const label = tombol.querySelector('[data-bagikan-teks]');
+    const kartu = tombol.closest('.kartu-status');
+    let kembalikan = 0;
+
+    const kabari = (pesan) => {
+        label.textContent = pesan;
+        clearTimeout(kembalikan);
+        kembalikan = setTimeout(() => (label.textContent = 'Bagikan'), 2500);
+    };
+
+    tombol.addEventListener('click', async () => {
+        const kata = kartu?.querySelector('.kartu-status__kata')?.textContent.trim() ?? '';
+        const saran = kartu?.querySelector('.kartu-status__saran')?.textContent.trim() ?? '';
+        const teks = `Status longsor Desa Lumeneng saat ini: ${kata}. ${saran}`;
+        const url = tombol.dataset.bagikanStatus;
+
+        if (bisaBagikan) {
+            try {
+                await navigator.share({ title: 'Status Longsor Desa Lumeneng', text: teks, url });
+                return;
+            } catch (galat) {
+                // Warga menutup lembar bagikan: bukan kesalahan, tidak perlu pesan apa pun.
+                if (galat.name === 'AbortError') return;
+                if (!bisaSalin) return kabari('Gagal membagikan');
+            }
+        }
+
+        try {
+            await navigator.clipboard.writeText(`${teks} ${url}`);
+            kabari('Tautan disalin');
+        } catch {
+            kabari('Gagal menyalin');
+        }
+    });
+});
 
 // ---------- Tutup menu HP setelah salah satu tautan diketuk ----------
 document.querySelectorAll('details[data-menu-hp]').forEach((detail) => {
