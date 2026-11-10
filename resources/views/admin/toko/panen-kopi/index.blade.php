@@ -8,6 +8,7 @@
 
 @section('isi')
     <x-judul-halaman judul="Panen kopi" keterangan="Catatan tiap panen. Warga hanya melihat angka totalnya.">
+        <x-tombol varian="kedua" :href="route('admin.toko.impor.show', 'panen-kopi')">Impor dari Excel</x-tombol>
         <x-tombol :href="route('admin.toko.panen-kopi.create')">Catat panen kopi</x-tombol>
     </x-judul-halaman>
 

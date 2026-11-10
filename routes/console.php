@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Schedule;
 
 // Berjalan bila hosting menyediakan cron `php artisan schedule:run` (lihat docs/DEPLOY.md).
 Schedule::command('ews:bersihkan')->dailyAt('02:00')->withoutOverlapping();
+// Sinkron hasil panen <-> Google Sheets. Perintahnya diam bila TOKO_SHEETS_AKTIF=false.
+Schedule::command('toko:sheets-sinkron')->everyMinute()->withoutOverlapping();
 
 // Untuk hosting yang hanya punya cron: berlangganan ~50 detik tiap menit. Pesan di sela-sela
 // ditampung broker (sesi tidak dibersihkan). Bila ews:mqtt dijalankan terus-menerus, biarkan EWS_MQTT_JADWAL=false.
