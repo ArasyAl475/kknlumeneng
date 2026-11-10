@@ -11,7 +11,7 @@
             <th scope="col" role="columnheader" class="timbang__angka">Berat Bersih (kg)</th>
         </tr>
     </thead>
-    <tbody role="rowgroup">
+    <tbody role="rowgroup" data-paginasi="10">
         @foreach ($baris as $b)
             <tr role="row">
                 <th scope="row" role="rowheader" class="timbang__tanggal">{{ $b['tanggal']->format('d-m-Y') }}</th>

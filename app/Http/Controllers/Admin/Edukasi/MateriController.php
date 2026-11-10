@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Edukasi\MateriRequest;
 use App\Models\Edukasi\Kategori;
 use App\Models\Edukasi\Materi;
+use App\Services\Edukasi\BagianKategori;
 use App\Services\Edukasi\PengelolaMateri;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -17,7 +18,7 @@ class MateriController extends Controller
     public function index(): View
     {
         return view('admin.edukasi.materi.index', [
-            'materi' => Materi::query()->with('kategori:id,nama')->withCount('langkah')->latest('updated_at')->latest('id')->paginate(20),
+            'materi' => Materi::query()->with('kategori:id,nama')->withCount('langkah')->latest('updated_at')->latest('id')->paginate(10),
         ]);
     }
 
@@ -55,7 +56,9 @@ class MateriController extends Controller
 
     public function pratinjau(Materi $materi): View
     {
-        return view('edukasi.show', ['materi' => $materi->load(['kategori:id,nama', 'langkah']), 'pratinjau' => true]);
+        $materi->load(['kategori:id,nama,slug', 'langkah']);
+
+        return view('edukasi.show', ['materi' => $materi, 'pratinjau' => true, 'bagian' => BagianKategori::untuk($materi)]);
     }
 
     public function terbitkan(Materi $materi): RedirectResponse

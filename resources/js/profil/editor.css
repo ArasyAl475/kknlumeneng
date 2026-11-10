@@ -1,0 +1,139 @@
+/* Tampilan editor di panel admin: huruf lebih besar, tombol lebih lebar untuk jari, label Bahasa Indonesia. */
+[data-editor] .ql-toolbar.ql-snow {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    padding: 0.4rem;
+    border-color: var(--color-garis);
+    border-radius: 0.5rem 0.5rem 0 0;
+    background: var(--color-permukaan);
+    font-family: inherit;
+}
+
+[data-editor] .ql-toolbar.ql-snow .ql-formats {
+    margin-right: 0.35rem;
+}
+
+[data-editor] .ql-snow.ql-toolbar button {
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+}
+
+[data-editor] .ql-snow.ql-toolbar button:hover,
+[data-editor] .ql-snow.ql-toolbar button.ql-active {
+    background: rgb(22 78 50 / 0.1);
+}
+
+[data-editor] .ql-snow .ql-picker {
+    height: 2.5rem;
+    font-weight: 700;
+}
+
+[data-editor] .ql-snow .ql-picker-label {
+    display: flex;
+    align-items: center;
+}
+
+[data-editor] .ql-container.ql-snow {
+    border-color: var(--color-garis);
+    border-radius: 0 0 0.5rem 0.5rem;
+    background: var(--color-permukaan);
+    font-family: inherit;
+    font-size: 1.05rem;
+}
+
+[data-editor] .ql-editor {
+    min-height: 16rem;
+    line-height: 1.7;
+    tab-size: 4;
+}
+
+[data-editor] .ql-editor.ql-blank::before {
+    font-style: normal;
+    color: var(--color-redup);
+}
+
+[data-editor] .ql-editor img {
+    max-height: 22rem;
+    border-radius: 0.5rem;
+}
+
+[data-editor] .ql-editor:focus-visible {
+    outline: none;
+}
+
+[data-editor] .ql-container:focus-within {
+    box-shadow: 0 0 0 3px rgb(22 78 50 / 0.35);
+}
+
+/* Label pilihan bawaan Quill berbahasa Inggris (lewat CSS), diganti di sini. */
+[data-editor] .ql-snow .ql-picker.ql-header .ql-picker-label::before,
+[data-editor] .ql-snow .ql-picker.ql-header .ql-picker-item::before {
+    content: 'Paragraf';
+}
+
+[data-editor] .ql-snow .ql-picker.ql-header .ql-picker-label[data-value='2']::before,
+[data-editor] .ql-snow .ql-picker.ql-header .ql-picker-item[data-value='2']::before {
+    content: 'Judul besar';
+}
+
+[data-editor] .ql-snow .ql-picker.ql-header .ql-picker-label[data-value='3']::before,
+[data-editor] .ql-snow .ql-picker.ql-header .ql-picker-item[data-value='3']::before {
+    content: 'Judul kecil';
+}
+
+[data-editor] .ql-snow .ql-picker.ql-size .ql-picker-label::before,
+[data-editor] .ql-snow .ql-picker.ql-size .ql-picker-item::before {
+    content: 'Normal';
+}
+
+[data-editor] .ql-snow .ql-picker.ql-size .ql-picker-label[data-value='small']::before,
+[data-editor] .ql-snow .ql-picker.ql-size .ql-picker-item[data-value='small']::before {
+    content: 'Kecil';
+}
+
+[data-editor] .ql-snow .ql-picker.ql-size .ql-picker-label[data-value='large']::before,
+[data-editor] .ql-snow .ql-picker.ql-size .ql-picker-item[data-value='large']::before {
+    content: 'Besar';
+}
+
+[data-editor] .ql-snow .ql-picker.ql-size .ql-picker-label[data-value='huge']::before,
+[data-editor] .ql-snow .ql-picker.ql-size .ql-picker-item[data-value='huge']::before {
+    content: 'Sangat besar';
+}
+
+[data-editor] .ql-snow .ql-picker.ql-header,
+[data-editor] .ql-snow .ql-picker.ql-size {
+    width: 8.5rem;
+}
+
+[data-editor] .ql-snow .ql-tooltip {
+    z-index: 10;
+    border-radius: 0.5rem;
+    font-family: inherit;
+}
+
+[data-editor] .ql-snow .ql-tooltip::before {
+    content: 'Buka tautan:';
+}
+
+[data-editor] .ql-snow .ql-tooltip[data-mode='link']::before {
+    content: 'Alamat tautan:';
+}
+
+[data-editor] .ql-snow .ql-tooltip a.ql-action::after {
+    content: 'Ubah';
+}
+
+[data-editor] .ql-snow .ql-tooltip a.ql-remove::before {
+    content: 'Hapus';
+}
+
+[data-editor] .ql-snow .ql-tooltip.ql-editing a.ql-action::after {
+    content: 'Simpan';
+}

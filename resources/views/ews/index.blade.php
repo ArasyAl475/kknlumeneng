@@ -8,98 +8,53 @@
 
 @php
     $utama = $data['utama'];
-    $ikonStatus = ['hijau' => 'aman', 'kuning' => 'waspada', 'merah' => 'awas', 'kosong' => 'kosong'];
-
-    $warnaGlow = [
-        'hijau'  => 'shadow-[0_4px_32px_rgba(15,107,69,0.35)]',
-        'kuning' => 'shadow-[0_4px_32px_rgba(242,183,5,0.35)]',
-        'merah'  => 'shadow-[0_4px_32px_rgba(166,27,20,0.45)]',
-        'kosong' => 'shadow-md',
-    ];
-    $glow = $warnaGlow[$utama['warna']] ?? 'shadow-md';
+    // Kalimat yang sama dengan yang ditulis dasbor.js saat pembaruan berkala.
+    $teksOffline = collect($data['offline'])
+        ->map(fn (array $alat) => "Alat tidak mengirim data: {$alat['nama']} (terakhir {$alat['waktu']} WIB).")
+        ->implode(' ') ?: null;
 @endphp
+
+@section('hero')
+    {{-- Pita judul sengaja ringkas: status longsor di bawahnya harus segera terlihat di HP. --}}
+    <x-pita-judul judul="Status Longsor Desa Lumeneng" gambar="ews.hero" label="Sistem Peringatan Dini" ikon="waspada" :ringkas="true" :jejak="[['Peringatan Dini', null]]">
+        <p id="koneksi" class="kaca-terang flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-bold text-white" role="status">
+            <span class="inline-block size-2 rounded-full bg-white"></span>
+            Memuat pembaruan otomatis...
+        </p>
+    </x-pita-judul>
+@endsection
 
 @section('isi')
 <div id="dasbor" data-url-data="{{ route('ews.data') }}" data-url-grafik="{{ route('ews.grafik') }}">
     <script type="application/json" id="data-awal">@json($data)</script>
 
     {{-- ══════════════════════════════════════
-         HEADER HALAMAN
-    ══════════════════════════════════════ --}}
-    <div class="mb-6 flex flex-wrap items-start justify-between gap-3">
-        <div>
-            <div class="flex items-center gap-2">
-                <div class="h-1 w-5 rounded-full bg-kopi"></div>
-                <p class="text-sm font-bold uppercase tracking-wider text-kopi">Sistem Peringatan Dini</p>
-            </div>
-            <h1 class="mt-1 text-2xl font-bold sm:text-3xl">Status Longsor Desa Lumeneng</h1>
-        </div>
-        <p id="koneksi" class="flex items-center gap-2 rounded-full border border-garis-halus bg-permukaan px-3 py-1 text-sm text-redup" role="status">
-            <span class="inline-block size-2 rounded-full bg-aman"></span>
-            Memuat pembaruan otomatis...
-        </p>
-    </div>
-
-    {{-- ══════════════════════════════════════
          PANEL STATUS UTAMA
     ══════════════════════════════════════ --}}
-    <section id="panel"
-             data-warna="{{ $utama['warna'] }}"
-             class="status-pekat {{ $glow }} rounded-2xl p-6 ring-4 ring-inset ring-white/20 sm:p-8"
-             aria-labelledby="panel-judul">
-
-        <div class="flex flex-wrap items-start justify-between gap-4">
-            <div>
-                <p class="text-sm font-bold uppercase tracking-wider opacity-75">Status desa saat ini</p>
-                <h2 id="panel-judul"
-                    class="mt-2 flex items-center gap-3 text-[clamp(2.25rem,9vw,3.75rem)] leading-none font-bold">
-                    <svg class="size-[1em] shrink-0" aria-hidden="true">
-                        <use id="panel-ikon" href="#i-{{ $ikonStatus[$utama['warna']] }}"></use>
-                    </svg>
-                    <span id="panel-status">{{ $utama['status'] ?? 'Belum ada data' }}</span>
-                </h2>
-            </div>
-
-            {{-- Animasi denyut tanda aktif --}}
-            <span class="relative flex size-5 mt-2" aria-hidden="true">
-                <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-50"></span>
-                <span class="relative inline-flex size-5 rounded-full bg-white/70"></span>
-            </span>
-        </div>
-
-        <p id="panel-saran" class="mt-4 max-w-2xl rounded-xl bg-black/15 px-4 py-3 text-base leading-relaxed sm:text-lg">
-            {{ $utama['saran'] }}
-        </p>
-
-        <div class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-            <p>
-                <svg class="mr-1 inline size-4 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s7.5-7 7.5-12.5a7.5 7.5 0 0 0-15 0C4.5 15 12 22 12 22Z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
-                <span id="panel-lokasi" class="font-bold">{{ $utama['lokasi'] }}</span>
-                <span id="panel-pemicu"> {{ $utama['pemicu'] }}</span>
-            </p>
-            <p class="opacity-75">
-                Data terakhir: <span id="panel-waktu" class="font-bold">{{ $utama['waktu'] ? $utama['waktu'].' WIB' : '-' }}</span>
-            </p>
-        </div>
-    </section>
+    {{-- Komponen yang sama dengan kartu status di beranda. Elemen ber-id panel-* diperbarui oleh dasbor.js. --}}
+    <x-kartu-status
+        :langsung="true"
+        tingkat="h2"
+        judul-id="panel-judul"
+        label="Status desa saat ini"
+        :warna="$utama['warna']"
+        :status="$utama['status']"
+        :saran="$utama['saran']"
+        :lokasi="$utama['lokasi']"
+        :pemicu="$utama['pemicu']"
+        :waktu="$utama['waktu']"
+        :jumlah-wilayah="count($data['wilayah'])"
+        :jumlah-offline="count($data['offline'])"
+        :offline="$teksOffline"
+        detail="#sensor"
+        :bagikan="route('ews.index')" />
 
     {{-- SR live region --}}
     <p id="pengumuman" class="sr-only" aria-live="polite"></p>
 
-    {{-- Banner alat offline --}}
-    <div id="banner-alat" role="status" data-warna="kosong"
-         @class(['status-lembut status-garis mt-3 flex items-start gap-3 rounded-xl border-2 p-4 font-bold', 'hidden' => ! $data['offline']])>
-        <x-ikon nama="offline" class="mt-0.5 size-6 shrink-0" />
-        <span id="banner-alat-teks">
-            @foreach ($data['offline'] as $alat)
-                Alat tidak mengirim data: {{ $alat['nama'] }} (terakhir {{ $alat['waktu'] }} WIB).
-            @endforeach
-        </span>
-    </div>
-
     {{-- Disclaimer --}}
     <div class="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-waspada-lembut px-4 py-2.5 text-sm">
-        <p class="font-bold text-waspada-teks">⚠ {{ __('ews.disclaimer') }}</p>
+        <p class="flex items-start gap-2 font-bold text-waspada-teks"><x-ikon nama="waspada" class="mt-0.5 size-4 shrink-0" />{{ __('ews.disclaimer') }}</p>
     </div>
 
     <noscript>
@@ -113,8 +68,8 @@
     ══════════════════════════════════════ --}}
     <section class="mt-8" aria-labelledby="judul-wilayah">
         <div class="mb-3 flex items-center gap-3">
-            <div class="h-1 w-5 rounded-full bg-kopi"></div>
-            <h2 id="judul-wilayah" class="text-xl font-bold">Pilih wilayah</h2>
+            <span class="h-6 w-1.5 rounded-full bg-aksen" aria-hidden="true"></span>
+            <h2 id="judul-wilayah" class="text-xl font-extrabold text-navy">Pilih wilayah</h2>
         </div>
 
         <div id="daftar-wilayah"
@@ -134,11 +89,12 @@
     {{-- ══════════════════════════════════════
          BACAAN SENSOR
     ══════════════════════════════════════ --}}
-    <section class="mt-8" aria-labelledby="judul-sensor">
+    {{-- id="sensor": tujuan tombol "Detail sensor lingkungan" di kartu status (juga dari beranda). --}}
+    <section id="sensor" class="mt-8" aria-labelledby="judul-sensor">
         <div class="mb-3 flex flex-wrap items-baseline justify-between gap-x-4">
             <div class="flex items-center gap-3">
-                <div class="h-1 w-5 rounded-full bg-kopi"></div>
-                <h2 id="judul-sensor" class="text-xl font-bold">
+                <span class="h-6 w-1.5 rounded-full bg-aksen" aria-hidden="true"></span>
+                <h2 id="judul-sensor" class="text-xl font-extrabold text-navy">
                     Bacaan sensor <span id="sensor-wilayah"></span>
                 </h2>
             </div>
@@ -146,8 +102,8 @@
         </div>
 
         <div id="kartu-sensor"
-             @class(['grid grid-cols-1 content-start gap-3 min-[420px]:grid-cols-2 lg:grid-cols-4',
-                     'min-h-[33rem] min-[420px]:min-h-[16.5rem] lg:min-h-[8rem]' => $data['wilayah']])>
+             @class(['grid grid-cols-1 content-start gap-x-4 gap-y-3 min-[420px]:grid-cols-2 lg:grid-cols-4',
+                     'min-h-[54rem] min-[420px]:min-h-[27rem] lg:min-h-[13rem]' => $data['wilayah']])>
         </div>
     </section>
 
@@ -157,29 +113,29 @@
     <section class="mt-8" aria-labelledby="judul-peta">
         <div class="mb-3 flex flex-wrap items-end justify-between gap-3">
             <div class="flex items-center gap-3">
-                <div class="h-1 w-5 rounded-full bg-kopi"></div>
-                <h2 id="judul-peta" class="text-xl font-bold">Peta wilayah</h2>
+                <span class="h-6 w-1.5 rounded-full bg-aksen" aria-hidden="true"></span>
+                <h2 id="judul-peta" class="text-xl font-extrabold text-navy">Peta wilayah</h2>
             </div>
             <div>
                 <label for="mode-peta" class="mb-1 block text-sm font-bold">Jenis peta</label>
                 <select id="mode-peta" class="isian min-w-[160px]">
-                    <option value="standar">🗺 Standar</option>
-                    <option value="satelit">🛰 Satelit</option>
-                    <option value="topografi">⛰ Ketinggian</option>
+                    <option value="standar">Standar</option>
+                    <option value="satelit">Satelit</option>
+                    <option value="topografi">Ketinggian</option>
                 </select>
             </div>
         </div>
 
         <div id="peta"
-             class="relative z-0 h-80 overflow-hidden rounded-2xl border-2 border-garis-halus bg-kosong-lembut shadow-sm lg:h-[28rem]"
+             class="relative z-0 h-80 overflow-hidden rounded-[0.9rem] border border-garis-halus bg-kosong-lembut shadow-kartu lg:h-[28rem]"
              role="region"
              aria-label="Peta wilayah. Daftar wilayah di atas berisi informasi yang sama.">
         </div>
         <p id="peta-galat" class="mt-2 hidden rounded-xl bg-awas-lembut p-3 font-bold text-awas">
             Peta gagal dimuat. Status tiap wilayah tetap bisa dilihat di daftar di atas.
         </p>
-        <p class="mt-2 text-sm text-redup">
-            💡 Ketuk wilayah untuk melihat bacaannya. Di HP, geser peta dengan dua jari. Garis: tipis = Aman, putus-putus = Waspada, tebal = Awas.
+        <p class="mt-2 flex items-start gap-2 text-sm text-redup">
+            <x-ikon nama="info" class="mt-0.5 size-4 shrink-0 text-biru" />Ketuk wilayah untuk melihat bacaannya. Di HP, geser peta dengan dua jari. Garis: tipis = Aman, putus-putus = Waspada, tebal = Awas.
         </p>
     </section>
 
@@ -188,8 +144,8 @@
     ══════════════════════════════════════ --}}
     <section class="mt-8" aria-labelledby="judul-grafik">
         <div class="mb-3 flex items-center gap-3">
-            <div class="h-1 w-5 rounded-full bg-kopi"></div>
-            <h2 id="judul-grafik" class="text-xl font-bold">
+            <span class="h-6 w-1.5 rounded-full bg-aksen" aria-hidden="true"></span>
+            <h2 id="judul-grafik" class="text-xl font-extrabold text-navy">
                 Riwayat sensor <span id="grafik-wilayah"></span>
             </h2>
         </div>
@@ -220,7 +176,7 @@
             </div>
         </div>
 
-        <div class="relative mt-3 h-72 overflow-hidden rounded-2xl border-2 border-garis-halus bg-permukaan p-3 shadow-sm">
+        <div class="relative mt-3 h-72 overflow-hidden rounded-[0.9rem] border border-garis-halus bg-permukaan p-3 shadow-kartu">
             <canvas id="grafik" role="img" aria-label="Grafik riwayat sensor"></canvas>
             <p id="grafik-pesan" class="absolute inset-0 hidden place-content-center p-4 text-center font-bold text-redup"></p>
         </div>
@@ -232,12 +188,12 @@
     ══════════════════════════════════════ --}}
     <section class="mt-8" aria-labelledby="judul-log">
         <div class="mb-3 flex items-center gap-3">
-            <div class="h-1 w-5 rounded-full bg-kopi"></div>
-            <h2 id="judul-log" class="text-xl font-bold">Kejadian terbaru</h2>
+            <span class="h-6 w-1.5 rounded-full bg-aksen" aria-hidden="true"></span>
+            <h2 id="judul-log" class="text-xl font-extrabold text-navy">Kejadian terbaru</h2>
         </div>
 
-        <div class="rounded-2xl border-2 border-garis-halus bg-permukaan overflow-hidden">
-            <ul id="log" class="divide-y divide-garis-halus"></ul>
+        <div class="overflow-hidden rounded-[0.9rem] border border-garis-halus bg-permukaan shadow-kartu">
+            <ul id="log" class="divide-y divide-garis-halus" data-paginasi="10"></ul>
             <p id="log-kosong" class="hidden px-5 py-8 text-center text-redup">
                 Belum ada perubahan status yang tercatat.
             </p>
@@ -265,14 +221,20 @@
         </span>
     </template>
 
+    {{-- Kartu sensor bertumpuk ke belakang: dua lapisan di balik kartu memberi kesan kedalaman (gaya di app.css). --}}
     <template id="cetak-sensor">
-        <div class="status-garis rounded-2xl border-2 bg-permukaan p-4 shadow-sm">
-            <p class="flex items-center gap-2 text-sm font-bold text-redup">
-                <svg class="size-5 shrink-0" aria-hidden="true"><use data-isi="ikon"></use></svg>
-                <span data-isi="nama"></span>
-            </p>
-            <p data-isi="teks" class="mt-2 text-3xl font-bold leading-none"></p>
-            <p class="mt-2"><span data-isi="lencana"></span></p>
+        <div class="kartu-sensor">
+            <span class="kartu-sensor__lapis kartu-sensor__lapis--2" aria-hidden="true"></span>
+            <span class="kartu-sensor__lapis kartu-sensor__lapis--1" aria-hidden="true"></span>
+            <div class="kartu-sensor__muka">
+                <div class="flex items-start justify-between gap-3">
+                    <span class="kartu-sensor__ikon"><svg class="size-6" aria-hidden="true"><use data-isi="ikon"></use></svg></span>
+                    <span data-isi="lencana"></span>
+                </div>
+                <p data-isi="nama" class="mt-4 text-sm font-bold text-redup"></p>
+                <p data-isi="teks" class="mt-1 font-judul text-[2.4rem] font-extrabold leading-none tabular-nums text-tinta"></p>
+                <div class="kartu-sensor__meter" data-isi="meter" aria-hidden="true"><span data-isi="isi-meter"></span></div>
+            </div>
         </div>
     </template>
 

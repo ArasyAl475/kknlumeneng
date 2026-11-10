@@ -13,7 +13,7 @@
         @if ($produk->isEmpty())
             <p class="text-redup">Belum ada produk. Tekan Tambah produk untuk memulai.</p>
         @endif
-        <ul class="divide-y divide-garis-halus">
+        <ul class="divide-y divide-garis-halus" data-paginasi="10">
             @foreach ($produk as $p)
                 @php $fotoUtama = $p->foto->first(); @endphp
                 <li class="flex flex-wrap items-start gap-3 py-3 first:pt-0 last:pb-0">

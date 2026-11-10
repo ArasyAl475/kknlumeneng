@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\Toko\AktivitasController;
 use App\Http\Controllers\Admin\Toko\BerandaController;
+use App\Http\Controllers\Admin\Toko\BukaSheetController;
 use App\Http\Controllers\Admin\Toko\FotoProdukController;
 use App\Http\Controllers\Admin\Toko\MarketplaceController;
 use App\Http\Controllers\Admin\Toko\PanenJamurController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\Admin\Toko\PenjualanJamurController;
 use App\Http\Controllers\Admin\Toko\ProdukController;
 use App\Http\Controllers\Admin\Toko\ShopeeController;
 use App\Services\Toko\DaftarMarketplace;
+use App\Services\Toko\IsianHasilPanen;
 use Illuminate\Support\Facades\Route;
 
 // Awalan /admin dan middleware web + auth + admin otomatis dari bootstrap/app.php.
@@ -48,4 +50,7 @@ Route::prefix('toko')->name('toko.')->group(function () {
     Route::resource('panen-kopi', PanenKopiController::class)->except('show')->parameters(['panen-kopi' => 'panenKopi']);
     Route::resource('panen-jamur', PanenJamurController::class)->except('show')->parameters(['panen-jamur' => 'panenJamur']);
     Route::resource('penjualan-jamur', PenjualanJamurController::class)->except('show')->parameters(['penjualan-jamur' => 'penjualanJamur']);
+
+    // Membuka tab Google Sheets yang sesuai (hanya bila sinkron Sheets aktif).
+    Route::get('sheets/{jenis}', BukaSheetController::class)->whereIn('jenis', IsianHasilPanen::kunci())->name('sheets.buka');
 });

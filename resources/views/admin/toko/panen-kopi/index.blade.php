@@ -8,7 +8,7 @@
 
 @section('isi')
     <x-judul-halaman judul="Panen kopi" keterangan="Catatan tiap panen. Warga hanya melihat angka totalnya.">
-        <x-tombol :href="route('admin.toko.panen-kopi.create')">Catat panen kopi</x-tombol>
+        @include('admin.toko.partials.tombol-sheets', ['jenis' => 'panen-kopi'])        <x-tombol :href="route('admin.toko.panen-kopi.create')">Catat panen kopi</x-tombol>
     </x-judul-halaman>
 
     @include('admin.toko.partials.ringkasan', ['angka' => [

@@ -40,11 +40,11 @@ class BerandaTest extends TestCase
     public function test_menu_atas_memuat_toko_edukasi_dan_history_limbah(): void
     {
         // Dipaksa menyala agar tes tidak bergantung pada isi .env di komputer masing-masing.
-        config(['modul.ews.aktif' => true, 'modul.toko.aktif' => true, 'modul.edukasi.aktif' => true, 'modul.limbah.aktif' => true]);
+        config(['modul.profil.aktif' => true, 'modul.berita.aktif' => true, 'modul.galeri.aktif' => true, 'modul.ews.aktif' => true, 'modul.toko.aktif' => true, 'modul.edukasi.aktif' => true, 'modul.limbah.aktif' => true]);
 
         $menu = Modul::tersedia();
 
-        $this->assertSame(['ews', 'toko', 'edukasi', 'limbah'], array_keys($menu));
+        $this->assertSame(['profil', 'berita', 'galeri', 'ews', 'toko', 'edukasi', 'limbah'], array_keys($menu));
 
         $html = $this->get('/')->assertOk()->getContent();
         foreach (['toko.index', 'edukasi.index', 'toko.hasil'] as $rute) {

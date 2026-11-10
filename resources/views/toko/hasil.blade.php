@@ -29,18 +29,15 @@
     <noscript><style>[data-buka-filter] { display: none; } .lembar { display: block; position: static; width: auto; height: auto; margin-top: 1rem; border-radius: 0.75rem; } .lembar__kepala button { display: none; }</style></noscript>
 @endpush
 
-@section('isi')
-    {{-- KEPALA HALAMAN: judul + penanda status + pilihan waktu (berlaku untuk semua bagian di bawahnya) --}}
-    <section class="kepala-halaman" aria-label="Judul dan pilihan data">
-        <div class="kepala-halaman__teks">
-            <p class="kepala-halaman__label">
-                @include('toko.partials.ikon', ['nama' => 'terverifikasi', 'kelas' => 'size-5'])
-                Sistem Informasi Agraria Terpadu Desa Lumeneng
-            </p>
-            <h1>Hasil Panen dan Penjualan Komoditas Desa</h1>
-            <p class="kepala-halaman__deskripsi">Portal transparansi publik hasil bumi Desa Lumeneng: memantau perkembangan panen kopi rakyat,<br class="kepala-halaman__putus"> inovasi pemanfaatan cangkang kopi, dan produksi jamur tiram warga.</p>
-        </div>
+@section('hero')
+    <x-pita-judul judul="Hasil Panen dan Penjualan Komoditas Desa" gambar="hasil.hero" label="Sistem Informasi Agraria Terpadu Desa Lumeneng" ikon="tanah"
+        :jejak="[['Hasil Panen', null]]"
+        keterangan="Portal transparansi publik hasil bumi Desa Lumeneng: memantau perkembangan panen kopi rakyat, inovasi pemanfaatan cangkang kopi, dan produksi jamur tiram warga." />
+@endsection
 
+@section('isi')
+    {{-- KEPALA HALAMAN: penanda status + pilihan waktu (berlaku untuk semua bagian di bawahnya). Judul ada di pita judul. --}}
+    <section class="kepala-halaman" aria-label="Pilihan data">
         <div class="kepala-halaman__kontrol">
             <div class="status-pill"><span class="status-pill__titik" aria-hidden="true"></span>Transparansi Terbuka untuk Warga</div>
 
@@ -58,11 +55,19 @@
                         <span class="tombol-filter__jumlah" aria-label="{{ $penyaring['jumlah'] }} pilihan aktif">{{ $penyaring['jumlah'] }}</span>
                     @endif
                 </button>
-                {{-- Unduhan membawa filter yang sedang aktif, jadi isi Excel sama dengan yang terlihat di layar. --}}
-                <a href="{{ route('toko.hasil.excel', array_filter($filter)) }}" class="tombol-kustom" download>
-                    @include('toko.partials.ikon', ['nama' => 'unduh', 'kelas' => 'size-4'])
-                    Unduh Excel
-                </a>
+                @if ($alamatSheet)
+                    {{-- Sheet yang sama dengan panel admin; hanya terbuka bagi akun Google yang diundang. --}}
+                    <a href="{{ $alamatSheet }}" class="tombol-kustom" target="_blank" rel="noopener">
+                        @include('toko.partials.ikon', ['nama' => 'tabel', 'kelas' => 'size-4'])
+                        Buka Google Sheets
+                    </a>
+                @else
+                    {{-- Unduhan membawa filter yang sedang aktif, jadi isi Excel sama dengan yang terlihat di layar. --}}
+                    <a href="{{ route('toko.hasil.excel', array_filter($filter)) }}" class="tombol-kustom" download>
+                        @include('toko.partials.ikon', ['nama' => 'unduh', 'kelas' => 'size-4'])
+                        Unduh Excel
+                    </a>
+                @endif
             </div>
         </div>
     </section>
@@ -452,7 +457,7 @@
         @else
             @include('toko.partials.timbang', ['baris' => $kopi['timbang'], 'jumlah' => $kopi['timbang_jumlah'], 'totalKotor' => $kopi['panen'], 'totalBersih' => $kopi['bersih']])
             @if ($kopi['timbang_jumlah'] > count($kopi['timbang']))
-                <p class="catatan-kecil">Menampilkan {{ count($kopi['timbang']) }} catatan terbaru dari {{ $kopi['timbang_jumlah'] }}. Unduh Excel untuk melihat semuanya, atau pilih tanggal di Kustom.</p>
+                <p class="catatan-kecil">Menampilkan {{ count($kopi['timbang']) }} catatan terbaru dari {{ $kopi['timbang_jumlah'] }}. {{ $alamatSheet ? 'Buka Google Sheets' : 'Unduh Excel' }} untuk melihat semuanya, atau pilih tanggal di Kustom.</p>
             @endif
         @endif
     </section>

@@ -16,6 +16,9 @@ class PengelolaMateri
      */
     public function buatMateri(array $data, ?UploadedFile $berkas): Materi
     {
+        // Tanpa nomor dari admin, materi baru menjadi bagian terakhir di kategorinya.
+        $data['urutan'] ??= ((int) Materi::query()->where('kategori_id', $data['kategori_id'])->max('urutan')) + 1;
+
         return Materi::query()->create($data + [
             'slug' => PembuatSlug::untuk(Materi::class, $data['judul'], 'materi'),
             'gambar' => $berkas ? $this->gambar->simpan($berkas) : null,

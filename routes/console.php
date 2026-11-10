@@ -10,6 +10,9 @@ Schedule::command('toko:perpanjang-token-shopee')->hourly()->withoutOverlapping(
 // Tarik nama, harga, dan deskripsi produk dari Shopee tiap dini hari (data Shopee menimpa data di sini).
 Schedule::command('toko:sinkron-shopee')->dailyAt('03:00')->withoutOverlapping();
 
+// Sinkron hasil panen <-> Google Sheets. Perintahnya diam bila TOKO_SHEETS_AKTIF=false.
+Schedule::command('toko:sheets-sinkron')->everyMinute()->withoutOverlapping();
+
 // Untuk hosting yang hanya punya cron: berlangganan ~50 detik tiap menit. Pesan di sela-sela
 // ditampung broker (sesi tidak dibersihkan). Bila ews:mqtt dijalankan terus-menerus, biarkan EWS_MQTT_JADWAL=false.
 Schedule::command('ews:mqtt --detik=50')->everyMinute()->withoutOverlapping(2)
