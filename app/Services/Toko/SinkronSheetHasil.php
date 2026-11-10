@@ -14,7 +14,7 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 /**
  * Sinkron dua arah catatan hasil panen <-> Google Sheets (satu tab per jenis catatan).
  *
- * Susunan tab: kolom A = ID (diisi sistem), lalu kolom data sesuai ImporExcelHasil::JENIS, kolom terakhir = Status.
+ * Susunan tab: kolom A = ID (diisi sistem), lalu kolom data sesuai IsianHasilPanen::JENIS, kolom terakhir = Status.
  *
  * Aturan per baris (SinkronSheet.hash = sidik isi saat terakhir sama di kedua sisi):
  *  - ID kosong            -> catatan baru; ID ditulis balik ke Sheet.
@@ -35,14 +35,14 @@ class SinkronSheetHasil
 
     private const KUNCI_KUNCI = 'toko_sheets.sinkron';
 
-    public function __construct(private GoogleSheets $sheets, private ImporExcelHasil $impor) {}
+    public function __construct(private GoogleSheets $sheets, private IsianHasilPanen $isian) {}
 
     /**
      * @return array<int, string>
      */
     public static function kepala(string $jenis): array
     {
-        return ['ID', ...array_column(ImporExcelHasil::JENIS[$jenis]['kolom'], 'judul'), 'Status'];
+        return ['ID', ...array_column(IsianHasilPanen::JENIS[$jenis]['kolom'], 'judul'), 'Status'];
     }
 
     public static function huruf(string $jenis): string
@@ -52,7 +52,7 @@ class SinkronSheetHasil
 
     public static function namaTab(string $jenis): string
     {
-        return ImporExcelHasil::JENIS[$jenis]['label'];
+        return IsianHasilPanen::JENIS[$jenis]['label'];
     }
 
     /**
@@ -62,7 +62,7 @@ class SinkronSheetHasil
     {
         // Kunci mencegah dua putaran (jadwal + perintah manual) menulis bersamaan dan membuat catatan ganda.
         $hasil = Cache::lock(self::KUNCI_KUNCI, 120)->get(function (): array {
-            $jenis = ImporExcelHasil::kunci();
+            $jenis = IsianHasilPanen::kunci();
             $baca = $this->sheets->bacaTab(array_map(fn (string $j) => "'".self::namaTab($j)."'!A1:".self::huruf($j), $jenis));
 
             $hasil = [];
@@ -93,7 +93,7 @@ class SinkronSheetHasil
      */
     private function prosesTab(string $jenis, array $baris): array
     {
-        $def = $this->impor->definisi($jenis);
+        $def = $this->isian->definisi($jenis);
         $label = $def['label'];
         $kepala = self::kepala($jenis);
         $jumlahKolom = count($kepala);
@@ -165,7 +165,7 @@ class SinkronSheetHasil
                 }
             }
 
-            [$bersih, $galat] = $this->impor->periksaIsian($def, array_combine(array_keys($def['kolom']), $nilai));
+            [$bersih, $galat] = $this->isian->periksaIsian($def, array_combine(array_keys($def['kolom']), $nilai));
             if ($galat !== []) {
                 $keluar[] = [$rekam?->getKey() ?? '', ...$nilai, 'Perlu diperbaiki: '.implode(' ', $galat)];
                 $hitung['salah']++;

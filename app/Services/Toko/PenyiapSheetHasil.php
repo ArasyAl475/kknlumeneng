@@ -20,7 +20,7 @@ class PenyiapSheetHasil
         $ada = $this->sheets->lembar();
 
         $tambah = [];
-        foreach (ImporExcelHasil::kunci() as $jenis) {
+        foreach (IsianHasilPanen::kunci() as $jenis) {
             if (! isset($ada[SinkronSheetHasil::namaTab($jenis)])) {
                 $tambah[] = ['addSheet' => ['properties' => ['title' => SinkronSheetHasil::namaTab($jenis)]]];
             }
@@ -29,14 +29,16 @@ class PenyiapSheetHasil
             $this->sheets->ubahStruktur($tambah);
             $ada = $this->sheets->lembar();
         }
+        // Tab bisa saja dibuat ulang atau diganti nama; nomor tab untuk tombol "Buka Google Sheets" dicari lagi.
+        $this->sheets->lupakanTab();
 
         $this->sheets->tulis(array_map(fn (string $j) => [
             'range' => "'".SinkronSheetHasil::namaTab($j)."'!A1:".SinkronSheetHasil::huruf($j).'1',
             'values' => [SinkronSheetHasil::kepala($j)],
-        ], ImporExcelHasil::kunci()));
+        ], IsianHasilPanen::kunci()));
 
         $format = [];
-        foreach (ImporExcelHasil::kunci() as $jenis) {
+        foreach (IsianHasilPanen::kunci() as $jenis) {
             array_push($format, ...$this->formatTab($jenis, $ada[SinkronSheetHasil::namaTab($jenis)]));
         }
         $this->sheets->ubahStruktur($format);
@@ -47,7 +49,7 @@ class PenyiapSheetHasil
      */
     private function formatTab(string $jenis, int $idLembar): array
     {
-        $kolom = array_values(ImporExcelHasil::JENIS[$jenis]['kolom']);
+        $kolom = array_values(IsianHasilPanen::JENIS[$jenis]['kolom']);
         $terakhir = count($kolom) + 1;
 
         $rentang = fn (int $dari, int $sampai, int $barisAwal = 0, ?int $barisAkhir = null) => array_filter([
