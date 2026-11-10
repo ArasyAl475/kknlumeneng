@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\Toko\AktivitasController;
 use App\Http\Controllers\Admin\Toko\BerandaController;
 use App\Http\Controllers\Admin\Toko\FotoProdukController;
+use App\Http\Controllers\Admin\Toko\ImporHasilController;
 use App\Http\Controllers\Admin\Toko\MarketplaceController;
 use App\Http\Controllers\Admin\Toko\PanenJamurController;
 use App\Http\Controllers\Admin\Toko\PanenKopiController;
@@ -10,6 +11,7 @@ use App\Http\Controllers\Admin\Toko\PengaturanController;
 use App\Http\Controllers\Admin\Toko\PenjualanJamurController;
 use App\Http\Controllers\Admin\Toko\ProdukController;
 use App\Services\Toko\DaftarMarketplace;
+use App\Services\Toko\ImporExcelHasil;
 use Illuminate\Support\Facades\Route;
 
 // Awalan /admin dan middleware web + auth + admin otomatis dari bootstrap/app.php.
@@ -39,4 +41,12 @@ Route::prefix('toko')->name('toko.')->group(function () {
     Route::resource('panen-kopi', PanenKopiController::class)->except('show')->parameters(['panen-kopi' => 'panenKopi']);
     Route::resource('panen-jamur', PanenJamurController::class)->except('show')->parameters(['panen-jamur' => 'panenJamur']);
     Route::resource('penjualan-jamur', PenjualanJamurController::class)->except('show')->parameters(['penjualan-jamur' => 'penjualanJamur']);
+
+    // Impor Excel: hanya menambah catatan baru. Pratinjau dulu, baru Simpan.
+    Route::prefix('impor/{jenis}')->name('impor.')->whereIn('jenis', ImporExcelHasil::kunci())->group(function () {
+        Route::get('/', [ImporHasilController::class, 'show'])->name('show');
+        Route::get('templat', [ImporHasilController::class, 'templat'])->name('templat');
+        Route::post('pratinjau', [ImporHasilController::class, 'pratinjau'])->name('pratinjau');
+        Route::post('simpan', [ImporHasilController::class, 'simpan'])->name('simpan');
+    });
 });
