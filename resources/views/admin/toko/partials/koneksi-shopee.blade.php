@@ -44,6 +44,12 @@
                 @csrf
                 <x-tombol>{{ $token ? 'Hubungkan ulang' : 'Hubungkan dengan Shopee' }}@include('toko.partials.ikon-keluar')</x-tombol>
             </form>
+            @if ($token && $token->masihBerlaku())
+                <form method="POST" action="{{ route('admin.toko.shopee.sinkron') }}" data-konfirmasi="Tarik produk dari Shopee sekarang? Nama, harga, dan deskripsi di sini akan ditimpa data Shopee. Produk baru langsung tampil di etalase.">
+                    @csrf
+                    <x-tombol varian="kedua">Tarik produk dari Shopee</x-tombol>
+                </form>
+            @endif
             @if ($token)
                 <form method="POST" action="{{ route('admin.toko.shopee.putuskan') }}" data-konfirmasi="Putus koneksi Shopee? Produk yang sudah ada tetap tersimpan.">
                     @csrf

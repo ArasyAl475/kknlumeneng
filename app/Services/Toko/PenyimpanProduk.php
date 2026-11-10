@@ -71,7 +71,8 @@ final class PenyimpanProduk
         }
     }
 
-    private static function slugUnik(string $nama): string
+    // Publik agar sinkron marketplace memakai aturan slug yang sama persis dengan form admin.
+    public static function slugUnik(string $nama): string
     {
         $dasar = Str::slug($nama) ?: 'produk';
         $slug = $dasar;

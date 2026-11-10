@@ -40,6 +40,7 @@ Route::prefix('toko')->name('toko.')->group(function () {
     Route::middleware('throttle:10,1')->prefix('shopee')->name('shopee.')->group(function () {
         Route::post('hubungkan', [ShopeeController::class, 'hubungkan'])->name('hubungkan');
         Route::get('kembali/{nonce}', [ShopeeController::class, 'kembali'])->whereAlphaNumeric('nonce')->name('kembali');
+        Route::post('sinkron', [ShopeeController::class, 'sinkron'])->name('sinkron');
         Route::delete('putuskan', [ShopeeController::class, 'putuskan'])->name('putuskan');
     });
 

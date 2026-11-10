@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Admin\Toko;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Toko\KembaliShopeeRequest;
+use App\Models\Toko\Aktivitas;
 use App\Services\Toko\Shopee\GalatShopee;
 use App\Services\Toko\Shopee\KlienShopee;
 use App\Services\Toko\Shopee\KoneksiShopee;
+use App\Services\Toko\Shopee\SinkronProduk;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class ShopeeController extends Controller
@@ -50,6 +53,22 @@ class ShopeeController extends Controller
         return $this->keHalaman()->with('sukses', $token->nama_toko
             ? "Toko Shopee {$token->nama_toko} berhasil dihubungkan."
             : 'Toko Shopee berhasil dihubungkan.');
+    }
+
+    public function sinkron(Request $request, SinkronProduk $sinkron): RedirectResponse
+    {
+        try {
+            $hasil = $sinkron->jalankan();
+        } catch (GalatShopee $galat) {
+            // Sengaja bukan report(): jejak galat mencetak argumen fungsi, termasuk token akses.
+            Log::warning('Sinkron produk Shopee gagal: '.$galat->getMessage());
+
+            return $this->keHalaman()->with('galat', 'Sinkron gagal: '.$galat->getMessage());
+        }
+
+        Aktivitas::catat($request->user(), 'sinkron_shopee', "Sinkron produk Shopee: {$hasil['dibuat']} dibuat, {$hasil['diperbarui']} diperbarui, {$hasil['dilewati']} dilewati, {$hasil['gagal']} gagal.");
+
+        return $this->keHalaman()->with('sukses', "Sinkron selesai: {$hasil['dibuat']} produk baru, {$hasil['diperbarui']} diperbarui, {$hasil['dilewati']} dilewati, {$hasil['gagal']} gagal.");
     }
 
     public function putuskan(Request $request, KoneksiShopee $koneksi): RedirectResponse
