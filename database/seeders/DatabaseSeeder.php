@@ -19,5 +19,8 @@ class DatabaseSeeder extends Seeder
                 $this->call($kelas);
             }
         }
+
+        // Gambar tata letak (menu Desain Web) bukan modul publik, jadi dipanggil terpisah.
+        $this->call(DesainSeeder::class);
     }
 }

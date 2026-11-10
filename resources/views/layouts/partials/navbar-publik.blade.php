@@ -1,61 +1,101 @@
-{{-- Navbar halaman publik. Dipakai layouts/app dan toko/kerangka agar menunya selalu sama.
-     Wajib berada di bawah <body class="tema-hijau"> (warna) dan setelah <x-ikon-sprite /> (ikon). --}}
-@php $menu = \App\Support\Modul::tersedia(); @endphp
+{{-- Bilah atas + header publik. Dipakai layouts/app dan toko/kerangka agar menunya selalu sama.
+     Di halaman yang memasang @section('header-transparan') header menjadi transparan di atas foto, lalu padat putih
+     setelah digulir (resources/js/app.js). Di halaman lain header selalu putih. --}}
+@php
+    // "Beranda" ditulis eksplisit: banyak warga tidak tahu bahwa logo bisa diketuk untuk kembali.
+    $menu = ['beranda' => ['nama' => 'Beranda', 'rute' => 'landing', 'ikon' => 'beranda']] + \App\Support\Modul::tersedia();
+    $aktif = fn (array $modul) => request()->routeIs($modul['pola'] ?? $modul['rute']);
+    // Hanya halaman berfoto besar (Beranda, Profil) yang menandai header-transparan; pita judul biasa tetap header putih.
+    $transparan = $__env->hasSection('header-transparan');
+@endphp
 
-<header data-navbar-publik class="sticky top-0 z-[1000] bg-kopi shadow-md">
-    <div class="mx-auto flex max-w-6xl items-center justify-between gap-x-4 px-4 py-0">
+{{-- Bilah navy tipis ala portal pemerintah; di HP kecil disembunyikan agar layar tidak sesak. --}}
+<div class="hidden bg-navy-tua text-sm text-white/85 sm:block">
+    <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-1.5">
+        <p class="truncate">Selamat datang di portal <span class="font-bold text-white">Desa Lumeneng</span>, Kec. Paninggaran, Kab. Pekalongan</p>
+        <ul class="flex shrink-0 items-center gap-1">
+            @if (Route::has('profil.index'))
+                <li><a href="{{ route('profil.index') }}#judul-kontak" class="inline-flex min-h-8 items-center gap-1.5 rounded px-2 hover:text-white hover:underline focus-visible:outline-white"><x-ikon nama="telepon" class="size-4" />Kontak</a></li>
+            @endif
+            <li>
+                @auth
+                    <a href="{{ route('admin.beranda') }}" class="inline-flex min-h-8 items-center gap-1.5 rounded px-2 hover:text-white hover:underline focus-visible:outline-white"><x-ikon nama="orang" class="size-4" />Panel Admin</a>
+                @else
+                    <a href="{{ route('login') }}" class="inline-flex min-h-8 items-center gap-1.5 rounded px-2 hover:text-white hover:underline focus-visible:outline-white"><x-ikon nama="orang" class="size-4" />Masuk Admin</a>
+                @endauth
+            </li>
+        </ul>
+    </div>
+</div>
 
-        {{-- Logo & Nama Desa --}}
-        <a href="{{ route('landing') }}" class="flex items-center gap-3 py-3 focus-visible:outline-white">
-            <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-white/15 text-white">
-                <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M3 12 L12 3 L21 12 V21 H15 V15 H9 V21 H3 Z"/>
+<header data-navbar-publik @if ($transparan) data-header-transparan @endif
+    @class([
+        'group/header sticky top-0 z-[1000] h-[4.25rem] transition-[background-color,box-shadow,color] duration-200',
+        // Margin negatif: foto hero naik ke bawah header, sehingga header tampak melayang di atas foto.
+        '-mb-[4.25rem] text-white data-[padat]:bg-white data-[padat]:text-tinta data-[padat]:shadow-[0_6px_24px_-12px_rgb(15_42_92/0.35)]' => $transparan,
+        'border-b border-garis-halus bg-white/95 text-tinta shadow-[0_6px_24px_-16px_rgb(15_42_92/0.35)] backdrop-blur' => ! $transparan,
+    ])>
+    @if ($transparan)
+        {{-- Gradasi tipis agar menu putih tetap terbaca di atas foto yang bagian atasnya terang. --}}
+        <div class="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-navy-tua/70 to-transparent transition-opacity group-data-[padat]/header:opacity-0" aria-hidden="true"></div>
+    @endif
+
+    <div class="mx-auto flex h-full max-w-6xl items-center justify-between gap-x-4 px-4">
+        <a href="{{ route('landing') }}" class="flex shrink-0 items-center gap-3 rounded-xl py-2">
+            <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-biru to-navy text-white shadow-md ring-1 ring-white/20">
+                <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M2.5 19.5 9 9l4 6 2.5-3.5 6 8Z" /><circle cx="17" cy="6" r="2.2" />
                 </svg>
             </span>
             <span class="leading-tight">
-                <span class="block text-xs font-normal text-white/70">Portal Resmi</span>
-                <span class="block font-bold text-white">Desa Lumeneng</span>
+                <span class="block font-judul text-[1.05rem] font-extrabold">Desa Lumeneng</span>
+                <span @class(['block text-xs', 'text-white/80 group-data-[padat]/header:text-redup' => $transparan, 'text-redup' => ! $transparan])>Kab. Pekalongan · Jawa Tengah</span>
             </span>
         </a>
 
-        {{-- Nav Desktop --}}
-        @if ($menu)
-            <nav aria-label="Menu utama" class="hidden items-center gap-1 lg:flex">
+        {{-- Menu layar lebar (xl ke atas): delapan menu tetap muat dalam satu baris. --}}
+        <nav aria-label="Menu utama" class="hidden items-center gap-0.5 xl:flex">
+            @foreach ($menu as $modul)
+                <a href="{{ route($modul['rute']) }}" @if ($aktif($modul)) aria-current="page" @endif
+                   @class([
+                       'tautan-menu',
+                       'hover:bg-white/15 group-data-[padat]/header:hover:bg-biru-lembut group-data-[padat]/header:hover:text-biru focus-visible:outline-white group-data-[padat]/header:focus-visible:outline-biru' => $transparan,
+                       'hover:bg-biru-lembut hover:text-biru' => ! $transparan,
+                       'text-aksen-terang group-data-[padat]/header:text-biru' => $transparan && $aktif($modul),
+                       'text-biru' => ! $transparan && $aktif($modul),
+                   ])>{{ $modul['nama'] }}</a>
+            @endforeach
+        </nav>
+
+        {{-- Menu HP dan tablet --}}
+        <details class="xl:hidden" data-menu-hp>
+            <summary @class([
+                'inline-flex min-h-11 items-center gap-2 rounded-xl px-4 py-2 font-judul font-bold',
+                'kaca-terang group-data-[padat]/header:border-garis-halus group-data-[padat]/header:bg-biru-lembut group-data-[padat]/header:text-biru focus-visible:outline-white' => $transparan,
+                'bg-biru-lembut text-biru hover:bg-biru-muda' => ! $transparan,
+            ])>
+                <x-ikon nama="menu" class="size-5" />
+                <span class="text-sm">Menu</span>
+            </summary>
+            <nav aria-label="Menu utama"
+                 class="absolute inset-x-0 top-full z-[1000] grid max-h-[80dvh] gap-1 overflow-y-auto border-t border-garis-halus bg-white px-4 py-3 text-tinta shadow-xl sm:grid-cols-2">
                 @foreach ($menu as $modul)
-                    <a href="{{ route($modul['rute']) }}"
-                       class="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 py-2 text-sm font-bold text-white/90 transition-colors hover:bg-white/15 hover:text-white focus-visible:outline-white {{ request()->routeIs($modul['rute']) ? 'bg-white/20 text-white' : '' }}">
-                        <x-ikon :nama="$modul['ikon']" class="size-4" />
+                    <a href="{{ route($modul['rute']) }}" @if ($aktif($modul)) aria-current="page" @endif
+                       @class([
+                           'flex min-h-12 items-center gap-3 rounded-xl px-3 py-2 font-judul font-bold hover:bg-biru-lembut',
+                           'bg-biru-lembut text-biru shadow-[inset_3px_0_0_var(--color-aksen)]' => $aktif($modul),
+                       ])>
+                        <span class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-biru-lembut text-biru">
+                            <x-ikon :nama="$modul['ikon']" class="size-5" />
+                        </span>
                         {{ $modul['nama'] }}
                     </a>
                 @endforeach
+                <a href="{{ auth()->check() ? route('admin.beranda') : route('login') }}" class="flex min-h-12 items-center gap-3 rounded-xl px-3 py-2 font-judul font-bold text-redup hover:bg-biru-lembut sm:hidden">
+                    <span class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-krem-tua"><x-ikon nama="orang" class="size-5" /></span>
+                    {{ auth()->check() ? 'Panel Admin' : 'Masuk Admin' }}
+                </a>
             </nav>
-
-            {{-- Mobile Menu --}}
-            <details class="lg:hidden" id="detail-menu">
-                <summary class="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 py-2 font-bold text-white focus-visible:outline-white">
-                    <x-ikon nama="menu" class="size-5" />
-                    <span class="text-sm">Menu</span>
-                </summary>
-                <nav aria-label="Menu utama"
-                     class="absolute inset-x-0 z-[1000] border-t border-white/10 bg-kopi-tua px-4 py-3 shadow-xl">
-                    @foreach ($menu as $modul)
-                        <a href="{{ route($modul['rute']) }}"
-                           class="flex min-h-12 items-center gap-3 rounded-lg px-3 py-2 font-bold text-white hover:bg-white/10 focus-visible:outline-white">
-                            <x-ikon :nama="$modul['ikon']" class="size-5" />
-                            {{ $modul['nama'] }}
-                        </a>
-                    @endforeach
-                </nav>
-            </details>
-        @endif
+        </details>
     </div>
 </header>
-
-{{-- Tutup menu HP setelah salah satu tautan diketuk --}}
-<script>
-    document.querySelectorAll('#detail-menu nav a').forEach(a => {
-        a.addEventListener('click', () => {
-            document.getElementById('detail-menu').removeAttribute('open');
-        });
-    });
-</script>

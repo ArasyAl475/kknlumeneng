@@ -18,7 +18,7 @@ class MateriController extends Controller
     public function index(): View
     {
         return view('admin.edukasi.materi.index', [
-            'materi' => Materi::query()->with('kategori:id,nama')->withCount('langkah')->latest('updated_at')->latest('id')->paginate(20),
+            'materi' => Materi::query()->with('kategori:id,nama')->withCount('langkah')->latest('updated_at')->latest('id')->paginate(10),
         ]);
     }
 

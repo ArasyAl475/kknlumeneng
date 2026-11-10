@@ -12,9 +12,12 @@
     }
     $jumlahMenunggu = once(fn () => \App\Models\Ews\Pembacaan::query()->where('validasi', \App\Models\Ews\Pembacaan::VALIDASI_MENUNGGU)->count());
 @endphp
-<p class="menu-admin__judul">Peringatan Dini</p>
-<ul class="space-y-0.5">
-    @foreach ($menuEws as [$pola, $rute, $label, $ikon, $tampilJumlah])
-        @include('layouts.partials.item-menu-admin', ['pola' => $pola, 'rute' => $rute, 'label' => $label, 'ikon' => $ikon, 'lencana' => $tampilJumlah && $jumlahMenunggu > 0 ? $jumlahMenunggu : null])
-    @endforeach
-</ul>
+{{-- Jumlah data menunggu validasi ikut tampil di judul dropdown, agar terlihat walau dropdown tertutup. --}}
+@include('layouts.partials.grup-menu-admin', [
+    'kunci' => 'ews',
+    'judul' => 'Peringatan Dini',
+    'ikon' => 'peringatan',
+    'butir' => collect($menuEws)
+        ->map(fn (array $m) => [$m[0], $m[1], $m[2], $m[3], $m[4] && $jumlahMenunggu > 0 ? $jumlahMenunggu : null])
+        ->all(),
+])

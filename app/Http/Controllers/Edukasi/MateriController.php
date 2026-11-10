@@ -31,7 +31,7 @@ class MateriController extends Controller
                     fn ($q) => $q->urutBagian(),
                     fn ($q) => $q->latest('diterbitkan_pada')->latest('id'),
                 )
-                ->paginate(12)
+                ->paginate(9)
                 ->withQueryString(),
         ]);
     }

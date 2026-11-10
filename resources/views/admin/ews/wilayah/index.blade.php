@@ -13,7 +13,7 @@
         @if ($wilayah->isEmpty())
             <p class="text-redup">Belum ada wilayah. Tambahkan wilayah pertama, lalu pasang ID alatnya di ESP32.</p>
         @endif
-        <ul class="divide-y divide-garis-halus">
+        <ul class="divide-y divide-garis-halus" data-paginasi="10">
             @foreach ($wilayah as $w)
                 <li class="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
                     <div class="min-w-0 flex-1 basis-56">
