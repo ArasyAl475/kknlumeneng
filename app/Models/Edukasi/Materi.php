@@ -16,7 +16,7 @@ class Materi extends Model
     protected $table = 'edukasi_materi';
 
     protected $fillable = [
-        'kategori_id', 'judul', 'slug', 'ringkasan', 'penjelasan', 'gambar', 'video_youtube', 'diterbitkan_pada',
+        'kategori_id', 'judul', 'slug', 'urutan', 'ringkasan', 'penjelasan', 'gambar', 'video_youtube', 'diterbitkan_pada',
     ];
 
     protected function casts(): array
@@ -37,6 +37,12 @@ class Materi extends Model
     public function scopeTerbit(Builder $query): void
     {
         $query->whereNotNull('diterbitkan_pada');
+    }
+
+    // Urutan belajar dalam satu kategori; materi dengan nomor sama diurutkan menurut id agar hasilnya selalu tetap.
+    public function scopeUrutBagian(Builder $query): void
+    {
+        $query->orderBy('urutan')->orderBy('id');
     }
 
     public function scopeCari(Builder $query, ?string $kata): void

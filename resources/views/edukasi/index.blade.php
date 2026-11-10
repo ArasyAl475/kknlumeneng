@@ -55,7 +55,8 @@
                             <span class="flex aspect-video w-full items-center justify-center bg-gradient-to-br from-biru to-navy text-white/85"><x-ikon nama="buku" class="size-10" /></span>
                         @endif
                         <span class="flex flex-1 flex-col p-4">
-                            <span class="text-sm font-bold text-aksen-tua">{{ $m->kategori->nama }}@if ($m->adaVideo()) · Ada video @endif</span>
+                            {{-- Nomor bagian hanya bermakna saat satu kategori dibaca berurutan tanpa pencarian. --}}
+                            <span class="text-sm font-bold text-aksen-tua">@if (filled($kategoriTerpilih) && blank($cari))Bagian {{ $materi->firstItem() + $loop->index }} · @endif{{ $m->kategori->nama }}@if ($m->adaVideo()) · Ada video @endif</span>
                             <span class="mt-1 font-judul text-lg font-extrabold leading-snug group-hover:text-biru">{{ $m->judul }}</span>
                             <span class="mt-1 flex-1 text-redup">{{ $m->ringkasan }}</span>
                             {{-- Hanya tampilan tombol: seluruh kartu sudah satu tautan, jadi tidak ada tautan di dalam tautan. --}}
