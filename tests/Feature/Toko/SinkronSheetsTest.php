@@ -6,6 +6,7 @@ use App\Models\Toko\Aktivitas;
 use App\Models\Toko\PanenJamur;
 use App\Models\Toko\PanenKopi;
 use App\Models\Toko\PenjualanJamur;
+use App\Models\User;
 use App\Services\Toko\SinkronSheetHasil;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
@@ -460,5 +461,68 @@ class SinkronSheetsTest extends TestCase
         $this->assertSame(SinkronSheetHasil::kepala('panen-kopi'), $this->baris(self::KOPI, 0));
         $this->assertSame($kopi->id, $this->baris(self::KOPI, 1)[0]);
         Http::assertSent(fn (Request $r) => str_ends_with($r->url(), ':batchUpdate') && collect($r->data()['requests'] ?? [])->contains(fn ($p) => isset($p['setDataValidation'])));
+    }
+
+    // ───────────────────────────── Tombol "Buka Google Sheets" ─────────────────────────────
+
+    public function test_tombol_buka_sheets_tampil_dan_mengarah_ke_tab_yang_sesuai(): void
+    {
+        $this->actingAs(User::factory()->create(['is_admin' => true]));
+
+        $this->get(route('admin.toko.panen-jamur.index'))
+            ->assertOk()->assertSee('Buka Google Sheets')->assertSee(route('admin.toko.sheets.buka', 'panen-jamur'), false)
+            ->assertDontSee('@include', false);
+
+        // Tab palsu bernomor urut: Panen kopi = 1, Panen jamur = 2, Penjualan jamur = 3.
+        $this->get(route('admin.toko.sheets.buka', 'panen-jamur'))
+            ->assertRedirect('https://docs.google.com/spreadsheets/d/sheet-uji/edit#gid=2');
+    }
+
+    public function test_nomor_tab_diingat_supaya_tombol_tidak_selalu_memanggil_google(): void
+    {
+        $this->actingAs(User::factory()->create(['is_admin' => true]));
+
+        $this->get(route('admin.toko.sheets.buka', 'panen-kopi'))->assertRedirect('https://docs.google.com/spreadsheets/d/sheet-uji/edit#gid=1');
+        $this->get(route('admin.toko.sheets.buka', 'penjualan-jamur'))->assertRedirect('https://docs.google.com/spreadsheets/d/sheet-uji/edit#gid=3');
+
+        Http::assertSentCount(2); // satu token + satu daftar tab
+    }
+
+    public function test_bila_google_tidak_bisa_dihubungi_sheet_tetap_dibuka_tanpa_tab(): void
+    {
+        $this->actingAs(User::factory()->create(['is_admin' => true]));
+        config(['toko_sheets.kunci_json' => $this->berkasKunci.'-tidak-ada']);
+
+        $this->get(route('admin.toko.sheets.buka', 'panen-kopi'))->assertRedirect('https://docs.google.com/spreadsheets/d/sheet-uji/edit');
+        Http::assertNothingSent();
+    }
+
+    public function test_halaman_publik_hasil_memakai_link_sheets_menggantikan_unduh_excel(): void
+    {
+        $this->get(route('toko.hasil'))->assertOk()
+            ->assertSee('Buka Google Sheets')
+            ->assertSee('https://docs.google.com/spreadsheets/d/sheet-uji/edit', false)
+            ->assertDontSee('Unduh Excel');
+
+        // Halaman publik tidak pernah menunggu Google.
+        Http::assertNothingSent();
+    }
+
+    public function test_halaman_publik_hasil_tetap_unduh_excel_bila_sinkron_mati(): void
+    {
+        config(['toko_sheets.aktif' => false]);
+
+        $this->get(route('toko.hasil'))->assertOk()
+            ->assertSee('Unduh Excel')
+            ->assertDontSee('Buka Google Sheets');
+    }
+
+    public function test_tombol_buka_sheets_tersembunyi_bila_sinkron_mati(): void
+    {
+        $this->actingAs(User::factory()->create(['is_admin' => true]));
+        config(['toko_sheets.aktif' => false]);
+
+        $this->get(route('admin.toko.panen-kopi.index'))->assertOk()->assertDontSee('Buka Google Sheets');
+        $this->get(route('admin.toko.sheets.buka', 'panen-kopi'))->assertNotFound();
     }
 }

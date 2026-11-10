@@ -2,14 +2,20 @@
 
 Data panen kopi, panen jamur, dan penjualan jamur bisa diedit di Google Sheets, dan perubahannya
 masuk ke sistem otomatis (maksimal sekitar 1 menit). Sebaliknya, perubahan dari panel admin juga
-muncul di Sheet. Untuk sekali unggah banyak data dari berkas Excel, pakai tombol **Impor dari Excel**
-di panel admin (fitur terpisah, tidak butuh Google).
+muncul di Sheet. Untuk memasukkan banyak catatan sekaligus, tempel saja barisnya di tab yang sesuai
+dengan kolom ID dikosongkan.
 
 ## Cara kerja singkat
 
 - Satu Google Sheet, tiga tab: **Panen kopi**, **Panen jamur**, **Penjualan jamur**.
 - Kolom pertama **ID** dan kolom terakhir **Status** diisi sistem (berwarna abu-abu). Jangan diubah.
 - Tiap menit sistem membaca Sheet, membandingkannya dengan database, lalu menyamakan keduanya.
+- Di panel admin (daftar Panen kopi, Panen jamur, Penjualan jamur) ada tombol **Buka Google Sheets** yang
+  langsung membuka tab yang sesuai. Tombol hanya tampil bila `TOKO_SHEETS_AKTIF=true`. Yang bisa membuka
+  Sheet tetap hanya akun Google yang sudah diundang.
+- Di halaman publik `/toko/hasil`, tombol **Unduh Excel** diganti **Buka Google Sheets** yang membuka Sheet
+  yang sama. Warga yang tidak diundang akan melihat halaman Google "Anda memerlukan akses". Selama
+  sinkron Sheets mati, tombol Unduh Excel yang tampil.
 - Sistem yang menarik data dari Google. Tidak ada alamat web yang dibuka untuk Google, dan kunci
   rahasia hanya ada di server.
 

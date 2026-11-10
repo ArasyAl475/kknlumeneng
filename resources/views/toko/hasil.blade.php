@@ -55,11 +55,19 @@
                         <span class="tombol-filter__jumlah" aria-label="{{ $penyaring['jumlah'] }} pilihan aktif">{{ $penyaring['jumlah'] }}</span>
                     @endif
                 </button>
-                {{-- Unduhan membawa filter yang sedang aktif, jadi isi Excel sama dengan yang terlihat di layar. --}}
-                <a href="{{ route('toko.hasil.excel', array_filter($filter)) }}" class="tombol-kustom" download>
-                    @include('toko.partials.ikon', ['nama' => 'unduh', 'kelas' => 'size-4'])
-                    Unduh Excel
-                </a>
+                @if ($alamatSheet)
+                    {{-- Sheet yang sama dengan panel admin; hanya terbuka bagi akun Google yang diundang. --}}
+                    <a href="{{ $alamatSheet }}" class="tombol-kustom" target="_blank" rel="noopener">
+                        @include('toko.partials.ikon', ['nama' => 'tabel', 'kelas' => 'size-4'])
+                        Buka Google Sheets
+                    </a>
+                @else
+                    {{-- Unduhan membawa filter yang sedang aktif, jadi isi Excel sama dengan yang terlihat di layar. --}}
+                    <a href="{{ route('toko.hasil.excel', array_filter($filter)) }}" class="tombol-kustom" download>
+                        @include('toko.partials.ikon', ['nama' => 'unduh', 'kelas' => 'size-4'])
+                        Unduh Excel
+                    </a>
+                @endif
             </div>
         </div>
     </section>
@@ -449,7 +457,7 @@
         @else
             @include('toko.partials.timbang', ['baris' => $kopi['timbang'], 'jumlah' => $kopi['timbang_jumlah'], 'totalKotor' => $kopi['panen'], 'totalBersih' => $kopi['bersih']])
             @if ($kopi['timbang_jumlah'] > count($kopi['timbang']))
-                <p class="catatan-kecil">Menampilkan {{ count($kopi['timbang']) }} catatan terbaru dari {{ $kopi['timbang_jumlah'] }}. Unduh Excel untuk melihat semuanya, atau pilih tanggal di Kustom.</p>
+                <p class="catatan-kecil">Menampilkan {{ count($kopi['timbang']) }} catatan terbaru dari {{ $kopi['timbang_jumlah'] }}. {{ $alamatSheet ? 'Buka Google Sheets' : 'Unduh Excel' }} untuk melihat semuanya, atau pilih tanggal di Kustom.</p>
             @endif
         @endif
     </section>

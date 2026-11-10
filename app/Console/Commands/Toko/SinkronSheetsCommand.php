@@ -3,7 +3,7 @@
 namespace App\Console\Commands\Toko;
 
 use App\Services\Toko\GoogleSheets;
-use App\Services\Toko\ImporExcelHasil;
+use App\Services\Toko\IsianHasilPanen;
 use App\Services\Toko\SinkronSheetHasil;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -46,13 +46,13 @@ class SinkronSheetsCommand extends Command
 
         foreach ($hasil as $jenis => $h) {
             if (isset($h['galat'])) {
-                $this->warn(ImporExcelHasil::JENIS[$jenis]['label'].': '.$h['galat']);
+                $this->warn(IsianHasilPanen::JENIS[$jenis]['label'].': '.$h['galat']);
 
                 continue;
             }
             $this->line(sprintf(
                 '%s: %d baru, %d diubah dari Sheet, %d diubah dari sistem, %d konflik, %d baris salah, %d dikembalikan.',
-                ImporExcelHasil::JENIS[$jenis]['label'], $h['dibuat'], $h['diperbarui'], $h['dari_sistem'], $h['konflik'], $h['salah'], $h['dikembalikan'],
+                IsianHasilPanen::JENIS[$jenis]['label'], $h['dibuat'], $h['diperbarui'], $h['dari_sistem'], $h['konflik'], $h['salah'], $h['dikembalikan'],
             ));
         }
 

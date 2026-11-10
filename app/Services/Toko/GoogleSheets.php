@@ -6,6 +6,7 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
+use Throwable;
 
 /**
  * Klien tipis untuk Google Sheets API v4, masuk memakai akun layanan (service account).
@@ -24,6 +25,43 @@ class GoogleSheets
     private const LINGKUP = 'https://www.googleapis.com/auth/spreadsheets';
 
     private const KUNCI_CACHE = 'toko_sheets.token';
+
+    private const KUNCI_CACHE_TAB = 'toko_sheets.tab';
+
+    /**
+     * Tombol "Buka Google Sheets" hanya butuh ID Sheet; kunci tidak diperlukan untuk membuka alamatnya.
+     */
+    public function adaAlamat(): bool
+    {
+        return (bool) config('toko_sheets.aktif') && filled(config('toko_sheets.spreadsheet_id'));
+    }
+
+    /**
+     * Alamat Sheet untuk dibuka admin di browser; bila $tab dikenal, langsung ke tab itu.
+     * Nomor tab disimpan sehari supaya menekan tombol tidak selalu memanggil Google.
+     */
+    public function alamatWeb(?string $tab = null): string
+    {
+        $alamat = 'https://docs.google.com/spreadsheets/d/'.rawurlencode((string) config('toko_sheets.spreadsheet_id')).'/edit';
+
+        if ($tab === null || ! $this->siap()) {
+            return $alamat;
+        }
+
+        try {
+            $idTab = Cache::remember(self::KUNCI_CACHE_TAB, 86400, fn () => $this->lembar())[$tab] ?? null;
+        } catch (Throwable) {
+            // Google sedang tidak bisa dihubungi: Sheet tetap dibuka, hanya tanpa memilih tab.
+            return $alamat;
+        }
+
+        return $idTab === null ? $alamat : $alamat.'#gid='.$idTab;
+    }
+
+    public function lupakanTab(): void
+    {
+        Cache::forget(self::KUNCI_CACHE_TAB);
+    }
 
     public function siap(): bool
     {
