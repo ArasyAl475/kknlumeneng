@@ -1,11 +1,15 @@
 import './unggah-foto.js';
+import { pasangSegarOtomatis } from './lib/segar-otomatis.js';
 
 // Konfirmasi sebelum menghapus. Tanpa JavaScript, aksi tetap berjalan dan tercatat di log aktivitas.
-document.querySelectorAll('form[data-konfirmasi]').forEach((form) => {
-    form.addEventListener('submit', (e) => {
-        if (!window.confirm(form.dataset.konfirmasi)) e.preventDefault();
-    });
+// Dipasang di dokumen (bukan per formulir) karena daftar bisa diganti pembaruan otomatis.
+document.addEventListener('submit', (e) => {
+    const form = e.target;
+    if (form.matches?.('form[data-konfirmasi]') && !window.confirm(form.dataset.konfirmasi)) e.preventDefault();
 });
+
+// Daftar panen/penjualan ikut berubah sendiri saat data diubah lewat Google Sheets atau admin lain.
+pasangSegarOtomatis();
 
 // Setelah simpan gagal, langsung arahkan ke isian pertama yang salah agar admin tidak mencari sendiri.
 // Tanpa JavaScript, kotak alert di atas halaman tetap menjelaskan apa yang perlu dibetulkan.

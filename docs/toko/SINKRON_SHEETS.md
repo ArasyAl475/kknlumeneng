@@ -1,15 +1,20 @@
 # Sinkron Hasil Panen dengan Google Sheets
 
 Data panen kopi, panen jamur, dan penjualan jamur bisa diedit di Google Sheets, dan perubahannya
-masuk ke sistem otomatis (maksimal sekitar 1 menit). Sebaliknya, perubahan dari panel admin juga
-muncul di Sheet. Untuk memasukkan banyak catatan sekaligus, tempel saja barisnya di tab yang sesuai
+masuk ke sistem otomatis (biasanya dalam 10–15 detik). Sebaliknya, perubahan dari panel admin juga
+muncul di Sheet. Halaman web yang sedang dibuka ikut berubah sendiri, tanpa perlu dimuat ulang. Untuk memasukkan banyak catatan sekaligus, tempel saja barisnya di tab yang sesuai
 dengan kolom ID dikosongkan.
 
 ## Cara kerja singkat
 
 - Satu Google Sheet, tiga tab: **Panen kopi**, **Panen jamur**, **Penjualan jamur**.
 - Kolom pertama **ID** dan kolom terakhir **Status** diisi sistem (berwarna abu-abu). Jangan diubah.
-- Tiap menit sistem membaca Sheet, membandingkannya dengan database, lalu menyamakan keduanya.
+- Tiap 10 detik sistem membaca Sheet, membandingkannya dengan database, lalu menyamakan keduanya.
+  Sheet yang sedang dibuka di browser langsung menampilkan tulisan dari sistem (fitur bawaan Google Sheets).
+- Halaman `/toko/hasil` dan daftar admin (Panen kopi, Panen jamur, Penjualan jamur) bertanya ke
+  `/api/toko/hasil/versi` tiap 5 detik ("apakah ada data baru?"). Bila ada, angka, tabel, dan grafik diganti
+  di tempat tanpa memuat ulang halaman; pilihan grafik dan halaman tabel yang sedang dilihat tetap.
+  Tab yang tidak sedang dilihat tidak bertanya. Kodenya: `resources/js/toko/lib/segar-otomatis.js`.
 - Di panel admin (daftar Panen kopi, Panen jamur, Penjualan jamur) ada tombol **Buka Google Sheets** yang
   langsung membuka tab yang sesuai. Tombol hanya tampil bila `TOKO_SHEETS_AKTIF=true`. Yang bisa membuka
   Sheet tetap hanya akun Google yang sudah diundang.
@@ -61,9 +66,12 @@ dengan kolom ID dikosongkan.
 4. `php artisan migrate` (membuat tabel pencatat status sinkron).
 5. `php artisan toko:sheets-siapkan` → membuat tab, judul kolom, format, lalu mengisi Sheet dengan
    catatan yang sudah ada. Hasil yang benar: muncul hitungan per tab, dan Sheet berisi data.
-6. Nyalakan penjadwal supaya sinkron berjalan tiap menit:
-   - Lokal: biarkan `php artisan schedule:work` berjalan di satu terminal.
+6. Nyalakan penjadwal supaya sinkron berjalan tiap 10 detik:
+   - Lokal: biarkan `php artisan schedule:work` berjalan di satu terminal. Tanpa ini, perubahan di Sheet
+     tidak pernah masuk ke sistem.
    - Produksi: pasang cron `* * * * * cd /path/ke/proyek && php artisan schedule:run >> /dev/null 2>&1`.
+     Cron cukup tiap menit; Laravel sendiri yang menjalankan sinkron tiap 10 detik di dalam menit itu
+     (prosesnya hidup sepanjang menit, hanya bila `TOKO_SHEETS_AKTIF=true`).
      Kalau hosting tidak menyediakan cron, sinkron otomatis tidak berjalan; `php artisan toko:sheets-sinkron`
      tetap bisa dijalankan manual.
 
@@ -83,12 +91,14 @@ dengan kolom ID dikosongkan.
 | `toko:sheets-siapkan` gagal 403/404 | Sheet belum dibagikan ke email akun layanan, atau ID Sheet salah |
 | Gagal 403 "API has not been used" | Google Sheets API belum di-Enable di proyek yang sama dengan akun layanan |
 | Perubahan di Sheet tidak masuk | Penjadwal tidak berjalan; cek `php artisan toko:sheets-sinkron` dan `storage/logs/laravel.log` |
+| Data sudah masuk tapi halaman tidak berubah sendiri | Muat ulang halaman sekali (skrip lama masih tersimpan di browser). Pastikan `npm run dev` jalan atau sudah `npm run build` |
 | Tab dilewati: "Judul kolom tidak sesuai" | Baris judul diubah. Jalankan `php artisan toko:sheets-siapkan` |
 | Edit yang baru diketik "hilang" | Terjadi bila bersamaan dengan putaran sinkron (jarak beberapa detik). Ketik ulang; baris yang salah dijelaskan di kolom Status |
 
 ## Batasan
 
-- Tidak instan: jeda maksimal sekitar 1 menit.
+- Hampir instan, bukan seketika: Sheet → sistem paling lama ~10 detik, lalu halaman web paling lama ~5 detik
+  (lebih lama bila sinyal putus-putus; halaman bertanya makin jarang sampai sinyal pulih).
 - Penulisan ke Sheet hanya terjadi saat ada yang berubah. Bila bertepatan dengan seseorang yang sedang
   mengetik di baris yang sama, ketikan itu bisa tertimpa dan perlu diulang.
 - Hanya satu Sheet yang disinkronkan, dan tiap tab paling banyak 20.000 baris.

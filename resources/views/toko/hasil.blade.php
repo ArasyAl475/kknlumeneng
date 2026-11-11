@@ -36,6 +36,8 @@
 @endsection
 
 @section('isi')
+    @include('toko.partials.penanda-segar')
+
     {{-- KEPALA HALAMAN: penanda status + pilihan waktu (berlaku untuk semua bagian di bawahnya). Judul ada di pita judul. --}}
     <section class="kepala-halaman" aria-label="Pilihan data">
         <div class="kepala-halaman__kontrol">
@@ -96,7 +98,8 @@
                     @include('toko.partials.ikon', ['nama' => 'tutup', 'kelas' => 'size-6'])
                 </button>
             </div>
-            <div class="lembar__badan">
+            {{-- Pilihan jenis/tempat ikut diperbarui saat ada data baru, kecuali sedang dibuka. --}}
+            <div class="lembar__badan" data-segar-bagian="filter-pilihan">
                 <div>
                     <label for="dari" class="label-h">Dari tanggal</label>
                     <input id="dari" name="dari" type="date" class="isian-h" value="{{ $filter['dari'] ?? '' }}">
@@ -133,7 +136,7 @@
     </dialog>
 
     {{-- RINGKASAN: satu kartu sorotan (uang) + empat kartu angka. Satu angka = satu kartu, tanpa kartu di dalam kartu. --}}
-    <section aria-labelledby="judul-ringkasan" class="ringkasan">
+    <section aria-labelledby="judul-ringkasan" class="ringkasan" data-segar-bagian="ringkasan">
         <h2 id="judul-ringkasan" class="sr-only">Ringkasan</h2>
         @if ($perubahan)
             <p class="ringkasan__ket">{{ $perubahan['keterangan'] }}</p>
@@ -234,7 +237,8 @@
             </div>
 
             @if ($grafik['ada'])
-                <div class="grafik" data-grafik data-data="{{ json_encode($grafik['skala']) }}">
+                {{-- data-segar-tetap: tidak diganti (pilihan skala/seri warga tetap), hanya datanya yang diperbarui hasil.js. --}}
+                <div class="grafik" data-grafik data-segar-tetap="grafik" data-data="{{ json_encode($grafik['skala']) }}">
                     <div class="grafik__kontrol" data-kontrol hidden>
                         <div class="segmen segmen--kecil" role="group" aria-label="Skala waktu grafik">
                             @foreach (['hari' => 'Hari', 'bulan' => 'Bulan', 'tahun' => 'Tahun'] as $kunci => $nama)
@@ -321,7 +325,7 @@
         </section>
 
         {{-- PERBANDINGAN CANGKANG KOPI --}}
-        <section aria-labelledby="judul-baglog" class="bagian bagian--banding" id="baglog">
+        <section aria-labelledby="judul-baglog" class="bagian bagian--banding" id="baglog" data-segar-bagian="banding">
             <div class="bagian__kepala">
                 <span class="lencana lencana--tersier">Riset Sirkular KKN &amp; Aksara Peduli</span>
                 <h2 id="judul-baglog" class="bagian__judul">Apakah cangkang kopi membantu jamur?</h2>
@@ -389,7 +393,7 @@
                 <h2 id="judul-baglog-bulanan" class="bagian__judul">Hasil per baglog tiap bulan</h2>
                 <p class="bagian__ket">Bulan tanpa catatan baglog tidak digambar sebagai batang.</p>
             </div>
-            <div class="grafik grafik-baglog" data-grafik-baglog data-data="{{ json_encode($grafikBaglog) }}">
+            <div class="grafik grafik-baglog" data-grafik-baglog data-segar-tetap="grafik-baglog" data-data="{{ json_encode($grafikBaglog) }}">
                 <ul class="legenda" aria-label="Keterangan grafik">
                     <li><span class="swatch swatch--dengan" aria-hidden="true"></span> Dengan cangkang kopi</li>
                     <li><span class="swatch swatch--tanpa" aria-hidden="true"></span> Tanpa cangkang kopi</li>
@@ -411,15 +415,18 @@
                         </div>
                     </div>
                 </div>
-                @if ($grafikBaglog['terpotong'])
-                    <p class="catatan-kecil">Menampilkan 36 bulan terakhir saja.</p>
-                @endif
+                <div data-segar-bagian="baglog-ket">
+                    @if ($grafikBaglog['terpotong'])
+                        <p class="catatan-kecil">Menampilkan 36 bulan terakhir saja.</p>
+                    @endif
+                </div>
                 <details class="tabel-lipat">
                     <summary class="tombol-tautan">
                         @include('toko.partials.ikon', ['nama' => 'tabel', 'kelas' => 'size-5'])
                         Lihat sebagai tabel
                     </summary>
-                    <div class="grafik__tabel">
+                    {{-- Hanya isinya yang diganti, jadi tabel yang sedang dibuka tidak tertutup sendiri. --}}
+                    <div class="grafik__tabel" data-segar-bagian="baglog-tabel">
                         <table class="tabel-data">
                             <caption>Hasil jamur per baglog tiap bulan.</caption>
                             <thead>
@@ -456,9 +463,11 @@
             </div>
         @else
             @include('toko.partials.timbang', ['baris' => $kopi['timbang'], 'jumlah' => $kopi['timbang_jumlah'], 'totalKotor' => $kopi['panen'], 'totalBersih' => $kopi['bersih']])
-            @if ($kopi['timbang_jumlah'] > count($kopi['timbang']))
-                <p class="catatan-kecil">Menampilkan {{ count($kopi['timbang']) }} catatan terbaru dari {{ $kopi['timbang_jumlah'] }}. {{ $alamatSheet ? 'Buka Google Sheets' : 'Unduh Excel' }} untuk melihat semuanya, atau pilih tanggal di Kustom.</p>
-            @endif
+            <div data-segar-bagian="rincian-ket">
+                @if ($kopi['timbang_jumlah'] > count($kopi['timbang']))
+                    <p class="catatan-kecil">Menampilkan {{ count($kopi['timbang']) }} catatan terbaru dari {{ $kopi['timbang_jumlah'] }}. {{ $alamatSheet ? 'Buka Google Sheets' : 'Unduh Excel' }} untuk melihat semuanya, atau pilih tanggal di Kustom.</p>
+                @endif
+            </div>
         @endif
     </section>
 @endsection

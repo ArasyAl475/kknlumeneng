@@ -7,8 +7,9 @@ const LEBAR_PER_SERI = 14;
 // Menunggu huruf siap agar teks di kanvas tidak memakai huruf cadangan, tetapi tidak menahan grafik lama-lama.
 const tungguHuruf = () => Promise.race([document.fonts?.ready, new Promise((selesai) => setTimeout(selesai, 800))]);
 
+// Mengembalikan { perbaruiData } untuk pembaruan otomatis: angka diganti, pilihan skala dan seri warga tetap.
 export function pasangGrafik(akar) {
-    const data = JSON.parse(akar.dataset.data);
+    let data = JSON.parse(akar.dataset.data);
     const cari = (pilihan) => akar.querySelector(pilihan);
     const el = {
         kontrol: cari('[data-kontrol]'),
@@ -162,12 +163,19 @@ export function pasangGrafik(akar) {
     });
 
     perbarui();
+
+    return {
+        perbaruiData(baru) {
+            data = baru;
+            perbarui();
+        },
+    };
 }
 
 // Grafik perbandingan baglog per bulan. Tabelnya sudah ada di halaman (tanpa JavaScript), jadi bila
 // Chart.js gagal diunduh, kanvasnya cukup disembunyikan.
-export async function pasangGrafikBaglog(akar) {
-    const data = JSON.parse(akar.dataset.data);
+export function pasangGrafikBaglog(akar) {
+    let data = JSON.parse(akar.dataset.data);
     const gulir = akar.querySelector('[data-gulir]');
     const wadah = akar.querySelector('[data-kanvas-wadah]');
     const kanvas = akar.querySelector('canvas');
@@ -175,8 +183,9 @@ export async function pasangGrafikBaglog(akar) {
     const galat = akar.querySelector('[data-galat]');
     let grafik = null;
 
-    async function gambar() {
-        muat.hidden = false;
+    // Pembaruan otomatis tidak memunculkan kerangka muat agar grafik tidak berkedip.
+    async function gambar(tampilMuat = true) {
+        muat.hidden = !tampilMuat;
         galat.hidden = true;
         try {
             const modul = await import('./grafik-kanvas.js');
@@ -192,6 +201,13 @@ export async function pasangGrafikBaglog(akar) {
         muat.hidden = true;
     }
 
-    akar.querySelector('[data-coba-lagi]').addEventListener('click', gambar);
+    akar.querySelector('[data-coba-lagi]').addEventListener('click', () => gambar());
     gambar();
+
+    return {
+        perbaruiData(baru) {
+            data = baru;
+            gambar(false);
+        },
+    };
 }
