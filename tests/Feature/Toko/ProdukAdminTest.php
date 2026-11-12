@@ -42,9 +42,8 @@ class ProdukAdminTest extends TestCase
                 ['nama' => '250 g', 'harga' => '30000', 'tersedia' => '0'],
                 ['nama' => '', 'harga' => '', 'tersedia' => '1'],
             ],
-            'spesifikasi' => [
-                ['label' => 'Berat', 'nilai' => '250 g'],
-                ['label' => '', 'nilai' => ''],
+            'utama' => [
+                'merek' => 'Kopi Lumeneng',
             ],
         ], $timpa);
     }
@@ -58,7 +57,7 @@ class ProdukAdminTest extends TestCase
 
         $this->assertSame('kopi-bubuk', $produk->slug);
         $this->assertSame(25000, $produk->harga);
-        $this->assertSame([['label' => 'Berat', 'nilai' => '250 g']], $produk->spesifikasi);
+        $this->assertSame([['label' => 'Merek', 'nilai' => 'Kopi Lumeneng']], $produk->spesifikasi);
         $this->assertSame('https://shopee.co.id/kopi-bubuk-i.1.2', $produk->tautanUntuk('shopee'));
         $this->assertNull($produk->tautanUntuk('tokopedia'));
         $this->assertSame(['100 g', '250 g'], $produk->varian->pluck('nama')->all());
@@ -91,13 +90,33 @@ class ProdukAdminTest extends TestCase
             ],
         ]))->assertSessionHasNoErrors();
 
-        // Urutan mengikuti Produk::SPESIFIKASI_UTAMA, bukan urutan kiriman; baris tambahan (Berat) menyusul.
+        // Urutan mengikuti Produk::SPESIFIKASI_UTAMA, bukan urutan kiriman.
         $this->assertSame([
             ['label' => 'Kategori', 'nilai' => 'Makanan & Minuman'],
             ['label' => 'Merek', 'nilai' => 'Kopi Lumeneng'],
             ['label' => 'Jenis Biji-Bijian', 'nilai' => 'Arabika'],
-            ['label' => 'Berat', 'nilai' => '250 g'],
         ], Produk::query()->sole()->spesifikasi);
+    }
+
+    public function test_kiriman_spesifikasi_tambahan_diabaikan(): void
+    {
+        $this->post(route('admin.toko.produk.store'), $this->isian([
+            'spesifikasi' => [['label' => 'Berat', 'nilai' => '250 g']],
+        ]))->assertSessionHasNoErrors();
+
+        $this->assertSame([['label' => 'Merek', 'nilai' => 'Kopi Lumeneng']], Produk::query()->sole()->spesifikasi);
+    }
+
+    public function test_menyimpan_ulang_membuang_baris_tambahan_lama(): void
+    {
+        $produk = Produk::factory()->create(['spesifikasi' => [
+            ['label' => 'Merek', 'nilai' => 'Kopi Lumeneng'],
+            ['label' => 'Berat', 'nilai' => '250 g'],
+        ]]);
+
+        $this->put(route('admin.toko.produk.update', $produk), $this->isian())->assertSessionHasNoErrors();
+
+        $this->assertSame([['label' => 'Merek', 'nilai' => 'Kopi Lumeneng']], $produk->refresh()->spesifikasi);
     }
 
     public function test_isian_utama_terlalu_panjang_ditolak(): void
@@ -106,7 +125,7 @@ class ProdukAdminTest extends TestCase
             ->assertSessionHasErrors('utama.merek');
     }
 
-    public function test_form_ubah_memisahkan_isian_utama_dari_baris_tambahan(): void
+    public function test_form_ubah_hanya_menampilkan_isian_utama(): void
     {
         $produk = Produk::factory()->create(['spesifikasi' => [
             ['label' => 'merek', 'nilai' => 'Kopi Lumeneng'],
@@ -116,9 +135,9 @@ class ProdukAdminTest extends TestCase
         $this->get(route('admin.toko.produk.edit', $produk))->assertOk()
             ->assertSee('name="utama[merek]"', false)
             ->assertSee('value="Kopi Lumeneng"', false)
-            ->assertSee('name="spesifikasi[0][label]"', false)
-            ->assertSee('value="Berat"', false)
-            ->assertSee('Spesifikasi tambahan');
+            ->assertDontSee('name="spesifikasi[0][label]"', false)
+            ->assertDontSee('value="Berat"', false)
+            ->assertDontSee('Spesifikasi tambahan');
     }
 
     public function test_nama_dan_harga_wajib_diisi_dengan_pesan_yang_jelas(): void

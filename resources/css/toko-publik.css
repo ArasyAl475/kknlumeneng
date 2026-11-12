@@ -79,29 +79,40 @@ body {
         overflow: hidden;
     }
 
+    /* Kotak foto dikunci persegi: tanpa overflow hidden + flex-shrink 0, foto yang
+       aslinya potret (lebih tinggi) ikut memanjangkan kotak sehingga kartu naik turun. */
     .toko-produk__foto {
         position: relative;
         display: block;
+        flex-shrink: 0;
         aspect-ratio: 1;
+        overflow: hidden;
         background: var(--color-kosong-lembut);
     }
 
+    /* Foto diletakkan absolut agar ukuran aslinya tidak memengaruhi tinggi kotak. */
     .toko-produk__foto img {
+        position: absolute;
+        inset: 0;
         width: 100%;
         height: 100%;
         object-fit: cover;
     }
 
-    /* Foto diredupkan saat stok habis; kata "Stok habis" tetap tampil di atas foto. */
+    /* Foto diredupkan saat stok habis; lencana di pojok foto tidak ikut redup supaya kata tetap jelas. */
     .toko-produk--habis .toko-produk__foto img {
         opacity: 0.6;
     }
 
+    /* Lencana stok menempel di pojok foto (seperti di marketplace) agar langsung terlihat
+       tanpa menambah tinggi kartu; garis putih + bayangan menjaga kontras di atas foto apa pun. */
     .toko-produk__lencana {
         position: absolute;
+        z-index: 1;
         top: 0.5rem;
         left: 0.5rem;
-        box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
+        border: 1px solid rgb(255 255 255 / 0.9);
+        box-shadow: 0 2px 6px rgb(0 0 0 / 0.18);
     }
 
     .toko-produk__isi {

@@ -19,7 +19,6 @@
         old('varian', $produk->varian->map(fn ($v) => ['nama' => $v->nama, 'harga' => $v->harga, 'tersedia' => $v->tersedia ? '1' : '0'])->all()),
         ['nama' => '', 'harga' => '', 'tersedia' => '1'],
     );
-    $barisSpesifikasi = $isiBaris(old('spesifikasi', $spesifikasiTambahan), ['label' => '', 'nilai' => '']);
 
     // Contoh hanya petunjuk ketik (placeholder), bukan nilai bawaan, agar tidak tersimpan tanpa sengaja.
     $contohUtama = [
@@ -146,17 +145,6 @@
                     </div>
                 @endforeach
             </div>
-        </x-kartu>
-
-        <x-kartu judul="Spesifikasi tambahan (boleh kosong)">
-            <p class="mb-3 text-redup">Untuk keterangan lain di luar isian di atas, misalnya Berat: 250 g, Masa simpan: 6 bulan, Izin: PIRT nomor sekian. Isi hanya yang sudah pasti.</p>
-            <div class="space-y-3" data-daftar-baris="spesifikasi">
-                @foreach ($barisSpesifikasi as $i => $b)
-                    @include('admin.toko.produk.baris-spesifikasi', ['i' => $i, 'b' => $b])
-                @endforeach
-            </div>
-            <template data-cetakan="spesifikasi">@include('admin.toko.produk.baris-spesifikasi', ['i' => '__i__', 'b' => ['label' => '', 'nilai' => '']])</template>
-            <x-tombol varian="kedua" type="button" class="mt-3" data-tambah-baris="spesifikasi" hidden>Tambah baris spesifikasi</x-tombol>
         </x-kartu>
 
         <div class="flex flex-wrap gap-2">
