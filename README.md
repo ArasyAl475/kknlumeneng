@@ -10,20 +10,56 @@ Stack: Laravel, Blade, Tailwind (Vite), SQLite (lokal) / MySQL (produksi).
 
 ## Memasang di komputer sendiri
 
-Butuh Git, PHP 8.3 atau lebih baru (dengan ekstensi `gd`, sudah ada di Laravel Herd), Composer, dan Node.js.
+Butuh: Git, PHP 8.3+ (dengan ekstensi `gd`), Composer, dan Node.js.
 
-1. `composer install`
-2. Salin pengaturan: `cp .env.example .env` (Windows PowerShell: `copy .env.example .env`)
-3. `php artisan key:generate`
-4. Isi `ADMIN_EMAIL` dan `ADMIN_PASSWORD` di `.env` untuk membuat akun admin.
-   Jangan pernah meng-upload berkas `.env`.
-5. `php artisan migrate --seed`
-6. `php artisan storage:link` (agar foto yang diunggah admin bisa tampil di situs)
-7. `npm install`
-8. Jalankan `npm run dev` di terminal pertama dan `php artisan serve` di terminal kedua.
-9. Buka http://localhost:8000 (admin: http://localhost:8000/masuk)
+**1. Ambil kode dan pasang**
 
-Data contoh untuk dashboard EWS: `php artisan ews:simulasi --riwayat=24`
+```
+git clone https://github.com/ArasyAl475/kknlumeneng.git
+cd kknlumeneng
+composer install
+copy .env.example .env
+php artisan key:generate
+```
+
+`copy` untuk Windows PowerShell; di Git Bash/Mac/Linux pakai `cp .env.example .env`.
+
+**2. Isi akun admin** di berkas `.env`: `ADMIN_EMAIL` dan `ADMIN_PASSWORD`. Jangan pernah meng-upload `.env`.
+
+**3. Siapkan database dan tampilan**
+
+```
+php artisan migrate --seed
+php artisan storage:link
+npm install
+```
+
+**4. Jalankan**
+
+```
+composer run dev
+```
+
+Buka http://localhost:8000 (admin: http://localhost:8000/masuk). Berhenti: tekan `Ctrl+C`.
+
+**Opsional: isi data contoh** (hanya untuk latihan di komputer sendiri)
+
+```
+php artisan db:seed --class=ProfilContohSeeder
+php artisan db:seed --class=EdukasiContohSeeder
+php artisan db:seed --class=TokoContohHasilSeeder
+php artisan ews:simulasi --riwayat=24
+```
+
+**Setiap habis `git pull`**
+
+```
+composer install
+npm install
+php artisan migrate
+```
+
+Memasang di hosting: [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ## Menambah modul
 
