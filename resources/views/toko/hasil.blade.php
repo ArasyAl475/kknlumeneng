@@ -44,42 +44,48 @@
             <div class="status-pill"><span class="status-pill__titik" aria-hidden="true"></span>Transparansi Terbuka untuk Warga</div>
 
             <div class="kontrol-waktu">
-                <nav aria-label="Rentang waktu" class="segmen segmen--atas">
+                {{-- data-segar-pindah: berganti pilihan tanpa memuat ulang halaman (lihat toko/lib/segar-otomatis.js). --}}
+                <nav aria-label="Rentang waktu" class="segmen segmen--atas" data-segar-bagian="periode">
                     @foreach ($periode['pilihan'] as $p)
-                        <a href="{{ route('toko.hasil', $p['kueri']) }}" @if ($p['aktif']) aria-current="true" @endif @class(['segmen__item', 'is-aktif' => $p['aktif']])>{{ $p['label'] }}</a>
+                        <a href="{{ route('toko.hasil', $p['kueri']) }}" data-segar-pindah @if ($p['aktif']) aria-current="true" @endif @class(['segmen__item', 'is-aktif' => $p['aktif']])>{{ $p['label'] }}</a>
                     @endforeach
                 </nav>
                 {{-- Kustom bukan pilihan rentang, tetapi pintu ke filter tanggal/jenis/tempat, jadi dibuat tombol tersendiri. --}}
                 <button type="button" class="tombol-kustom" data-buka-filter aria-haspopup="dialog" aria-controls="lembar-filter" hidden>
                     @include('toko.partials.ikon', ['nama' => 'filter', 'kelas' => 'size-4'])
                     Kustom
-                    @if ($penyaring['jumlah'] > 0)
-                        <span class="tombol-filter__jumlah" aria-label="{{ $penyaring['jumlah'] }} pilihan aktif">{{ $penyaring['jumlah'] }}</span>
-                    @endif
+                    <span data-segar-bagian="filter-jumlah" style="display: contents">
+                        @if ($penyaring['jumlah'] > 0)
+                            <span class="tombol-filter__jumlah" aria-label="{{ $penyaring['jumlah'] }} pilihan aktif">{{ $penyaring['jumlah'] }}</span>
+                        @endif
+                    </span>
                 </button>
-                @if ($alamatSheet)
-                    {{-- Sheet yang sama dengan panel admin; hanya terbuka bagi akun Google yang diundang. --}}
-                    <a href="{{ $alamatSheet }}" class="tombol-kustom" target="_blank" rel="noopener">
-                        @include('toko.partials.ikon', ['nama' => 'tabel', 'kelas' => 'size-4'])
-                        Buka Google Sheets
-                    </a>
-                @else
-                    {{-- Unduhan membawa filter yang sedang aktif, jadi isi Excel sama dengan yang terlihat di layar. --}}
-                    <a href="{{ route('toko.hasil.excel', array_filter($filter)) }}" class="tombol-kustom" download>
-                        @include('toko.partials.ikon', ['nama' => 'unduh', 'kelas' => 'size-4'])
-                        Unduh Excel
-                    </a>
-                @endif
+                {{-- Dibungkus agar alamat unduhan ikut filter baru saat pilihan berganti tanpa memuat ulang. --}}
+                <span data-segar-bagian="unduh" style="display: contents">
+                    @if ($alamatSheet)
+                        {{-- Sheet yang sama dengan panel admin; hanya terbuka bagi akun Google yang diundang. --}}
+                        <a href="{{ $alamatSheet }}" class="tombol-kustom" target="_blank" rel="noopener">
+                            @include('toko.partials.ikon', ['nama' => 'tabel', 'kelas' => 'size-4'])
+                            Buka Google Sheets
+                        </a>
+                    @else
+                        {{-- Unduhan membawa filter yang sedang aktif, jadi isi Excel sama dengan yang terlihat di layar. --}}
+                        <a href="{{ route('toko.hasil.excel', array_filter($filter)) }}" class="tombol-kustom" download>
+                            @include('toko.partials.ikon', ['nama' => 'unduh', 'kelas' => 'size-4'])
+                            Unduh Excel
+                        </a>
+                    @endif
+                </span>
             </div>
         </div>
     </section>
 
-    <div class="saring-bawah">
+    <div class="saring-bawah" data-segar-bagian="saring">
         @if ($penyaring['chip'])
             <ul class="chip-daftar" aria-label="Pilihan yang sedang aktif">
                 @foreach ($penyaring['chip'] as $c)
                     <li>
-                        <a href="{{ route('toko.hasil', $c['kueri']) }}" class="chip" aria-label="Hapus pilihan {{ $c['label'] }}">
+                        <a href="{{ route('toko.hasil', $c['kueri']) }}" class="chip" data-segar-pindah aria-label="Hapus pilihan {{ $c['label'] }}">
                             {{ $c['label'] }}
                             @include('toko.partials.ikon', ['nama' => 'tutup', 'kelas' => 'size-4'])
                         </a>
@@ -87,11 +93,11 @@
                 @endforeach
             </ul>
         @endif
-        <p class="saring__ket">Menampilkan: <strong>{{ $periode['keterangan'] }}</strong></p>
+        <p class="saring__ket" data-segar-ringkas>Menampilkan: <strong>{{ $periode['keterangan'] }}</strong></p>
     </div>
 
     <dialog id="lembar-filter" class="lembar" aria-labelledby="judul-lembar" data-lembar>
-        <form method="GET" action="{{ route('toko.hasil') }}" class="lembar__isi">
+        <form method="GET" action="{{ route('toko.hasil') }}" class="lembar__isi" data-segar-pindah>
             <div class="lembar__kepala">
                 <h2 id="judul-lembar">Filter</h2>
                 <button type="button" class="tombol-ikon" data-tutup-filter aria-label="Tutup filter">
@@ -130,7 +136,7 @@
             </div>
             <div class="lembar__kaki">
                 <button type="submit" class="tombol-h tombol-h--utama">Tampilkan</button>
-                <a href="{{ route('toko.hasil') }}" class="tombol-h tombol-h--tepi">Atur ulang</a>
+                <a href="{{ route('toko.hasil') }}" class="tombol-h tombol-h--tepi" data-segar-pindah>Atur ulang</a>
             </div>
         </form>
     </dialog>
@@ -230,10 +236,11 @@
 
     {{-- BARIS UTAMA 7:5 — grafik perkembangan dan perbandingan cangkang kopi, masing-masing satu kartu --}}
     <div class="utama">
-        <section aria-labelledby="judul-grafik" class="bagian bagian--tren" id="grafik">
+        {{-- Blok: bila berganti antara "belum ada data" dan grafik, seluruh bagian diganti dan grafiknya dipasang ulang. --}}
+        <section aria-labelledby="judul-grafik" class="bagian bagian--tren" id="grafik" data-segar-blok="grafik">
             <div class="bagian__kepala">
                 <h2 id="judul-grafik" class="bagian__judul">Perkembangan Hasil Desa</h2>
-                <p class="bagian__ket">Rentang waktu mengikuti pilihan di atas: {{ $periode['keterangan'] }}.</p>
+                <p class="bagian__ket" data-segar-bagian="grafik-ket">Rentang waktu mengikuti pilihan di atas: {{ $periode['keterangan'] }}.</p>
             </div>
 
             @if ($grafik['ada'])
@@ -308,14 +315,14 @@
                     </noscript>
                 </div>
             @else
-                <div class="grafik-kosong">
+                <div class="grafik-kosong" data-segar-bagian="grafik-kosong">
                     <div class="kerangka-batang" aria-hidden="true"><span style="height: 30%"></span><span style="height: 55%"></span><span style="height: 40%"></span><span style="height: 70%"></span><span style="height: 50%"></span><span style="height: 62%"></span><span style="height: 35%"></span><span style="height: 58%"></span></div>
                     <div class="grafik-kosong__pesan">
                         @include('toko.partials.ikon', ['nama' => 'grafik', 'kelas' => 'size-8'])
                         <strong>Belum ada data untuk periode ini</strong>
                         @if ($penyaring['ada'])
                             <span class="bantu-h">Coba lihat catatan dari seluruh waktu.</span>
-                            <a href="{{ $semuaWaktu }}" class="tombol-h tombol-h--utama">Lihat semua waktu</a>
+                            <a href="{{ $semuaWaktu }}" class="tombol-h tombol-h--utama" data-segar-pindah>Lihat semua waktu</a>
                         @else
                             <span class="bantu-h">Grafik muncul setelah admin desa mencatat panen atau penjualan.</span>
                         @endif
@@ -386,7 +393,9 @@
         </section>
     </div>
 
-    {{-- HASIL PER BAGLOG TIAP BULAN --}}
+    {{-- HASIL PER BAGLOG TIAP BULAN. Pembungkus selalu ada (tanpa kotak sendiri) supaya bagian ini bisa muncul/hilang
+         saat pilihan waktu berganti tanpa memuat ulang halaman. --}}
+    <div data-segar-blok="baglog-bulanan" style="display: contents">
     @if ($grafikBaglog['ada'])
         <section aria-labelledby="judul-baglog-bulanan" class="bagian" id="baglog-bulanan">
             <div class="bagian__kepala">
@@ -447,9 +456,10 @@
             </div>
         </section>
     @endif
+    </div>
 
-    {{-- RINCIAN PANEN KOPI --}}
-    <section aria-labelledby="judul-rincian" class="bagian" id="rincian">
+    {{-- RINCIAN PANEN KOPI. Blok: "belum ada data" dan tabel bisa saling berganti. --}}
+    <section aria-labelledby="judul-rincian" class="bagian" id="rincian" data-segar-blok="rincian">
         <div class="bagian__kepala">
             <h2 id="judul-rincian" class="bagian__judul">Rincian panen kopi</h2>
             <p class="bagian__ket">Catatan timbang panen kopi, yang terbaru di atas. Berat bersih adalah berat kotor dikurangi limbah.</p>

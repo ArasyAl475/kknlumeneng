@@ -7,7 +7,8 @@ const LEBAR_PER_SERI = 14;
 // Menunggu huruf siap agar teks di kanvas tidak memakai huruf cadangan, tetapi tidak menahan grafik lama-lama.
 const tungguHuruf = () => Promise.race([document.fonts?.ready, new Promise((selesai) => setTimeout(selesai, 800))]);
 
-// Mengembalikan { perbaruiData } untuk pembaruan otomatis: angka diganti, pilihan skala dan seri warga tetap.
+// Mengembalikan { perbaruiData, lepas } untuk pembaruan tanpa muat ulang: perbaruiData mengganti angka (pilihan skala
+// dan seri warga tetap); lepas dipanggil bila grafik dibuang dari halaman agar Chart.js dan pemantau ukuran ikut berhenti.
 export function pasangGrafik(akar) {
     let data = JSON.parse(akar.dataset.data);
     const cari = (pilihan) => akar.querySelector(pilihan);
@@ -36,6 +37,7 @@ export function pasangGrafik(akar) {
     };
     let mesin = null;
     let nomorGambar = 0;
+    const pemantau = new AbortController();
 
     el.kontrol.hidden = false;
     el.tombolTabel.hidden = false;
@@ -160,7 +162,7 @@ export function pasangGrafik(akar) {
         lebarTerakhir = window.innerWidth;
         clearTimeout(tunda);
         tunda = setTimeout(perbarui, 200);
-    });
+    }, { signal: pemantau.signal });
 
     perbarui();
 
@@ -168,6 +170,13 @@ export function pasangGrafik(akar) {
         perbaruiData(baru) {
             data = baru;
             perbarui();
+        },
+        lepas() {
+            pemantau.abort();
+            clearTimeout(tunda);
+            nomorGambar++;
+            mesin?.hancurkan('kg');
+            mesin?.hancurkan('rupiah');
         },
     };
 }
@@ -182,6 +191,7 @@ export function pasangGrafikBaglog(akar) {
     const muat = akar.querySelector('[data-muat]');
     const galat = akar.querySelector('[data-galat]');
     let grafik = null;
+    let dilepas = false;
 
     // Pembaruan otomatis tidak memunculkan kerangka muat agar grafik tidak berkedip.
     async function gambar(tampilMuat = true) {
@@ -190,6 +200,7 @@ export function pasangGrafikBaglog(akar) {
         try {
             const modul = await import('./grafik-kanvas.js');
             await tungguHuruf();
+            if (dilepas) return;
             const perlu = data.label.length * 56;
             wadah.style.width = perlu > gulir.clientWidth ? `${perlu}px` : '100%';
             grafik?.destroy();
@@ -208,6 +219,10 @@ export function pasangGrafikBaglog(akar) {
         perbaruiData(baru) {
             data = baru;
             gambar(false);
+        },
+        lepas() {
+            dilepas = true;
+            grafik?.destroy();
         },
     };
 }
