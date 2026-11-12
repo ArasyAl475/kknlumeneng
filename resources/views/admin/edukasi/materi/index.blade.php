@@ -20,7 +20,7 @@
                         <p class="font-bold">{{ $m->judul }}</p>
                         <p class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
                             @include('admin.edukasi.partials.status', ['materi' => $m])
-                            <span class="text-redup">{{ $m->kategori->nama }} · {{ $m->langkah_count }} langkah</span>
+                            <span class="text-redup">{{ $m->kategori->nama }} · Bagian {{ $m->urutan }} · {{ $m->langkah_count }} langkah</span>
                         </p>
                     </div>
                     <div class="flex flex-wrap gap-2">

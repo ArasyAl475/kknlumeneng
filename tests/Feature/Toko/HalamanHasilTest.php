@@ -30,6 +30,28 @@ class HalamanHasilTest extends TestCase
             ->assertSee('Rp 1.500.000');
     }
 
+    public function test_pilihan_waktu_berganti_tanpa_memuat_ulang(): void
+    {
+        // Tanpa penanda ini, memilih Tahun ini/Bulan ini memuat ulang halaman penuh: layar berkedip dan kembali ke atas.
+        $html = $this->get('/toko/hasil')->assertOk()->getContent();
+
+        $this->assertSame(1, substr_count($html, 'class="lembar__isi" data-segar-pindah'));
+        $this->assertGreaterThanOrEqual(3, preg_match_all('/<a [^>]*data-segar-pindah[^>]*class="segmen__item/', $html));
+    }
+
+    public function test_blok_yang_bisa_berganti_bentuk_selalu_ada(): void
+    {
+        // Pindah pilihan di tempat hanya bisa bila daftar blok sama di setiap pilihan, ada data maupun belum.
+        $blok = ['data-segar-blok="grafik"', 'data-segar-blok="baglog-bulanan"', 'data-segar-blok="rincian"'];
+
+        $this->get('/toko/hasil')->assertOk()->assertSeeInOrder($blok, false);
+
+        PanenKopi::query()->create(['tanggal_panen' => '2026-10-05', 'jenis_kopi' => 'Robusta', 'tempat_panen' => 'Krajan', 'jumlah_kg' => 10, 'limbah_kg' => 2]);
+        PanenJamur::query()->create(['tanggal_panen' => '2026-10-05', 'jumlah_kg' => 8.5, 'jumlah_baglog' => 10, 'dengan_cangkang_kopi' => true]);
+
+        $this->get('/toko/hasil')->assertOk()->assertSeeInOrder($blok, false)->assertSee('data-segar-tetap="grafik"', false);
+    }
+
     public function test_rincian_panen_kopi_berupa_tabel_catatan_timbang(): void
     {
         PanenKopi::query()->create(['tanggal_panen' => '2026-10-05', 'jenis_kopi' => 'Robusta', 'tempat_panen' => 'Blok Krajan', 'nama_petani' => 'Kelompok Tani Giri', 'jumlah_kg' => 10, 'limbah_kg' => 2.5]);

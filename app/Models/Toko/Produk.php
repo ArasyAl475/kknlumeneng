@@ -98,40 +98,39 @@ class Produk extends Model
     }
 
     /**
-     * Memisahkan spesifikasi tersimpan menjadi isian utama (kunci => nilai) dan baris tambahan bebas.
+     * Mengambil isian utama (kunci => nilai) dari spesifikasi tersimpan.
      * Label dicocokkan tanpa membedakan huruf besar-kecil agar data lama yang diketik manual tetap terbaca.
+     * Baris lain (sisa "spesifikasi tambahan" lama) sengaja diabaikan: admin tidak bisa lagi mengaturnya,
+     * jadi tidak boleh tampil di situs.
      *
-     * @return array{utama: array<string, string>, tambahan: array<int, array{label: string, nilai: string}>}
+     * @return array<string, string>
      */
-    public function spesifikasiTerpisah(): array
+    public function spesifikasiUtama(): array
     {
         $peta = collect(self::SPESIFIKASI_UTAMA)->mapWithKeys(fn (string $label, string $kunci) => [mb_strtolower($label) => $kunci]);
         $utama = [];
-        $tambahan = [];
 
         foreach ($this->spesifikasi ?? [] as $baris) {
             $kunci = $peta[mb_strtolower($baris['label'])] ?? null;
 
-            // Label kembar kedua dan seterusnya masuk ke tambahan agar tidak hilang diam-diam.
+            // Label kembar: yang pertama dipakai.
             if ($kunci !== null && ! isset($utama[$kunci])) {
                 $utama[$kunci] = $baris['nilai'];
-            } else {
-                $tambahan[] = $baris;
             }
         }
 
-        return ['utama' => $utama, 'tambahan' => $tambahan];
+        return $utama;
     }
 
     /**
      * Tabel "Spesifikasi Produk" di halaman publik, urut seperti Shopee: Kategori, Stok, isian lain,
-     * baris tambahan, lalu Dikirim Dari. Stok dan Dikirim Dari selalu dihitung di sini, bukan diketik admin.
+     * lalu Dikirim Dari. Stok dan Dikirim Dari selalu dihitung di sini, bukan diketik admin.
      *
      * @return array<int, array{label: string, nilai: string}>
      */
     public function spesifikasiPublik(?string $dikirimDari): array
     {
-        ['utama' => $utama, 'tambahan' => $tambahan] = $this->spesifikasiTerpisah();
+        $utama = $this->spesifikasiUtama();
         $baris = [];
 
         if (isset($utama['kategori'])) {
@@ -145,8 +144,6 @@ class Produk extends Model
                 $baris[] = ['label' => $label, 'nilai' => $utama[$kunci]];
             }
         }
-
-        array_push($baris, ...$tambahan);
 
         if (filled($dikirimDari)) {
             $baris[] = ['label' => 'Dikirim Dari', 'nilai' => $dikirimDari];

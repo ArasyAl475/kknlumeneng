@@ -7,8 +7,10 @@
 @php use App\Services\Toko\FormatHasil; @endphp
 
 @section('isi')
+    @include('toko.partials.penanda-segar')
+
     <x-judul-halaman judul="Panen jamur" keterangan="Catatan tiap panen. Warga hanya melihat angka totalnya.">
-        <x-tombol :href="route('admin.toko.panen-jamur.create')">Catat panen jamur</x-tombol>
+        @include('admin.toko.partials.tombol-sheets', ['jenis' => 'panen-jamur'])        <x-tombol :href="route('admin.toko.panen-jamur.create')">Catat panen jamur</x-tombol>
     </x-judul-halaman>
 
     @include('admin.toko.partials.ringkasan', ['angka' => [
@@ -23,7 +25,7 @@
         @if ($panen->isEmpty())
             @include('admin.toko.partials.kosong', ['ikon' => 'jamur', 'pesan' => 'Belum ada catatan panen jamur. Tekan Catat panen jamur untuk mengisi yang pertama.'])
         @else
-            <ul class="divide-y divide-garis-halus">
+            <ul class="divide-y divide-garis-halus" data-segar-bagian="daftar">
                 @foreach ($panen as $p)
                     @php $hari = FormatHasil::hari($p->tanggal_panen); @endphp
                     <li class="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
@@ -46,7 +48,7 @@
                     </li>
                 @endforeach
             </ul>
-            <div class="mt-3">{{ $panen->links('admin.ews.halaman') }}</div>
+            <div class="mt-3" data-segar-bagian="halaman">{{ $panen->links('admin.ews.halaman') }}</div>
         @endif
     </section>
 @endsection

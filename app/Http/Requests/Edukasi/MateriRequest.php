@@ -14,6 +14,7 @@ class MateriRequest extends FormRequest
     {
         return [
             'kategori_id' => ['required', 'integer', 'exists:edukasi_kategori,id'],
+            'urutan' => ['nullable', 'integer', 'min:1', 'max:999'],
             'judul' => ['required', 'string', 'max:150'],
             'ringkasan' => ['required', 'string', 'max:300'],
             'penjelasan' => ['nullable', 'string', 'max:10000'],
@@ -36,6 +37,7 @@ class MateriRequest extends FormRequest
     {
         return [
             'kategori_id' => 'kategori',
+            'urutan' => 'urutan bagian',
             'video_youtube' => 'tautan YouTube',
         ];
     }
@@ -46,6 +48,11 @@ class MateriRequest extends FormRequest
     public function dataMateri(): array
     {
         $data = Arr::except($this->validated(), ['gambar', 'hapus_gambar']);
+
+        // Nomor yang dikosongkan tidak boleh menimpa nomor lama; materi baru akan diberi nomor otomatis.
+        if (($data['urutan'] ?? null) === null) {
+            unset($data['urutan']);
+        }
 
         // Yang disimpan hanya kode video, bukan tautan yang ditempel admin.
         if (array_key_exists('video_youtube', $data)) {

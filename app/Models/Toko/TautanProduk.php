@@ -13,7 +13,7 @@ class TautanProduk extends Model
 
     protected $table = 'toko_tautan_produk';
 
-    protected $fillable = ['produk_id', 'marketplace', 'url', 'sumber', 'terakhir_sinkron'];
+    protected $fillable = ['produk_id', 'marketplace', 'url', 'id_eksternal', 'sumber', 'terakhir_sinkron'];
 
     protected function casts(): array
     {

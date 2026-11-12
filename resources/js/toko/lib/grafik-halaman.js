@@ -7,8 +7,10 @@ const LEBAR_PER_SERI = 14;
 // Menunggu huruf siap agar teks di kanvas tidak memakai huruf cadangan, tetapi tidak menahan grafik lama-lama.
 const tungguHuruf = () => Promise.race([document.fonts?.ready, new Promise((selesai) => setTimeout(selesai, 800))]);
 
+// Mengembalikan { perbaruiData, lepas } untuk pembaruan tanpa muat ulang: perbaruiData mengganti angka (pilihan skala
+// dan seri warga tetap); lepas dipanggil bila grafik dibuang dari halaman agar Chart.js dan pemantau ukuran ikut berhenti.
 export function pasangGrafik(akar) {
-    const data = JSON.parse(akar.dataset.data);
+    let data = JSON.parse(akar.dataset.data);
     const cari = (pilihan) => akar.querySelector(pilihan);
     const el = {
         kontrol: cari('[data-kontrol]'),
@@ -35,6 +37,7 @@ export function pasangGrafik(akar) {
     };
     let mesin = null;
     let nomorGambar = 0;
+    const pemantau = new AbortController();
 
     el.kontrol.hidden = false;
     el.tombolTabel.hidden = false;
@@ -159,28 +162,45 @@ export function pasangGrafik(akar) {
         lebarTerakhir = window.innerWidth;
         clearTimeout(tunda);
         tunda = setTimeout(perbarui, 200);
-    });
+    }, { signal: pemantau.signal });
 
     perbarui();
+
+    return {
+        perbaruiData(baru) {
+            data = baru;
+            perbarui();
+        },
+        lepas() {
+            pemantau.abort();
+            clearTimeout(tunda);
+            nomorGambar++;
+            mesin?.hancurkan('kg');
+            mesin?.hancurkan('rupiah');
+        },
+    };
 }
 
 // Grafik perbandingan baglog per bulan. Tabelnya sudah ada di halaman (tanpa JavaScript), jadi bila
 // Chart.js gagal diunduh, kanvasnya cukup disembunyikan.
-export async function pasangGrafikBaglog(akar) {
-    const data = JSON.parse(akar.dataset.data);
+export function pasangGrafikBaglog(akar) {
+    let data = JSON.parse(akar.dataset.data);
     const gulir = akar.querySelector('[data-gulir]');
     const wadah = akar.querySelector('[data-kanvas-wadah]');
     const kanvas = akar.querySelector('canvas');
     const muat = akar.querySelector('[data-muat]');
     const galat = akar.querySelector('[data-galat]');
     let grafik = null;
+    let dilepas = false;
 
-    async function gambar() {
-        muat.hidden = false;
+    // Pembaruan otomatis tidak memunculkan kerangka muat agar grafik tidak berkedip.
+    async function gambar(tampilMuat = true) {
+        muat.hidden = !tampilMuat;
         galat.hidden = true;
         try {
             const modul = await import('./grafik-kanvas.js');
             await tungguHuruf();
+            if (dilepas) return;
             const perlu = data.label.length * 56;
             wadah.style.width = perlu > gulir.clientWidth ? `${perlu}px` : '100%';
             grafik?.destroy();
@@ -192,6 +212,17 @@ export async function pasangGrafikBaglog(akar) {
         muat.hidden = true;
     }
 
-    akar.querySelector('[data-coba-lagi]').addEventListener('click', gambar);
+    akar.querySelector('[data-coba-lagi]').addEventListener('click', () => gambar());
     gambar();
+
+    return {
+        perbaruiData(baru) {
+            data = baru;
+            gambar(false);
+        },
+        lepas() {
+            dilepas = true;
+            grafik?.destroy();
+        },
+    };
 }

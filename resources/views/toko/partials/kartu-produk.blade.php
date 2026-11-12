@@ -14,9 +14,11 @@
                     <span class="sr-only">Foto belum tersedia</span>
                 </span>
             @endif
-            @unless ($adaStok)
-                <span data-warna="kosong" class="status-lembut toko-pil toko-pil--kecil toko-produk__lencana"><x-ikon nama="kosong" class="size-4" />Stok habis</span>
-            @endunless
+            @if ($adaStok)
+                <span data-warna="hijau" class="status-lembut toko-pil toko-pil--kecil toko-produk__lencana"><x-ikon nama="aman" class="size-4" />Tersedia</span>
+            @else
+                <span data-warna="kosong" class="status-lembut toko-pil toko-pil--kecil toko-produk__lencana"><x-ikon nama="kosong" class="size-4" />Tidak tersedia</span>
+            @endif
         </span>
         <span class="toko-produk__isi">
             <span class="toko-produk__nama">{{ $produk->nama }}</span>

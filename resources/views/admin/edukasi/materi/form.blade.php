@@ -57,6 +57,7 @@
                     @enderror
                 </div>
 
+                <x-bidang nama="urutan" type="number" min="1" max="999" inputmode="numeric" label="Nomor bagian dalam kategori (boleh dikosongkan)" :value="old('urutan', $materi->exists ? $materi->urutan : '')" bantuan="Bagian 1 dibaca paling awal. Dikosongkan, materi baru menjadi bagian terakhir. Warga melihat tombol Bagian Sebelumnya dan Selanjutnya sesuai nomor ini." />
                 <x-bidang nama="judul" label="Judul" required maxlength="150" :value="old('judul', $materi->judul)" />
                 @include('admin.edukasi.partials.area', ['nama' => 'ringkasan', 'label' => 'Ringkasan', 'nilai' => old('ringkasan', $materi->ringkasan), 'baris' => 2, 'maks' => 300, 'wajib' => true, 'bantuan' => 'Satu atau dua kalimat yang tampil di daftar materi.'])
                 @include('admin.edukasi.partials.gambar', ['url' => $materi->urlGambar(), 'label' => 'Gambar utama (boleh dikosongkan)'])

@@ -1,6 +1,9 @@
 @extends('layouts.admin')
 @php $nama = \App\Services\Toko\DaftarMarketplace::nama($kunci); @endphp
 @section('judul', 'Toko di '.$nama)
+@push('skrip')
+    @vite('resources/js/toko/admin.js')
+@endpush
 
 @section('isi')
     <a href="{{ route('admin.toko.beranda') }}" class="tautan inline-flex min-h-11 items-center gap-1">
@@ -30,6 +33,10 @@
         <x-tombol varian="kedua" :href="route('toko.marketplace', $kunci)" target="_blank">Lihat halaman di situs@include('toko.partials.ikon-keluar')</x-tombol>
         <x-tombol varian="kedua" type="button" disabled class="cursor-not-allowed border-dashed opacity-70">Sinkron otomatis (menunggu izin API)</x-tombol>
     </div>
+
+    @if ($shopee)
+        @include('admin.toko.partials.koneksi-shopee')
+    @endif
 
     <x-kartu class="mt-4">
         <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
