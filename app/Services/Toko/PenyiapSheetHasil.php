@@ -67,6 +67,8 @@ class PenyiapSheetHasil
                 'cell' => ['userEnteredFormat' => ['backgroundColor' => self::HIJAU, 'textFormat' => ['bold' => true, 'foregroundColor' => ['red' => 1, 'green' => 1, 'blue' => 1]]]],
                 'fields' => 'userEnteredFormat(backgroundColor,textFormat)',
             ]],
+            // ID tetap dibaca sistem walau tersembunyi; disembunyikan agar admin langsung mengisi mulai kolom Tanggal.
+            ['updateDimensionProperties' => ['range' => ['sheetId' => $idLembar, 'dimension' => 'COLUMNS', 'startIndex' => 0, 'endIndex' => 1], 'properties' => ['hiddenByUser' => true], 'fields' => 'hiddenByUser']],
             // ID dan Status diisi sistem; warna abu-abu sebagai tanda "jangan diubah".
             ['repeatCell' => ['range' => $rentang(0, 1, 1), 'cell' => ['userEnteredFormat' => ['backgroundColor' => self::ABU]], 'fields' => 'userEnteredFormat.backgroundColor']],
             ['repeatCell' => ['range' => $rentang($terakhir, $terakhir + 1, 1), 'cell' => ['userEnteredFormat' => ['backgroundColor' => self::ABU]], 'fields' => 'userEnteredFormat.backgroundColor']],

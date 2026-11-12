@@ -7,6 +7,7 @@ use App\Models\Toko\PanenJamur;
 use App\Models\Toko\PanenKopi;
 use App\Models\Toko\PenjualanJamur;
 use App\Models\User;
+use App\Services\Toko\IsianHasilPanen;
 use App\Services\Toko\SinkronSheetHasil;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
@@ -269,6 +270,10 @@ class SinkronSheetsTest extends TestCase
         $this->assertStringContainsString('muncul lebih dari sekali', $this->baris(self::KOPI, 2)[7]);
         $this->assertStringContainsString('tidak dikenal', $this->baris(self::KOPI, 3)[7]);
         $this->assertStringContainsString('tidak valid', $this->baris(self::KOPI, 4)[7]);
+        // Kolom ID disembunyikan, jadi tiap pesan galat ID menjelaskan cara memunculkannya.
+        foreach ([2, 3, 4] as $nomor) {
+            $this->assertStringContainsString('Kolom ID tersembunyi', $this->baris(self::KOPI, $nomor)[7]);
+        }
     }
 
     // ───────────────────────────── Sistem → Sheet ─────────────────────────────
@@ -461,6 +466,21 @@ class SinkronSheetsTest extends TestCase
         $this->assertSame(SinkronSheetHasil::kepala('panen-kopi'), $this->baris(self::KOPI, 0));
         $this->assertSame($kopi->id, $this->baris(self::KOPI, 1)[0]);
         Http::assertSent(fn (Request $r) => str_ends_with($r->url(), ':batchUpdate') && collect($r->data()['requests'] ?? [])->contains(fn ($p) => isset($p['setDataValidation'])));
+    }
+
+    public function test_perintah_siapkan_menyembunyikan_kolom_id_di_setiap_tab(): void
+    {
+        $this->sheet = [];
+
+        $this->artisan('toko:sheets-siapkan')->assertExitCode(0);
+
+        Http::assertSent(function (Request $r) {
+            $sembunyi = collect($r->data()['requests'] ?? [])->filter(fn ($p) => ($p['updateDimensionProperties']['properties']['hiddenByUser'] ?? false) === true
+                && $p['updateDimensionProperties']['range']['startIndex'] === 0
+                && $p['updateDimensionProperties']['range']['endIndex'] === 1);
+
+            return str_ends_with($r->url(), ':batchUpdate') && $sembunyi->count() === count(IsianHasilPanen::kunci());
+        });
     }
 
     // ───────────────────────────── Tombol "Buka Google Sheets" ─────────────────────────────

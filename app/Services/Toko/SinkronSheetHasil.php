@@ -35,6 +35,9 @@ class SinkronSheetHasil
 
     private const KUNCI_KUNCI = 'toko_sheets.sinkron';
 
+    // Kolom ID disembunyikan PenyiapSheetHasil, jadi pesan galat ID harus menjelaskan cara memunculkannya.
+    private const CARA_BUKA_ID = '(Kolom ID tersembunyi: klik tanda panah kecil di kiri judul kolom B untuk menampilkannya.)';
+
     public function __construct(private GoogleSheets $sheets, private IsianHasilPanen $isian) {}
 
     /**
@@ -130,8 +133,8 @@ class SinkronSheetHasil
             if (! $this->kosong([$sel[0]])) {
                 $id = $this->bacaId($sel[0]);
                 $galatId = match (true) {
-                    $id === null => 'ID tidak valid. Biarkan kolom ID kosong untuk catatan baru.',
-                    isset($dilihat[$id]) => "ID {$id} muncul lebih dari sekali. Kosongkan kolom ID pada baris salinan.",
+                    $id === null => 'ID tidak valid. Kosongkan kolom ID untuk catatan baru. '.self::CARA_BUKA_ID,
+                    isset($dilihat[$id]) => "ID {$id} muncul lebih dari sekali; baris ini kemungkinan salinan baris lain. Kosongkan kolom ID pada baris salinan. ".self::CARA_BUKA_ID,
                     default => null,
                 };
 
@@ -141,7 +144,7 @@ class SinkronSheetHasil
 
                         continue;
                     }
-                    $galatId = "ID {$id} tidak dikenal. Kosongkan kolom ID untuk catatan baru.";
+                    $galatId = "ID {$id} tidak dikenal. Kosongkan kolom ID untuk catatan baru. ".self::CARA_BUKA_ID;
                 }
 
                 if ($galatId !== null) {
