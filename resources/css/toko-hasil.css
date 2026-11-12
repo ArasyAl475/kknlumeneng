@@ -1951,3 +1951,17 @@ body.hasil {
         transition-duration: 0.01ms !important;
     }
 }
+
+/* ---------- Pindah pilihan tanpa memuat ulang (toko/lib/segar-otomatis.js) ----------
+   Data lama tetap tampil selama data baru diambil. Baru dipudarkan bila lewat 300ms, jadi di sinyal bagus
+   tidak terlihat apa-apa (tidak berkedip); di sinyal lemah warga tetap tahu tombolnya sudah tertekan. */
+/* Blok berpembungkus display: contents tidak punya kotak sendiri, jadi anaknya yang dipudarkan. */
+html[aria-busy='true'] .hasil-isi > :not(.kepala-halaman, [style*='contents']),
+html[aria-busy='true'] .hasil-isi > [data-segar-blok] > * {
+    opacity: 0.55;
+    transition: opacity 0.2s ease 0.3s;
+}
+
+html[aria-busy='true'] {
+    cursor: progress;
+}

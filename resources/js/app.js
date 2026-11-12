@@ -178,6 +178,8 @@ function pasangPaginasi(wadah) {
 }
 
 document.querySelectorAll('[data-paginasi]').forEach(pasangPaginasi);
+// Bagian yang diganti utuh tanpa memuat ulang halaman (resources/js/toko/lib/segar-otomatis.js) ikut dipasangi paginasi.
+document.addEventListener('segar:pasang', (e) => e.target.querySelectorAll('[data-paginasi]').forEach(pasangPaginasi));
 
 // ---------- Tombol "Bagikan" di kartu status longsor (components/kartu-status) ----------
 // HP: membuka lembar bagikan bawaan (WhatsApp, dll.). Browser tanpa fitur itu: teks + tautan disalin.

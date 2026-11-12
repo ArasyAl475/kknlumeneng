@@ -7,12 +7,15 @@ use App\Http\Requests\Toko\RekapRequest;
 use App\Services\Toko\AnalisisHasil;
 use App\Services\Toko\GoogleSheets;
 use App\Services\Toko\RekapHasil;
+use App\Services\Toko\VersiHasil;
 use Illuminate\View\View;
 
 class HasilController extends Controller
 {
-    public function index(RekapRequest $request, RekapHasil $rekap, AnalisisHasil $analisis, GoogleSheets $sheets): View
+    public function index(RekapRequest $request, RekapHasil $rekap, AnalisisHasil $analisis, GoogleSheets $sheets, VersiHasil $versi): View
     {
+        // Diambil sebelum data: perubahan di sela-selanya terdeteksi pemeriksaan berikutnya, bukan terlewat.
+        $versiData = $versi->sekarang();
         $filter = $request->validated();
         $periode = $rekap->periode($filter);
         $kopi = $rekap->kopi($filter);
@@ -21,6 +24,7 @@ class HasilController extends Controller
         $penjualan = $rekap->penjualan($filter);
 
         return view('toko.hasil', [
+            'versi' => $versiData,
             'filter' => $filter,
             'periode' => $periode,
             'pilihan' => $rekap->pilihanKopi(),
