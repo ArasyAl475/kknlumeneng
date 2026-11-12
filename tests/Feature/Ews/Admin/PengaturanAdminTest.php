@@ -82,6 +82,31 @@ class PengaturanAdminTest extends TestCase
         $this->assertSame('tambah_wilayah', Aktivitas::query()->sole()->aksi);
     }
 
+    public function test_lokasi_alat_disimpan_dan_poligon_bisa_satu_titik_per_baris(): void
+    {
+        $this->post(route('admin.ews.wilayah.store'), [
+            'nama' => 'Area Alat',
+            'poligon' => "-7.186448, 109.591973\n-7.186262, 109.591157\n-7.187830, 109.591357\n-7.187723, 109.591529",
+            'lintang' => '-7.186625',
+            'bujur' => '109.591824',
+        ])->assertSessionHasNoErrors();
+
+        $w = Wilayah::query()->sole();
+        $this->assertCount(4, $w->poligon);
+        $this->assertSame([-7.186625, 109.591824], [$w->lintang, $w->bujur]);
+        $this->get(route('admin.ews.wilayah.index'))->assertSee('Lokasi alat: -7.186625, 109.591824');
+        $this->getJson('/api/ews/data')->assertJsonPath('wilayah.0.lintang', -7.186625);
+    }
+
+    public function test_lokasi_alat_boleh_kosong_tetapi_harus_berpasangan(): void
+    {
+        $this->post(route('admin.ews.wilayah.store'), ['nama' => 'Tanpa Lokasi', 'poligon' => self::BENTUK])->assertSessionHasNoErrors();
+        $this->assertNull(Wilayah::query()->sole()->lintang);
+
+        $this->post(route('admin.ews.wilayah.store'), ['nama' => 'Setengah', 'poligon' => self::BENTUK, 'lintang' => '-7.1'])->assertSessionHasErrors('bujur');
+        $this->post(route('admin.ews.wilayah.store'), ['nama' => 'Mustahil', 'poligon' => self::BENTUK, 'lintang' => '-97', 'bujur' => '109'])->assertSessionHasErrors('lintang');
+    }
+
     #[DataProvider('poligonSalah')]
     public function test_poligon_tidak_valid_ditolak(string $poligon): void
     {

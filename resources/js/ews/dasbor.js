@@ -1,19 +1,15 @@
 // Dashboard EWS. Semua status, teks, dan level sudah dihitung server; berkas ini hanya menampilkan.
+import { IKON, tampilkanPanel } from './lib/panel.js';
+import { mulaiPembaruan } from './lib/pembaruan.js';
+
 const akar = document.getElementById('dasbor');
 const el = (id) => document.getElementById(id);
-const IKON = { hijau: 'aman', kuning: 'waspada', merah: 'awas', kosong: 'kosong' };
-const JEDA_NORMAL = 10_000;
-const JEDA_MAKS = 60_000;
 
 let data = JSON.parse(el('data-awal').textContent);
 let wilayahAktif = null;
 let wilayahDipilihWarga = false;
-let statusSebelum = data.utama.status;
 let peta = null;
 let grafik = null;
-let etagTerakhir = null;
-let gagalBeruntun = 0;
-let waktuTerakhir = null;
 let sensorGrafik = 'kelembapan_tanah';
 let rentangGrafik = '24j';
 
@@ -35,55 +31,6 @@ function lencana(warna, kata) {
     return node;
 }
 
-// Teks penanda dan tingkat di kartu status; harus sama dengan $teks di components/kartu-status.blade.php.
-const TEKS_KARTU = {
-    hijau: { penanda: 'Kondisi normal', tingkat: 'Tingkat 1' },
-    kuning: { penanda: 'Perhatian warga', tingkat: 'Tingkat 2' },
-    merah: { penanda: 'Darurat aktif', tingkat: 'Tingkat 3' },
-    kosong: { penanda: 'Menunggu data', tingkat: null },
-};
-
-// Isi satu bagian kartu status; nilai kosong berarti bagiannya disembunyikan.
-// `wadah`: elemen yang ikut disembunyikan (mis. kotak sel), bawaannya elemen itu sendiri.
-function isiBagian(id, nilai, wadah = (e) => e) {
-    const teks = el(id);
-    teks.textContent = nilai ?? '';
-    wadah(teks).hidden = !nilai;
-}
-
-function tampilkanPanel() {
-    const { utama, offline, wilayah } = data;
-    const teks = TEKS_KARTU[utama.warna] ?? TEKS_KARTU.kosong;
-    el('panel').dataset.warna = utama.warna;
-    el('panel-ikon').setAttribute('href', `#i-${IKON[utama.warna]}`);
-    el('panel-status').textContent = utama.status ?? 'Belum ada data';
-    el('panel-penanda').textContent = teks.penanda;
-    isiBagian('panel-tingkat', teks.tingkat);
-    isiBagian('panel-pemicu', utama.pemicu);
-    el('panel-saran').textContent = utama.saran;
-    isiBagian('panel-lokasi', utama.lokasi, (e) => e.closest('[data-sel]'));
-    isiBagian('panel-waktu', utama.waktu ? `${utama.waktu} WIB` : null, (e) => e.closest('[data-sel]'));
-
-    // Ringkasan alat: berapa wilayah dipantau dan berapa alatnya masih mengirim data.
-    el('panel-alat').hidden = wilayah.length === 0;
-    el('panel-jumlah-wilayah').textContent = `${wilayah.length} wilayah`;
-    const aktif = el('panel-jumlah-aktif');
-    aktif.classList.toggle('kartu-status__nilai--kurang', offline.length > 0);
-    aktif.querySelector('use').setAttribute('href', offline.length > 0 ? '#i-offline' : '#i-alat');
-    aktif.querySelector('span').textContent = `${wilayah.length - offline.length} dari ${wilayah.length}`;
-
-    isiBagian(
-        'panel-peringatan-teks',
-        offline.map((a) => `Alat tidak mengirim data: ${a.nama} (terakhir ${a.waktu} WIB).`).join(' '),
-        () => el('panel-peringatan'),
-    );
-
-    if (utama.status !== statusSebelum) {
-        el('pengumuman').textContent = `Status berubah menjadi ${utama.status ?? 'belum ada data'}. ${utama.saran}`;
-        statusSebelum = utama.status;
-    }
-}
-
 function tampilkanDaftar() {
     const wadah = el('daftar-wilayah');
 
@@ -98,7 +45,8 @@ function tampilkanDaftar() {
         }
         tombol.setAttribute('aria-pressed', String(w.id === wilayahAktif));
         isi(tombol, 'nama', w.nama);
-        isi(tombol, 'info', w.offline ? 'Alat tidak mengirim data' : (w.waktu ? `Data ${w.waktu} WIB` : 'Belum ada data'));
+        const infoOffline = w.kondisi_tak_diketahui ? 'Alat berhenti saat Waspada, kondisi tidak diketahui' : 'Alat tidak mengirim data';
+        isi(tombol, 'info', w.offline ? infoOffline : (w.waktu ? `Data ${w.waktu} WIB` : 'Belum ada data'));
         isi(tombol, 'lencana', '').append(lencana(w.warna, w.status ?? 'Belum ada data'));
     });
 
@@ -179,8 +127,7 @@ function pilihWilayah(id, olehWarga = false) {
     tampilkanDaftar();
     tampilkanSensor();
     peta?.perbarui(data.wilayah, wilayahAktif);
-    if (olehWarga) peta?.fokus(id);
-    grafik?.muat(wilayahAktif, sensorGrafik, rentangGrafik);
+    if (olehWarga) peta?.fokus(id);    grafik?.muat(wilayahAktif, sensorGrafik, rentangGrafik);
 }
 
 function tampilkanSemua() {
@@ -188,51 +135,12 @@ function tampilkanSemua() {
     if (!wilayahDipilihWarga || !data.wilayah.some((w) => w.id === wilayahAktif)) {
         wilayahAktif = data.wilayah.find((w) => w.nama === data.utama.lokasi)?.id ?? data.wilayah[0]?.id ?? null;
     }
-    tampilkanPanel();
+    tampilkanPanel(data);
     tampilkanDaftar();
     tampilkanSensor();
     tampilkanLog();
     peta?.perbarui(data.wilayah, wilayahAktif);
-}
-
-function tampilkanKoneksi() {
-    const jam = waktuTerakhir?.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    el('koneksi').textContent = gagalBeruntun > 0
-        ? `Koneksi terputus, mencoba lagi. Menampilkan data terakhir${jam ? ` (diperiksa pukul ${jam})` : ''}.`
-        : `Terhubung. Terakhir diperbarui pukul ${jam}.`;
-}
-
-async function ambilData() {
-    if (document.hidden) return; // Tab tak terlihat tidak perlu menghabiskan kuota.
-
-    try {
-        const respons = await fetch(akar.dataset.urlData, {
-            headers: { Accept: 'application/json' },
-            signal: AbortSignal.timeout(8000),
-        });
-        if (!respons.ok) throw new Error(`HTTP ${respons.status}`);
-
-        const etag = respons.headers.get('ETag');
-        if (etag === null || etag !== etagTerakhir) {
-            data = await respons.json();
-            etagTerakhir = etag;
-            tampilkanSemua();
-        }
-        gagalBeruntun = 0;
-        waktuTerakhir = new Date();
-    } catch {
-        gagalBeruntun += 1;
-    }
-    tampilkanKoneksi();
-}
-
-function jadwalkan() {
-    // Saat sinyal hilang, jeda dibuat makin panjang agar tidak terus-menerus membuang baterai.
-    const jeda = Math.min(JEDA_MAKS, JEDA_NORMAL * 2 ** gagalBeruntun);
-    setTimeout(async () => {
-        await ambilData();
-        jadwalkan();
-    }, jeda);
+    peta?.perbaruiTitik(data.titik);
 }
 
 function saatTerlihat(elemen, jalankan) {
@@ -251,6 +159,7 @@ function siapkanPeta() {
             const { buatPeta } = await import('./lib/peta.js');
             peta = buatPeta(el('peta'), (id) => pilihWilayah(id, true));
             peta.perbarui(data.wilayah, wilayahAktif);
+            peta.perbaruiTitik(data.titik);
             el('mode-peta').addEventListener('change', (e) => peta.gantiMode(e.target.value));
         } catch {
             el('peta-galat').classList.remove('hidden');
@@ -292,12 +201,18 @@ function siapkanGrafik() {
 tampilkanSemua();
 siapkanPeta();
 siapkanGrafik();
-waktuTerakhir = new Date();
-tampilkanKoneksi();
-jadwalkan();
 
-// Begitu sinyal kembali atau tab dibuka lagi, data langsung disegarkan tanpa menunggu jadwal.
-window.addEventListener('online', ambilData);
-document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) ambilData();
+function tampilkanKoneksi({ gagal, waktu }) {
+    const jam = waktu.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    el('koneksi').textContent = gagal > 0
+        ? `Koneksi terputus, mencoba lagi. Menampilkan data terakhir (diperiksa pukul ${jam}).`
+        : `Terhubung. Terakhir diperbarui pukul ${jam}.`;
+}
+
+mulaiPembaruan(akar.dataset.urlData, {
+    saatData: (baru) => {
+        data = baru;
+        tampilkanSemua();
+    },
+    saatKoneksi: tampilkanKoneksi,
 });

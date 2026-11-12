@@ -35,6 +35,38 @@ class GeometriPoligon
     }
 
     /**
+     * Menerima dua bentuk isian: JSON [[lintang,bujur],...] atau satu titik per baris "lintang, bujur"
+     * (yang biasa disalin dari Google Maps). Spasi nyasar di dalam angka diabaikan.
+     *
+     * @return array<int, array{0: float, 1: float}>|null null bila bukan daftar koordinat yang sah
+     */
+    public static function dariTeks(string $teks): ?array
+    {
+        $teks = trim($teks);
+
+        if ($teks === '') {
+            return null;
+        }
+        if (str_starts_with($teks, '[')) {
+            return self::normalkan(json_decode($teks, true));
+        }
+
+        $titik = [];
+        foreach (preg_split('/\R/', $teks) as $baris) {
+            if (trim($baris) === '') {
+                continue;
+            }
+            $bagian = preg_split('/[,;]/', $baris);
+            if (count($bagian) !== 2) {
+                return null;
+            }
+            $titik[] = array_map(fn (string $b) => preg_replace('/\s+/', '', $b), $bagian);
+        }
+
+        return self::normalkan($titik);
+    }
+
+    /**
      * @param  array<int, array{0: float, 1: float}>  $titik
      * @return string|null pesan masalah, atau null bila bentuknya sah
      */

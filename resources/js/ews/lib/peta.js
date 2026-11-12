@@ -29,6 +29,17 @@ const GAYA = {
 
 const gerakDikurangi = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+// Penanda dibedakan lewat BENTUK (lingkaran, kotak, segitiga), bukan hanya warna. Isinya tetap: tanpa data pengguna.
+const PENANDA = {
+    pintar: '<svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="12" fill="#1e40af" stroke="#fff" stroke-width="3"/><circle cx="15" cy="15" r="4" fill="#fff"/></svg>',
+    alarm: '<svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect x="4" y="4" width="22" height="22" rx="3" fill="#0f766e" stroke="#fff" stroke-width="3"/><path d="M15 9v7M15 20v1.5" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>',
+    rawan: '<svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path d="M15 3 28 26H2Z" fill="#c2410c" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><path d="M15 12v7M15 22v1" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>',
+};
+const ikonPenanda = (jenis) => L.divIcon({ className: '', html: PENANDA[jenis], iconSize: [30, 30], iconAnchor: [15, 15] });
+
+// Batas area EWS alarm: garis titik-titik biru kehijauan, beda dari garis status wilayah.
+const GAYA_ALARM = { color: '#0f766e', fillColor: '#0f766e', weight: 2, dashArray: '2 6', fillOpacity: 0.12 };
+
 export function buatPeta(wadah, saatDipilih) {
     const peta = L.map(wadah, {
         scrollWheelZoom: false,
@@ -39,9 +50,46 @@ export function buatPeta(wadah, saatDipilih) {
 
     let dasar = LAPISAN.standar().addTo(peta);
     const poligon = new Map();
+    const penandaAlat = new Map();
+    const lapisTitik = L.featureGroup().addTo(peta);
     let sudahDipaskan = false;
+    let sidikTitik = null;
+
+    // Elemen dengan textContent, bukan teks HTML: nama berasal dari input admin.
+    const tooltip = (teks) => {
+        const label = document.createElement('span');
+        label.textContent = teks;
+        return label;
+    };
+
+    function paskanSekali() {
+        const semua = L.featureGroup([...poligon.values(), ...penandaAlat.values(), ...lapisTitik.getLayers()]);
+        if (!sudahDipaskan && semua.getLayers().length) {
+            peta.fitBounds(semua.getBounds(), { padding: [24, 24], maxZoom: 17 });
+            sudahDipaskan = true;
+        }
+    }
 
     return {
+        // Titik tanpa data sensor: EWS alarm (dengan batas area bila ada) dan titik rawan longsor.
+        perbaruiTitik(daftar = []) {
+            // Pembaruan berkala tiap beberapa detik: gambar ulang hanya bila isinya berubah,
+            // supaya tooltip yang sedang dibuka tidak berkedip.
+            const sidik = JSON.stringify(daftar);
+            if (sidik === sidikTitik) return;
+            sidikTitik = sidik;
+            lapisTitik.clearLayers();
+            daftar.forEach((t) => {
+                if (t.jenis === 'alarm' && t.poligon) {
+                    L.polygon(t.poligon, GAYA_ALARM).bindTooltip(tooltip(`${t.nama}: ${t.jenis_teks}`)).addTo(lapisTitik);
+                }
+                L.marker([t.lintang, t.bujur], { icon: ikonPenanda(t.jenis), keyboard: false })
+                    .bindTooltip(tooltip(`${t.nama}: ${t.jenis_teks}`))
+                    .addTo(lapisTitik);
+            });
+            paskanSekali();
+        },
+
         gantiMode(mode) {
             peta.removeLayer(dasar);
             dasar = LAPISAN[mode]().addTo(peta);
@@ -67,17 +115,40 @@ export function buatPeta(wadah, saatDipilih) {
                 bentuk.setTooltipContent(label);
             });
 
+            // Penanda lokasi alat EWS pintar; hanya ada bila admin mengisi lintang dan bujur.
+            daftar.forEach((w) => {
+                let penanda = penandaAlat.get(w.id);
+                if (w.lintang === null || w.lintang === undefined) {
+                    if (penanda) {
+                        peta.removeLayer(penanda);
+                        penandaAlat.delete(w.id);
+                    }
+                    return;
+                }
+                if (!penanda) {
+                    penanda = L.marker([w.lintang, w.bujur], { icon: ikonPenanda('pintar'), keyboard: false }).addTo(peta);
+                    penanda.on('click', () => saatDipilih(w.id));
+                    penanda.bindTooltip(tooltip(''));
+                    penandaAlat.set(w.id, penanda);
+                }
+                penanda.setLatLng([w.lintang, w.bujur]);
+                penanda.setTooltipContent(tooltip(`${w.nama}: alat EWS pintar`));
+            });
+
             poligon.forEach((bentuk, id) => {
                 if (!daftar.some((w) => w.id === id)) {
                     peta.removeLayer(bentuk);
                     poligon.delete(id);
                 }
             });
+            penandaAlat.forEach((penanda, id) => {
+                if (!daftar.some((w) => w.id === id)) {
+                    peta.removeLayer(penanda);
+                    penandaAlat.delete(id);
+                }
+            });
 
-            if (!sudahDipaskan && poligon.size) {
-                peta.fitBounds(L.featureGroup([...poligon.values()]).getBounds(), { padding: [24, 24], maxZoom: 17 });
-                sudahDipaskan = true;
-            }
+            paskanSekali();
         },
 
         fokus(id) {

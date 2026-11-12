@@ -4,6 +4,7 @@ namespace Tests\Feature\Ews;
 
 use App\Models\Ews\Pembacaan;
 use App\Models\Ews\Pengaturan;
+use App\Models\Ews\Titik;
 use App\Models\Ews\Wilayah;
 use Database\Seeders\EwsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -14,13 +15,15 @@ class PerintahEwsTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_seeder_membuat_tiga_wilayah_dan_ambang_tanpa_menimpa_perubahan(): void
+    public function test_seeder_membuat_area_awal_dan_ambang_tanpa_menimpa_perubahan(): void
     {
         $this->seed(EwsSeeder::class);
         Pengaturan::simpanAmbang(['kemiringan' => ['waspada' => 3, 'validasi' => 9]]);
         $this->seed(EwsSeeder::class);
 
-        $this->assertSame(3, Wilayah::query()->count());
+        $this->assertSame(['Titik Area 2'], Wilayah::query()->pluck('nama')->all());
+        $this->assertSame(-7.186625, Wilayah::query()->sole()->lintang);
+        $this->assertSame(['Titik Area 1' => 'alarm'], Titik::query()->pluck('jenis', 'nama')->all());
         $this->assertSame(['waspada' => 3.0, 'validasi' => 9.0], Pengaturan::ambang()['kemiringan']);
         $this->assertSame(['waspada' => 50.0, 'validasi' => 80.0], Pengaturan::ambang()['kelembapan_tanah']);
     }

@@ -83,11 +83,21 @@ peta.on('draw:editvertex', () => {
     if (bentuk) tulisIsian();
 });
 
+// Dua bentuk isian: JSON [[lintang,bujur],...] atau satu "lintang, bujur" per baris. Hanya untuk pratinjau
+// di peta; yang menentukan sah atau tidaknya tetap server.
+function bacaTitik(teks) {
+    const bersih = teks.trim();
+    if (bersih.startsWith('[')) return JSON.parse(bersih);
+    return bersih.split(/\r?\n/).filter((b) => b.trim() !== '').map((b) => b.split(/[,;]/).map((n) => Number(n.replace(/\s+/g, ''))));
+}
+
+const sahKoordinat = (t) => Array.isArray(t) && t.length === 2 && t.every(Number.isFinite) && Math.abs(t[0]) <= 90 && Math.abs(t[1]) <= 180;
+
 // Mengisi koordinat manual ikut memperbarui peta, sebagai jalan lain bagi yang tidak bisa menggambar.
 function muatDariIsian() {
     try {
-        const titik = JSON.parse(isian.value);
-        if (Array.isArray(titik) && titik.length >= 3) {
+        const titik = bacaTitik(isian.value);
+        if (Array.isArray(titik) && titik.length >= 3 && titik.every(sahKoordinat)) {
             pasangBentuk(titik);
             return true;
         }
@@ -98,8 +108,81 @@ function muatDariIsian() {
 }
 isian.addEventListener('change', muatDariIsian);
 
+// ── Titik lokasi (lintang, bujur): isian, penanda di peta, dan ketuk peta saling menyinkronkan. ──
+const isianLintang = document.getElementById('lintang');
+const isianBujur = document.getElementById('bujur');
+const tombolPilih = document.getElementById('pilih-titik');
+const statusTitik = document.getElementById('status-titik');
+// Ikon bawaan Leaflet butuh berkas gambar yang tidak ikut ter-bundle, jadi penanda digambar sendiri.
+const ikonTitik = L.divIcon({
+    className: '',
+    html: '<svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="11" fill="#1e40af" stroke="#fff" stroke-width="3"/><circle cx="14" cy="14" r="3.5" fill="#fff"/></svg>',
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+});
+let penanda = null;
+let memilihTitik = false;
+
+function bacaIsianTitik() {
+    if (isianLintang.value.trim() === '' || isianBujur.value.trim() === '') return null;
+    const t = [Number(isianLintang.value.replace(/\s+/g, '')), Number(isianBujur.value.replace(/\s+/g, ''))];
+    return sahKoordinat(t) ? t : null;
+}
+
+function tulisIsianTitik(latlng) {
+    isianLintang.value = latlng.lat.toFixed(6);
+    isianBujur.value = latlng.lng.toFixed(6);
+}
+
+function taruhPenanda(titik) {
+    if (penanda) {
+        penanda.setLatLng(titik);
+        return;
+    }
+    penanda = L.marker(titik, { icon: ikonTitik, draggable: true, keyboard: false }).addTo(peta);
+    penanda.on('dragend', () => tulisIsianTitik(penanda.getLatLng()));
+}
+
+function sinkronDariIsianTitik() {
+    const titik = bacaIsianTitik();
+    if (titik) {
+        taruhPenanda(titik);
+        peta.panTo(titik);
+    }
+}
+
+// Menempel "-7.185390, 109.588069" dari Google Maps di kolom Lintang langsung terpecah ke dua kolom.
+isianLintang.addEventListener('paste', (e) => {
+    const teks = (e.clipboardData || window.clipboardData).getData('text');
+    const bagian = teks.split(/[,;]/);
+    if (bagian.length !== 2) return;
+    e.preventDefault();
+    isianLintang.value = bagian[0].replace(/\s+/g, '');
+    isianBujur.value = bagian[1].replace(/\s+/g, '');
+    sinkronDariIsianTitik();
+});
+isianLintang.addEventListener('change', sinkronDariIsianTitik);
+isianBujur.addEventListener('change', sinkronDariIsianTitik);
+
+tombolPilih.addEventListener('click', () => {
+    memilihTitik = true;
+    statusTitik.textContent = 'Ketuk satu tempat di peta untuk menaruh titik.';
+});
+peta.on('click', (e) => {
+    if (!memilihTitik) return;
+    memilihTitik = false;
+    taruhPenanda(e.latlng);
+    tulisIsianTitik(e.latlng);
+    statusTitik.textContent = 'Titik dipasang. Penanda bisa digeser untuk menyesuaikan.';
+});
+
+const titikAwal = bacaIsianTitik();
+if (titikAwal) taruhPenanda(titikAwal);
+
 if (muatDariIsian()) {
     peta.fitBounds(bentuk.getBounds(), { padding: [30, 30], maxZoom: 17 });
+} else if (titikAwal) {
+    peta.setView(titikAwal, 17);
 } else if (lain.getLayers().length) {
     peta.fitBounds(lain.getBounds(), { padding: [30, 30], maxZoom: 16 });
 }

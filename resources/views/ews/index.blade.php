@@ -4,14 +4,14 @@
 
 @push('skrip')
     @vite('resources/js/ews/dasbor.js')
+    {{-- Penampil layar penuh untuk gambar peta kerawanan (milik modul Profil, dipakai bersama). --}}
+    @vite('resources/js/profil/galeri.js')
 @endpush
 
 @php
     $utama = $data['utama'];
-    // Kalimat yang sama dengan yang ditulis dasbor.js saat pembaruan berkala.
-    $teksOffline = collect($data['offline'])
-        ->map(fn (array $alat) => "Alat tidak mengirim data: {$alat['nama']} (terakhir {$alat['waktu']} WIB).")
-        ->implode(' ') ?: null;
+    // Kalimatnya disusun server (DataDasbor), sama dengan yang dipakai dasbor.js saat pembaruan berkala.
+    $teksOffline = collect($data['offline'])->pluck('teks')->implode(' ') ?: null;
 @endphp
 
 @section('hero')
@@ -137,6 +137,64 @@
         <p class="mt-2 flex items-start gap-2 text-sm text-redup">
             <x-ikon nama="info" class="mt-0.5 size-4 shrink-0 text-biru" />Ketuk wilayah untuk melihat bacaannya. Di HP, geser peta dengan dua jari. Garis: tipis = Aman, putus-putus = Waspada, tebal = Awas.
         </p>
+        {{-- Bentuk penanda sama dengan PENANDA di resources/js/ews/lib/peta.js. --}}
+        <ul class="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm" aria-label="Arti penanda di peta">
+            <li class="flex items-center gap-2"><svg width="20" height="20" viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="12" fill="#1e40af"/><circle cx="15" cy="15" r="4" fill="#fff"/></svg>EWS pintar, terhubung ke web</li>
+            <li class="flex items-center gap-2"><svg width="20" height="20" viewBox="0 0 30 30" aria-hidden="true"><rect x="4" y="4" width="22" height="22" rx="3" fill="#0f766e"/><path d="M15 9v7M15 20v1.5" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>EWS alarm, belum terhubung</li>
+            <li class="flex items-center gap-2"><svg width="20" height="20" viewBox="0 0 30 30" aria-hidden="true"><path d="M15 3 28 26H2Z" fill="#c2410c" stroke="#c2410c" stroke-width="2" stroke-linejoin="round"/><path d="M15 12v7M15 22v1" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>Titik rawan longsor</li>
+        </ul>
+    </section>
+
+    {{-- ══════════════════════════════════════
+         PETA KERAWANAN (gambar dari kajian 2024)
+    ══════════════════════════════════════ --}}
+    <section id="kerawanan" class="mt-8 scroll-mt-20" aria-labelledby="judul-kerawanan">
+        <div class="mb-3 flex items-center gap-3">
+            <span class="h-6 w-1.5 rounded-full bg-aksen" aria-hidden="true"></span>
+            <h2 id="judul-kerawanan" class="text-xl font-extrabold text-navy">Peta kerawanan longsor desa</h2>
+        </div>
+        <p class="mb-4 flex items-start gap-2 text-sm text-redup">
+            <x-ikon nama="info" class="mt-0.5 size-4 shrink-0 text-biru" />
+            Gambaran kerawanan jangka panjang dari kajian tahun 2024, bukan status saat ini. Status saat ini ada di panel paling atas.
+        </p>
+
+        {{-- Peta pertama (gabungan semua faktor) dibuat besar; empat peta faktor pendukung lebih kecil di sampingnya.
+             Diketuk membuka penampil layar penuh yang bisa digeser antar peta (resources/js/profil/galeri.js),
+             karena tulisan legenda terlalu kecil di HP. Tanpa JavaScript, tautan membuka gambar penuh di tab baru. --}}
+        <ul data-galeri data-stagger class="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+            @foreach ($petaKerawanan as $peta)
+                @php $url = asset('images/lumeneng/peta/'.$peta['berkas'].'.webp'); @endphp
+                <li @class(['col-span-2 lg:row-span-2' => $loop->first]) style="--i: {{ $loop->index }}">
+                    <a href="{{ $url }}" target="_blank" rel="noopener" data-foto data-besar="{{ $url }}" data-judul="{{ $peta['judul'] }}" data-keterangan="{{ $peta['penjelasan'] }}"
+                       aria-label="Perbesar {{ $peta['judul'] }}"
+                       class="group flex h-full flex-col overflow-hidden rounded-2xl border border-garis-halus bg-permukaan shadow-kartu transition-[transform,box-shadow] duration-300 motion-safe:hover:-translate-y-1 hover:shadow-angkat focus-visible:outline-offset-4">
+                        {{-- Peta besar mengisi sisa tinggi kartu (dua baris); peta kecil memakai perbandingan tetap. --}}
+                        <span @class(['relative block bg-white', 'aspect-[7/5] lg:aspect-auto lg:min-h-0 lg:flex-1' => $loop->first, 'aspect-[7/5]' => ! $loop->first])>
+                            <img src="{{ $url }}" alt="{{ $peta['alt'] }}" loading="lazy" decoding="async" width="580" height="410"
+                                 class="absolute inset-0 size-full object-contain p-2 motion-safe:transition-transform motion-safe:duration-500 group-hover:scale-[1.03]">
+                            <span @class([
+                                'absolute right-2 top-2 inline-flex items-center justify-center rounded-full bg-navy/85 text-sm font-bold text-white',
+                                'min-h-9 gap-1.5 px-3' => $loop->first,
+                                'size-9' => ! $loop->first,
+                            ]) aria-hidden="true">
+                                <x-ikon nama="perbesar" class="size-4" />@if ($loop->first)Perbesar @endif
+                            </span>
+                        </span>
+                        <span class="block border-t border-garis-halus p-3.5 sm:p-4">
+                            <span class="flex items-center gap-2 font-judul font-extrabold leading-snug text-navy">
+                                @if ($loop->first)
+                                    <span class="inline-flex shrink-0 rounded-full bg-aksen-lembut px-2 py-0.5 text-xs font-bold text-aksen-tua">Utama</span>
+                                @endif
+                                {{ $peta['judul'] }}
+                            </span>
+                            <span @class(['mt-1 block text-sm text-redup', 'line-clamp-2' => ! $loop->first])>{{ $peta['penjelasan'] }}</span>
+                        </span>
+                    </a>
+                </li>
+            @endforeach
+        </ul>
+
+        <p class="mt-3 text-sm text-redup">Sumber: {{ \App\Services\Ews\PetaKerawanan::SUMBER }}.</p>
     </section>
 
     {{-- ══════════════════════════════════════

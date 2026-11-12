@@ -122,6 +122,27 @@ class DasborTest extends TestCase
         $this->get('/ews')->assertSee('Alat tidak mengirim data: Lereng Sunyi');
     }
 
+    public function test_alat_diam_saat_waspada_mendapat_peringatan_lebih_keras(): void
+    {
+        config(['ews.alat_offline_menit' => 15]);
+        $waspada = Wilayah::factory()->create(['nama' => 'Lereng Waspada']);
+        $aman = Wilayah::factory()->create(['nama' => 'Jalan Aman']);
+        Pembacaan::factory()->create(['wilayah_id' => $waspada->id, 'kelembapan_tanah' => 60, 'status' => 'Waspada', 'warna' => 'kuning', 'pemicu' => 'Kelembapan tanah 60%']);
+        Pembacaan::factory()->create(['wilayah_id' => $aman->id]);
+
+        $this->travel(16)->minutes();
+
+        $d = $this->getJson('/api/ews/data')->json();
+        $this->assertTrue($d['wilayah'][0]['kondisi_tak_diketahui']);
+        $this->assertFalse($d['wilayah'][1]['kondisi_tak_diketahui']);
+        $this->assertTrue($d['offline'][0]['saat_waspada']);
+        $this->assertStringContainsString('saat kondisi Waspada', $d['offline'][0]['teks']);
+        $this->assertStringContainsString('jangan anggap sudah aman', $d['offline'][0]['teks']);
+        $this->assertStringStartsWith('Alat tidak mengirim data: Jalan Aman', $d['offline'][1]['teks']);
+        $this->get('/ews')->assertSee('saat kondisi Waspada');
+        $this->get('/')->assertSee('berhenti mengirim data saat kondisi Waspada');
+    }
+
     public function test_jumlah_query_tidak_bertambah_mengikuti_jumlah_wilayah(): void
     {
         $hitung = function () {

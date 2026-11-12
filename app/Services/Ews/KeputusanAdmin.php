@@ -56,6 +56,32 @@ class KeputusanAdmin
         return $berhasil;
     }
 
+    /**
+     * Admin menyatakan Awas sendiri, tanpa laporan sensor: mis. alat berhenti saat Waspada, atau kader
+     * melihat retakan di lapangan. Alasan hanya masuk log admin; yang tampil ke warga cukup sumbernya.
+     *
+     * @return bool false bila wilayah sudah berstatus Awas
+     */
+    public function nyatakanAwas(Wilayah $wilayah, User $admin, string $alasan): bool
+    {
+        $berhasil = DB::transaction(function () use ($wilayah, $admin, $alasan) {
+            $terkunci = Wilayah::query()->lockForUpdate()->findOrFail($wilayah->id);
+
+            if ($terkunci->status_awas) {
+                return false;
+            }
+
+            $terkunci->update(['status_awas' => true, 'awas_sumber' => 'Dinyatakan admin (manual)', 'awas_sejak' => now()]);
+            Aktivitas::catat($admin, 'nyatakan_awas', "Menyatakan Awas {$terkunci->nama} secara manual. Alasan: {$alasan}");
+
+            return true;
+        });
+
+        DataDasbor::lupakan();
+
+        return $berhasil;
+    }
+
     public function cabutAwas(Wilayah $wilayah, User $admin, string $alasan): void
     {
         DB::transaction(function () use ($wilayah, $admin, $alasan) {

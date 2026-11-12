@@ -51,6 +51,37 @@ class GeometriPoligonTest extends TestCase
         ];
     }
 
+    public function test_teks_satu_titik_per_baris_dibaca_seperti_json(): void
+    {
+        $dariBaris = GeometriPoligon::dariTeks("-7.185772, 109.588701\r\n\r\n-7.185060, 109.587750\n-7.185356, 109.587502\n");
+
+        $this->assertSame([[-7.185772, 109.588701], [-7.18506, 109.58775], [-7.185356, 109.587502]], $dariBaris);
+        $this->assertSame($dariBaris, GeometriPoligon::dariTeks('[[-7.185772,109.588701],[-7.18506,109.58775],[-7.185356,109.587502]]'));
+    }
+
+    public function test_spasi_nyasar_di_dalam_angka_diabaikan(): void
+    {
+        $this->assertSame([[-7.186625, 109.591824]], GeometriPoligon::dariTeks('-7. 186625, 109.591824'));
+    }
+
+    #[DataProvider('teksRusak')]
+    public function test_teks_rusak_ditolak(string $teks): void
+    {
+        $this->assertNull(GeometriPoligon::dariTeks($teks));
+    }
+
+    public static function teksRusak(): array
+    {
+        return [
+            'kosong' => [''],
+            'satu nilai di satu baris' => ["-7.1\n-7.2"],
+            'tiga nilai di satu baris' => ['-7.1, 109.1, 5'],
+            'bukan angka' => ['Titik lokasi EWS, abc'],
+            'json rusak' => ['[[1,2'],
+            'lintang lewat 90' => ['-97.1, 109.1'],
+        ];
+    }
+
     public function test_bangun_sah_termasuk_cekung(): void
     {
         $this->assertNull(GeometriPoligon::masalah([[-7.1, 109.1], [-7.1, 109.2], [-7.2, 109.2]]));

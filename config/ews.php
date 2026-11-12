@@ -33,10 +33,21 @@ return [
         'jadwal' => (bool) env('EWS_MQTT_JADWAL', false),
     ],
 
-    // Wilayah CONTOH untuk seeder; batas sebenarnya digambar admin. Urutan titik: [lintang, bujur].
+    // Data awal untuk seeder, dari lokasi alat sebenarnya. Urutan titik: [lintang, bujur].
+    // Wilayah = EWS pintar yang mengirim data (ID-nya dipasang di ESP32).
     'wilayah_awal' => [
-        'Lereng Kebun Kopi' => [[-7.1685, 109.5485], [-7.1685, 109.5515], [-7.1705, 109.5520], [-7.1718, 109.5500], [-7.1710, 109.5478]],
-        'Jalan Desa Utama' => [[-7.1722, 109.5528], [-7.1724, 109.5552], [-7.1734, 109.5556], [-7.1738, 109.5532]],
-        'Dekat Pemukiman' => [[-7.1660, 109.5448], [-7.1660, 109.5474], [-7.1676, 109.5476], [-7.1680, 109.5452]],
+        'Titik Area 2' => [
+            'poligon' => [[-7.186448, 109.591973], [-7.186262, 109.591157], [-7.187830, 109.591357], [-7.187723, 109.591529]],
+            'lokasi_alat' => [-7.186625, 109.591824],
+        ],
+    ],
+
+    // Titik yang tidak mengirim data ke web. jenis: alarm | rawan. Titik rawan longsor ditambah admin sendiri.
+    'titik_awal' => [
+        'Titik Area 1' => [
+            'jenis' => 'alarm',
+            'poligon' => [[-7.185772, 109.588701], [-7.185060, 109.587750], [-7.185356, 109.587502], [-7.186111, 109.588447]],
+            'lokasi_alat' => [-7.185390, 109.588069],
+        ],
     ],
 ];

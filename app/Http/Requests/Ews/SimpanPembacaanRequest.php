@@ -20,7 +20,7 @@ class SimpanPembacaanRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'wilayah_id' => ['required_without:lokasi', 'nullable', 'integer', Rule::exists('ews_wilayah', 'id')->whereNull('deleted_at')],
+            'wilayah_id' => ['required_without:lokasi', 'nullable', 'integer', Rule::exists('ews_wilayah', 'id_alat')->whereNull('deleted_at')],
             'lokasi' => ['required_without:wilayah_id', 'nullable', 'string', 'max:100', Rule::exists('ews_wilayah', 'nama')->whereNull('deleted_at')],
             ...KirimanAlat::aturanSensor(),
         ];
@@ -40,10 +40,11 @@ class SimpanPembacaanRequest extends FormRequest
         ], 422));
     }
 
+    // wilayah_id dari alat = ID alat (kolom id_alat), bukan id baris basis data; admin bisa menggantinya.
     public function wilayah(): Wilayah
     {
         return $this->filled('wilayah_id')
-            ? Wilayah::query()->findOrFail($this->integer('wilayah_id'))
+            ? Wilayah::query()->where('id_alat', $this->integer('wilayah_id'))->firstOrFail()
             : Wilayah::query()->where('nama', $this->input('lokasi'))->firstOrFail();
     }
 
