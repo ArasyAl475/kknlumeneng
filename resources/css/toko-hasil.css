@@ -9,6 +9,20 @@
  * Ukuran huruf mengikuti skala Stitch, tetapi teks terkecil dinaikkan ke 13px (Stitch: 11-12px)
  * karena pembacanya banyak yang lanjut usia dan memakai HP.
  */
+/*
+ * Pindah antar-halaman (Semua waktu / Tahun ini / Bulan ini) adalah muat ulang halaman penuh.
+ * Dengan ini peramban menahan halaman lama sampai halaman baru siap digambar, lalu menyilangkannya
+ * dengan lembut, jadi layar tidak sempat putih atau tanpa gaya. Peramban yang belum mendukung
+ * cukup mengabaikannya (tetap berfungsi, hanya tanpa efek halus).
+ */
+@view-transition {
+    navigation: auto;
+}
+
+::view-transition-group(root) {
+    animation-duration: 150ms;
+}
+
 @font-face {
     font-family: 'Plus Jakarta Sans';
     src: url('../fonts/plus-jakarta-sans-latin-wght.woff2') format('woff2');
@@ -1470,6 +1484,17 @@ body.hasil {
     text-align: center;
 }
 
+/* Kerangka muat baru tampak bila grafik lambat (>250 md). Bila cepat, kerangka tak sempat muncul,
+   jadi tidak ada kilatan kerangka -> grafik setiap pindah halaman. */
+.grafik__lapis[data-muat] {
+    animation: muncul-pelan 150ms ease 250ms both;
+}
+
+@keyframes muncul-pelan {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
 .kerangka-batang {
     display: flex;
     align-items: flex-end;
@@ -1949,6 +1974,12 @@ body.hasil {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
+    }
+
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        animation-duration: 0.01ms !important;
     }
 }
 

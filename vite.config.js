@@ -16,7 +16,9 @@ const skripModul = readdirSync('resources/js', { withFileTypes: true })
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js', ...skripModul],
+            // toko-hasil.css jadi titik masuk sendiri agar dipasang sebagai <link> (menahan render),
+            // bukan disuntik lewat JavaScript yang membuat halaman sempat tampil tanpa gaya.
+            input: ['resources/css/app.css', 'resources/css/toko-hasil.css', 'resources/js/app.js', ...skripModul],
             refresh: true,
         }),
         tailwindcss(),

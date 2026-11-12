@@ -10,7 +10,9 @@
     <meta name="theme-color" content="#0f2a5c">
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
     <script>document.documentElement.classList.add('js');</script>
-    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/toko/hasil.js'])
+    {{-- Huruf diunduh lebih awal agar teks tidak "melompat" saat huruf cadangan berganti huruf asli. --}}
+    <link rel="preload" href="{{ \Illuminate\Support\Facades\Vite::asset('resources/fonts/plus-jakarta-sans-latin-wght.woff2') }}" as="font" type="font/woff2" crossorigin>
+    @vite(['resources/css/app.css', 'resources/css/toko-hasil.css', 'resources/js/app.js', 'resources/js/toko/hasil.js'])
     @stack('kepala')
 </head>
 <body class="hasil tema-hijau">
