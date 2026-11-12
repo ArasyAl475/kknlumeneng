@@ -9,6 +9,9 @@ dengan kolom ID dikosongkan.
 
 - Satu Google Sheet, tiga tab: **Panen kopi**, **Panen jamur**, **Penjualan jamur**.
 - Kolom pertama **ID** dan kolom terakhir **Status** diisi sistem (berwarna abu-abu). Jangan diubah.
+  Kolom ID **disembunyikan** oleh `toko:sheets-siapkan`, jadi pengisian langsung mulai dari kolom Tanggal.
+  Sistem tetap membaca ID walau tersembunyi; ID inilah yang mencocokkan baris Sheet dengan catatan di sistem,
+  jadi kolomnya tidak boleh dihapus. Untuk melihatnya: klik tanda panah kecil di kiri judul kolom B.
 - Tiap 10 detik sistem membaca Sheet, membandingkannya dengan database, lalu menyamakan keduanya.
   Sheet yang sedang dibuka di browser langsung menampilkan tulisan dari sistem (fitur bawaan Google Sheets).
 - Halaman `/toko/hasil` dan daftar admin (Panen kopi, Panen jamur, Penjualan jamur) bertanya ke
@@ -29,7 +32,8 @@ dengan kolom ID dikosongkan.
 | Yang dilakukan di Sheet | Hasilnya |
 |---|---|
 | Ubah isian di baris yang sudah ada | Catatan di sistem ikut berubah |
-| Tambah baris baru (kolom ID dikosongkan) | Menjadi catatan baru, ID terisi otomatis |
+| Tambah baris baru (ketik di baris kosong paling bawah) | Menjadi catatan baru, ID terisi otomatis |
+| Menyalin baris lama untuk membuat baris baru | ID tersembunyi ikut tersalin; baris ditolak "ID muncul lebih dari sekali". Ketik di baris kosong saja |
 | Isian salah (tanggal ngawur, angka bukan angka) | Tidak ada yang berubah. Kolom Status berisi "Perlu diperbaiki: ..." |
 | Hapus baris | Catatan **tidak** dihapus. Baris dikembalikan dengan status "Dikembalikan" |
 | Ubah sel yang sama dengan yang diubah di panel admin | Data di sistem yang dipakai. Status berisi "Konflik" |
