@@ -62,7 +62,8 @@ class PenerimaMqtt
             return $this->tolak($wilayahId, 'Data tidak valid: '.$validator->errors()->first());
         }
 
-        $wilayah = Wilayah::query()->find($wilayahId);
+        // Angka di topik adalah ID alat (kolom id_alat), bukan id baris basis data.
+        $wilayah = Wilayah::query()->where('id_alat', $wilayahId)->first();
         if ($wilayah === null) {
             return $this->tolak($wilayahId, 'Wilayah tidak dikenal');
         }

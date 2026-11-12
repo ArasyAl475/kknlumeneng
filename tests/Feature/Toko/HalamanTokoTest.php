@@ -67,7 +67,7 @@ class HalamanTokoTest extends TestCase
                 'nama' => 'Kopi Bubuk',
                 'harga' => 25000,
                 'deskripsi' => 'Kopi dari kebun warga.',
-                'spesifikasi' => [['label' => 'Berat', 'nilai' => '250 g']],
+                'spesifikasi' => [['label' => 'Merek', 'nilai' => 'Kopi Lumeneng']],
             ]);
         $produk->varian()->create(['nama' => '250 g', 'harga' => 25000, 'tersedia' => true]);
         FotoProduk::query()->create(['produk_id' => $produk->id, 'path' => 'toko/produk/1/a.webp', 'path_kecil' => 'toko/produk/1/a-kecil.webp']);
@@ -82,7 +82,7 @@ class HalamanTokoTest extends TestCase
                 'Beli di Shopee',              // 5. tombol beli
                 'Juga tersedia di:', 'Facebook',
                 'Pengiriman', 'Dikirim dari Paninggaran, Kab. Pekalongan',
-                'Spesifikasi', 'Berat', '250 g',
+                'Spesifikasi', 'Merek', 'Kopi Lumeneng',
                 'Deskripsi', 'Kopi dari kebun warga.',
                 'BUMDes Lumeneng',
             ])
@@ -127,9 +127,10 @@ class HalamanTokoTest extends TestCase
                 'Stok', 'Tersedia',
                 'Merek', 'Kopi Lumeneng',
                 'Jenis Biji-Bijian', 'Arabika',
-                'Berat', '250 g',
                 'Dikirim Dari', 'Paninggaran, Kab. Pekalongan',
-            ], false);
+            ], false)
+            // Baris "Berat" adalah sisa spesifikasi tambahan lama: tidak diatur admin lagi, jadi tidak tampil.
+            ->assertDontSee('Berat');
     }
 
     public function test_tabel_spesifikasi_menulis_habis_bila_stok_habis(): void
@@ -145,6 +146,16 @@ class HalamanTokoTest extends TestCase
         $produk = Produk::factory()->denganTautan(['shopee' => 'https://shopee.co.id/a'])->create(['tersedia' => false]);
 
         $this->get(route('toko.produk', ['shopee', $produk]))->assertOk()->assertSee('Stok habis');
+    }
+
+    public function test_kartu_produk_menampilkan_status_stok(): void
+    {
+        Produk::factory()->denganTautan(['shopee' => 'https://shopee.co.id/a'])->create(['nama' => 'Kopi Bubuk', 'tersedia' => true]);
+        Produk::factory()->denganTautan(['shopee' => 'https://shopee.co.id/b'])->create(['nama' => 'Abon Jamur', 'tersedia' => false]);
+
+        $this->get(route('toko.marketplace', 'shopee'))->assertOk()
+            ->assertSee('Tersedia')
+            ->assertSee('Tidak tersedia');
     }
 
     public function test_produk_tersembunyi_atau_terhapus_tidak_bisa_dibuka(): void

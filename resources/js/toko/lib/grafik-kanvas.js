@@ -4,15 +4,15 @@ import { SERI, formatNilai, titikBerdata, urutanAktif } from './grafik-data.js';
 // Hanya bagian yang dipakai, agar unduhan tetap kecil di sinyal lemah. Dimuat saat dibutuhkan (import dinamis).
 Chart.register(BarController, BarElement, CategoryScale, Filler, LineController, LineElement, LinearScale, PointElement, Tooltip);
 
-// Token warna Stitch: primary #00361f, primary-container #164e32, secondary #006c49, tertiary-fixed-dim #7bd8b1.
-const WARNA = { kopi: '#00361f', jamur: '#006c49', terjual: '#7bd8b1', pendapatan: '#164e32', dengan: '#006c49', tanpa: '#141e18' };
+// Palet situs: navy, oranye bata, biru muda, biru. Hijau tidak dipakai karena khusus status longsor.
+const WARNA = { kopi: '#0f2a5c', jamur: '#c2410c', terjual: '#93c5fd', pendapatan: '#1e40af', dengan: '#1e40af', tanpa: '#475569' };
 // Garis tepi dan garis grafik memakai warna gelap agar tetap jelas di atas latar putih.
-const TEPI = { ...WARNA, terjual: '#006c49' };
+const TEPI = { ...WARNA, terjual: '#1e40af' };
 // Selain warna, tiap seri punya pola isian dan pola garis sendiri.
 const POLA = { kopi: 'solid', jamur: 'garis', terjual: 'titik', pendapatan: 'solid', dengan: 'solid', tanpa: 'garis' };
 const GARIS_PUTUS = { kopi: [], jamur: [7, 4], terjual: [2, 4], pendapatan: [] };
-const REDUP = '#404942';
-const GARIS = '#dae5dc';
+const REDUP = '#475569';
+const GARIS = '#e2e8f0';
 const JARAK_HURUF = "'Plus Jakarta Sans', ui-sans-serif, system-ui, 'Segoe UI', Roboto, sans-serif";
 
 Chart.defaults.font.family = JARAK_HURUF;

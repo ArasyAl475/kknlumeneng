@@ -53,10 +53,6 @@ class ProdukRequest extends FormRequest
             'varian.*.tersedia' => ['nullable', 'boolean'],
 
             'utama' => ['nullable', 'array'],
-
-            'spesifikasi' => ['nullable', 'array', 'max:'.self::MAKS_BARIS],
-            'spesifikasi.*.label' => ['nullable', 'string', 'max:60', 'required_with:spesifikasi.*.nilai'],
-            'spesifikasi.*.nilai' => ['nullable', 'string', 'max:200', 'required_with:spesifikasi.*.label'],
         ];
 
         foreach (DaftarMarketplace::KUNCI as $kunci) {
@@ -89,8 +85,6 @@ class ProdukRequest extends FormRequest
             'urutan' => 'urutan tampil',
             'varian.*.nama' => 'nama varian',
             'varian.*.harga' => 'harga varian',
-            'spesifikasi.*.label' => 'nama spesifikasi',
-            'spesifikasi.*.nilai' => 'isi spesifikasi',
         ];
 
         foreach (DaftarMarketplace::KUNCI as $kunci) {
@@ -113,14 +107,12 @@ class ProdukRequest extends FormRequest
             'harga.min' => 'Harga harus lebih dari 0.',
             'harga.max' => 'Harga terlalu besar. Periksa lagi jumlah nolnya.',
             'varian.*.nama.required_with' => 'Varian yang diberi harga juga perlu diberi nama, misalnya "250 g".',
-            'spesifikasi.*.label.required_with' => 'Isi nama spesifikasinya juga, misalnya "Berat".',
-            'spesifikasi.*.nilai.required_with' => 'Isi spesifikasinya juga, misalnya "250 g".',
             'harga.integer' => 'Harga hanya boleh berisi angka.',
         ];
     }
 
     /**
-     * Baris varian dan spesifikasi yang dibiarkan kosong di form dibuang.
+     * Baris varian dan isian spesifikasi yang dibiarkan kosong di form dibuang.
      *
      * @return array{nama: string, deskripsi: ?string, harga: ?int, tersedia: bool, tampil: bool, urutan: int,
      *     spesifikasi: array<int, array{label: string, nilai: string}>, tautan: array<string, ?string>,
@@ -146,15 +138,11 @@ class ProdukRequest extends FormRequest
                     'tersedia' => (bool) ($b['tersedia'] ?? true),
                 ])
                 ->values()->all(),
-            // Isian utama disimpan lebih dulu dengan urutan tetap, lalu baris tambahan buatan admin.
+            // Hanya isian utama yang disimpan, urut tetap. Baris tambahan bebas sudah ditiadakan, jadi
+            // sisa baris tambahan lama ikut terbuang saat produk disimpan ulang.
             'spesifikasi' => collect(Produk::SPESIFIKASI_UTAMA)
                 ->map(fn (string $label, string $kunci) => ['label' => $label, 'nilai' => trim((string) ($data['utama'][$kunci] ?? ''))])
                 ->filter(fn (array $b) => $b['nilai'] !== '')
-                ->concat(
-                    collect($data['spesifikasi'] ?? [])
-                        ->filter(fn (array $b) => filled($b['label'] ?? null) && filled($b['nilai'] ?? null))
-                        ->map(fn (array $b) => ['label' => trim($b['label']), 'nilai' => trim($b['nilai'])]),
-                )
                 ->values()->all(),
         ];
     }

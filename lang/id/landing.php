@@ -15,8 +15,8 @@ return [
     'status' => [
         'judul' => 'Status saat ini',
         'belum_ada' => 'Belum ada data dari alat sensor.',
-        'data_terakhir' => 'Data terakhir :waktu WIB',
         'alat_mati' => 'Sebagian alat tidak mengirim data, jadi status bisa sudah usang.',
+        'alat_mati_waspada' => 'Ada alat yang berhenti mengirim data saat kondisi Waspada. Kondisi lereng tidak diketahui, jangan anggap sudah aman. Hindari lereng.',
     ],
 
     'modul' => [

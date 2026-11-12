@@ -10,6 +10,6 @@ class AktivitasController extends Controller
 {
     public function __invoke(): View
     {
-        return view('admin.toko.aktivitas', ['aktivitas' => Aktivitas::query()->latest('id')->paginate(50)]);
+        return view('admin.toko.aktivitas', ['aktivitas' => Aktivitas::query()->latest('id')->paginate(20)]);
     }
 }

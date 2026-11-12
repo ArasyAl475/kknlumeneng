@@ -6,17 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Toko\PanenJamurRequest;
 use App\Models\Toko\PanenJamur;
 use App\Services\Toko\RekapHasil;
+use App\Services\Toko\VersiHasil;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class PanenJamurController extends Controller
 {
-    public function index(RekapHasil $rekap): View
+    public function index(RekapHasil $rekap, VersiHasil $versi): View
     {
         return view('admin.toko.panen-jamur.index', [
+            // Paling awal, sebelum data diambil (lihat toko/partials/penanda-segar).
+            'versi' => $versi->sekarang(),
             'ringkasan' => $rekap->jamur(),
             'keuangan' => $rekap->keuanganJamur(),
-            'panen' => PanenJamur::query()->orderByDesc('tanggal_panen')->orderByDesc('id')->paginate(20),
+            'panen' => PanenJamur::query()->orderByDesc('tanggal_panen')->orderByDesc('id')->paginate(10),
         ]);
     }
 

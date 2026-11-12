@@ -105,6 +105,39 @@ class HalamanPublikTest extends TestCase
         $this->get('/edukasi')->assertSee('https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg', false);
     }
 
+    public function test_detail_menampilkan_bagian_dan_tautan_ke_bagian_lain(): void
+    {
+        $kategori = Kategori::factory()->create(['nama' => 'Jamur Uji']);
+        $a = Materi::factory()->terbit()->for($kategori)->create(['judul' => 'Bagian Satu', 'urutan' => 1]);
+        $b = Materi::factory()->terbit()->for($kategori)->create(['judul' => 'Bagian Dua', 'urutan' => 2]);
+        $c = Materi::factory()->terbit()->for($kategori)->create(['judul' => 'Bagian Tiga', 'urutan' => 3]);
+
+        $this->get("/edukasi/{$b->slug}")->assertOk()
+            ->assertSee('Jamur Uji · Bagian 2 dari 3')
+            ->assertSee('2/3')
+            ->assertSee(route('edukasi.show', $a->slug), false)
+            ->assertSee(route('edukasi.show', $c->slug), false)
+            ->assertSeeInOrder(['Bagian Satu', 'Bagian Dua', 'Bagian Tiga']);
+
+        $this->get("/edukasi/{$a->slug}")->assertSee('Ini bagian pertama');
+        $this->get("/edukasi/{$c->slug}")->assertSee('Bagian terakhir');
+    }
+
+    public function test_daftar_kategori_berurutan_menurut_bagian_dan_bernomor(): void
+    {
+        $kategori = Kategori::factory()->create(['slug' => 'urut']);
+        Materi::factory()->terbit()->for($kategori)->create(['judul' => 'Kedua Dibuat Pertama', 'urutan' => 2]);
+        Materi::factory()->terbit()->for($kategori)->create(['judul' => 'Pertama Dibuat Kedua', 'urutan' => 1]);
+
+        $this->get('/edukasi?kategori=urut')->assertOk()
+            ->assertSeeInOrder(['Pertama Dibuat Kedua', 'Kedua Dibuat Pertama'])
+            ->assertSee('Bagian 1')
+            ->assertSee('Bagian 2');
+        // Saat mencari, nomor bagian disembunyikan karena posisinya tidak lagi sama dengan urutan belajar.
+        $this->get('/edukasi?kategori=urut&cari=Dibuat')->assertDontSee('Bagian 1');
+        $this->get('/edukasi')->assertDontSee('Bagian 1');
+    }
+
     public function test_pencarian_tidak_valid_tidak_membuat_galat_server(): void
     {
         $this->get('/edukasi?cari[]=x')->assertRedirect();
@@ -128,7 +161,7 @@ class HalamanPublikTest extends TestCase
 
         $this->get("/edukasi/{$materi->slug}")->assertOk()
             ->assertSee('Isi penjelasan')
-            ->assertSeeInOrder(['1. Langkah Pertama', '2. Langkah Kedua']);
+            ->assertSeeInOrder(['Langkah 1: ', 'Langkah Pertama', 'Langkah 2: ', 'Langkah Kedua']);
     }
 
     public function test_isi_materi_ditampilkan_aman_dari_skrip(): void

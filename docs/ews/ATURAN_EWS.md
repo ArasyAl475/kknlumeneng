@@ -37,9 +37,25 @@ Kolom lama `curah_hujan` (mm/jam) tidak lagi dipakai; datanya tetap ada di basis
 3. Ada sensor level 1 → **Waspada** (kuning).
 4. Selain itu → **Aman** (hijau).
 
-**Awas hanya berasal dari dua hal: kabel putus (otomatis) atau persetujuan admin.**
+**Awas hanya berasal dari tiga hal: kabel putus (otomatis), persetujuan admin atas laporan sensor,
+atau pernyataan admin sendiri ("Nyatakan Awas", lihat bawah).**
 Jangan menjadikan angka sensor saja sebagai pemicu Awas otomatis tanpa keputusan tim:
 manusia tetap di dalam lingkaran keputusan.
+
+## Jenis titik di peta
+- **Wilayah** (`ews_wilayah`): EWS pintar yang mengirim data sensor ke web. Satu-satunya yang punya status Aman/Waspada/Awas, ikut status utama desa, dan bisa offline. Punya batas area (poligon) dan, opsional, lokasi alat (`lintang`, `bujur`).
+- **Titik** (`ews_titik`), tidak pernah mengirim data dan TIDAK ikut status utama:
+  - `alarm`: EWS dengan alarm yang belum terintegrasi ke web (batas area opsional).
+  - `rawan`: titik rawan longsor, cukup satu koordinat.
+- Titik hanya tampil di peta dashboard (penanda beda bentuk, ada keterangan) lewat kunci `titik` di `/api/ews/data`. Kunci ini tambahan; field lama tidak berubah.
+- Isian koordinat di admin menerima satu titik per baris "lintang, bujur" (format Google Maps) atau JSON `[[lintang,bujur],...]`.
+
+## Nyatakan Awas manual
+Admin bisa menyatakan Awas untuk wilayah mana pun yang belum Awas (halaman Validasi dan Awas), tanpa
+laporan sensor: mis. alat berhenti saat Waspada, atau kader melihat retakan di lapangan.
+- Wajib alasan (min. 5 karakter) dan centang konfirmasi. Alasan hanya masuk log aktivitas admin;
+  yang tampil ke warga hanya sumbernya, "Dinyatakan admin (manual)".
+- Sesudahnya sama dengan Awas lain: ditahan sampai admin mencabutnya.
 
 ## Alur validasi
 - Alat terus mengirim data; admin diminta memvalidasi SEKALI, bukan tiap kiriman.
@@ -56,9 +72,22 @@ Tanpa kiriman ≥ `EWS_ALAT_OFFLINE_MENIT` (15 menit) → tandai "tidak mengirim
 dan halaman status alat admin. Tidak ada pemberitahuan keluar (Telegram sudah dihapus).
 Waktu data memakai jam server (alat tidak perlu RTC/NTP).
 
+**Alat diam saat Waspada** (status wilayah Waspada dan alatnya offline) = "kondisi tidak diketahui".
+Tidak jadi Awas otomatis (alat juga mati karena listrik/sinyal), tetapi:
+- warga mendapat kalimat peringatan yang lebih keras ("jangan anggap sudah aman, hindari lereng"),
+  di dashboard, daftar wilayah, dan beranda;
+- halaman Validasi dan Awas menampilkan peringatan merah dan menaruh wilayah itu paling atas di
+  daftar "Nyatakan Awas sendiri", agar admin memeriksa lapangan lalu memutuskan.
+Aturannya ada di `PenilaianStatus::kondisiTakDiketahui()`. Alat diam saat Aman cukup peringatan biasa;
+alat diam saat Awas tidak berubah (Awas sudah terkunci).
+
 ## Kontrak API alat
 Lihat `docs/ews/API_ALAT.md`. Tidak boleh berubah tanpa persetujuan pembuat alat.
 Endpoint: `POST /api/sensor`, `GET /api/ping`, header `X-API-KEY`.
 
-Jalur kedua dengan isi dan aturan yang sama: MQTT, topik `ews/<wilayah_id>/sensor`
+`wilayah_id` (API) dan angka di topik MQTT adalah **ID alat** (kolom `ews_wilayah.id_alat`), dipisah dari id baris
+agar admin bisa menyamakannya dengan alat yang sudah terpasang. Unik; wilayah yang dihapus melepas angkanya,
+dan saat dipulihkan mendapat angka bebas terkecil.
+
+Jalur kedua dengan isi dan aturan yang sama: MQTT, topik `ews/<ID alat>/sensor`
 (lihat `docs/ews/PANDUAN_MQTT.md`). Aturan isi dipakai bersama lewat `App\Services\Ews\KirimanAlat`.

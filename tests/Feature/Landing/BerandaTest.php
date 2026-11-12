@@ -40,11 +40,11 @@ class BerandaTest extends TestCase
     public function test_menu_atas_memuat_toko_edukasi_dan_history_limbah(): void
     {
         // Dipaksa menyala agar tes tidak bergantung pada isi .env di komputer masing-masing.
-        config(['modul.ews.aktif' => true, 'modul.toko.aktif' => true, 'modul.edukasi.aktif' => true, 'modul.limbah.aktif' => true]);
+        config(['modul.profil.aktif' => true, 'modul.berita.aktif' => true, 'modul.galeri.aktif' => true, 'modul.ews.aktif' => true, 'modul.toko.aktif' => true, 'modul.edukasi.aktif' => true, 'modul.limbah.aktif' => true]);
 
         $menu = Modul::tersedia();
 
-        $this->assertSame(['ews', 'toko', 'edukasi', 'limbah'], array_keys($menu));
+        $this->assertSame(['profil', 'berita', 'galeri', 'ews', 'toko', 'edukasi', 'limbah'], array_keys($menu));
 
         $html = $this->get('/')->assertOk()->getContent();
         foreach (['toko.index', 'edukasi.index', 'toko.hasil'] as $rute) {
@@ -91,6 +91,30 @@ class BerandaTest extends TestCase
         $html = $this->get('/')->getContent();
 
         $this->assertDoesNotMatchRegularExpression('/<(script|link)[^>]+(src|href)="https?:\/\/(?!localhost)/i', $html);
+    }
+
+    public function test_status_beranda_siap_diperbarui_otomatis(): void
+    {
+        config(['modul.ews.aktif' => true]);
+        Pembacaan::factory()->create();
+
+        $html = $this->get('/')->assertOk()
+            ->assertSee('id="status-langsung"', false)
+            ->assertSee('data-url-data="'.route('ews.data').'"', false)
+            ->assertSee('id="chip-status"', false)
+            ->assertSee('id=panel-status', false)
+            ->assertSee('id="pengumuman"', false)
+            ->getContent();
+
+        // Kalimat saran yang dikirim ke skrip harus sama dengan yang tampil saat halaman dimuat.
+        $this->assertStringContainsString('Kondisi lereng terpantau normal.', html_entity_decode($html));
+    }
+
+    public function test_status_beranda_tanpa_modul_ews_tidak_memuat_pembaruan(): void
+    {
+        config(['modul.ews.aktif' => false]);
+
+        $this->get('/')->assertOk()->assertDontSee('id="status-langsung"', false);
     }
 
     public function test_ringkasan_memakai_status_terburuk_ews(): void

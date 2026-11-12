@@ -18,7 +18,7 @@ class RiwayatController extends Controller
     public function index(RiwayatRequest $request): View
     {
         return view('admin.ews.riwayat', [
-            'pembacaan' => $this->query($request)->with('wilayah')->orderByDesc('created_at')->orderByDesc('id')->paginate(50)->withQueryString(),
+            'pembacaan' => $this->query($request)->with('wilayah')->orderByDesc('created_at')->orderByDesc('id')->paginate(20)->withQueryString(),
             'wilayah' => Wilayah::withTrashed()->orderBy('nama')->get(['id', 'nama', 'deleted_at']),
         ]);
     }

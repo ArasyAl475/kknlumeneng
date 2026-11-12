@@ -5,7 +5,18 @@
 @endpush
 
 @section('isi')
-    <x-judul-halaman judul="Validasi dan Awas" keterangan="Status Awas hanya muncul dari kabel putus atau persetujuan Anda di halaman ini." />
+    <x-judul-halaman judul="Validasi dan Awas" keterangan="Status Awas hanya muncul dari kabel putus, persetujuan Anda, atau pernyataan Anda di halaman ini." />
+
+    @php $takDiketahui = $bisaDinyatakan->where('kondisi_tak_diketahui', true); @endphp
+    @if ($takDiketahui->isNotEmpty())
+        <div role="alert" data-warna="merah" class="status-lembut status-garis mb-4 flex items-start gap-2 rounded-md border p-3 font-bold">
+            <x-ikon nama="offline" class="mt-0.5 size-5 shrink-0" />
+            <span>
+                Alat berhenti mengirim data saat kondisi Waspada: {{ $takDiketahui->pluck('nama')->implode(', ') }}.
+                Kondisi lereng tidak diketahui. Periksa lapangan lewat kader, lalu putuskan apakah perlu dinyatakan Awas (di bagian paling bawah halaman ini).
+            </span>
+        </div>
+    @endif
 
     <x-kartu judul="Antrean validasi">
         @forelse ($laporan as $l)
@@ -51,6 +62,28 @@
             </div>
         @empty
             <p class="text-redup">Tidak ada wilayah yang berstatus Awas.</p>
+        @endforelse
+    </x-kartu>
+
+    <x-kartu judul="Nyatakan Awas sendiri" class="mt-4">
+        <p class="mb-3 text-sm text-redup">Untuk keadaan yang tidak tertangkap sensor, mis. alat mati saat Waspada atau kader melihat retakan di lereng. Warga langsung melihat status Awas di dashboard.</p>
+        @forelse ($bisaDinyatakan as $w)
+            <div class="flex flex-wrap items-center justify-between gap-3 border-t border-garis-halus py-3 first:border-t-0 first:pt-0">
+                <div>
+                    <p class="flex flex-wrap items-center gap-2 font-bold">
+                        <x-lencana :status="$w['status']" />{{ $w['nama'] }}
+                        @if ($w['kondisi_tak_diketahui'])
+                            <span data-warna="merah" class="status-pekat inline-flex items-center gap-1.5 rounded px-2 py-0.5 text-sm font-bold"><x-ikon nama="offline" class="size-4 shrink-0" />Alat berhenti saat Waspada</span>
+                        @elseif ($w['offline'])
+                            <span class="text-sm font-normal text-redup">Alat tidak mengirim data</span>
+                        @endif
+                    </p>
+                    <p class="mt-1 text-sm text-redup">{{ $w['waktu'] ? 'Data terakhir '.$w['waktu'].' WIB' : 'Belum ada data' }}</p>
+                </div>
+                <x-tombol varian="bahaya" :href="route('admin.ews.awas.form-nyatakan', $w['id'])">Nyatakan Awas</x-tombol>
+            </div>
+        @empty
+            <p class="text-redup">Semua wilayah sudah berstatus Awas.</p>
         @endforelse
     </x-kartu>
 @endsection

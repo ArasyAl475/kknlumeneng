@@ -11,7 +11,8 @@
             <th scope="col" role="columnheader" class="timbang__angka">Berat Bersih (kg)</th>
         </tr>
     </thead>
-    <tbody role="rowgroup">
+    {{-- Isi tbody diganti di tempat saat data berubah; paginasi app.js memantau anak-anaknya, jadi ikut menyesuaikan. --}}
+    <tbody role="rowgroup" data-paginasi="10" data-segar-bagian="timbang-baris">
         @foreach ($baris as $b)
             <tr role="row">
                 <th scope="row" role="rowheader" class="timbang__tanggal">{{ $b['tanggal']->format('d-m-Y') }}</th>
@@ -22,7 +23,7 @@
             </tr>
         @endforeach
     </tbody>
-    <tfoot role="rowgroup">
+    <tfoot role="rowgroup" data-segar-bagian="timbang-jumlah">
         <tr role="row">
             <th scope="row" role="rowheader" colspan="3" class="timbang__tanggal">Jumlah seluruh catatan ({{ $jumlah }})</th>
             <td role="cell" data-sel="Berat Kotor (kg)" class="timbang__angka">{{ FormatHasil::angka($totalKotor) }}</td>

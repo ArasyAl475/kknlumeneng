@@ -132,6 +132,9 @@ class EksporExcelTest extends TestCase
 
     public function test_halaman_hasil_menampilkan_tombol_unduh_dengan_filter(): void
     {
+        // Tombol Unduh Excel tampil selama sinkron Sheets mati (lihat SinkronSheetsTest untuk tombol Sheets).
+        config(['toko_sheets.aktif' => false]);
+
         $this->get('/toko/hasil?jenis=Arabika')->assertOk()
             ->assertSee('Unduh Excel')
             ->assertSee(route('toko.hasil.excel', ['jenis' => 'Arabika']), false);

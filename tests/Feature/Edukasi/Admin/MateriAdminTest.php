@@ -36,6 +36,32 @@ class MateriAdminTest extends TestCase
         ];
     }
 
+    public function test_materi_baru_otomatis_menjadi_bagian_terakhir_dan_nomor_bisa_diatur(): void
+    {
+        $kategori = Kategori::factory()->create();
+
+        $this->post(route('admin.edukasi.materi.store'), $this->isian(['kategori_id' => $kategori->id, 'judul' => 'Satu']));
+        $this->post(route('admin.edukasi.materi.store'), $this->isian(['kategori_id' => $kategori->id, 'judul' => 'Dua']));
+        $this->post(route('admin.edukasi.materi.store'), $this->isian(['kategori_id' => $kategori->id, 'judul' => 'Tiga', 'urutan' => 1]));
+
+        $this->assertSame([1, 2, 1], Materi::query()->orderBy('id')->pluck('urutan')->all());
+
+        $dua = Materi::query()->where('judul', 'Dua')->sole();
+        // Mengosongkan nomor saat mengubah tidak boleh menghapus nomor lama.
+        $this->put(route('admin.edukasi.materi.update', $dua), $this->isian(['kategori_id' => $kategori->id, 'judul' => 'Dua', 'urutan' => '']))->assertSessionHasNoErrors();
+        $this->assertSame(2, $dua->refresh()->urutan);
+
+        $this->put(route('admin.edukasi.materi.update', $dua), $this->isian(['kategori_id' => $kategori->id, 'judul' => 'Dua', 'urutan' => 5]));
+        $this->assertSame(5, $dua->refresh()->urutan);
+    }
+
+    public function test_nomor_bagian_harus_angka_wajar(): void
+    {
+        $this->post(route('admin.edukasi.materi.store'), $this->isian(['urutan' => 0]))->assertSessionHasErrors('urutan');
+        $this->post(route('admin.edukasi.materi.store'), $this->isian(['urutan' => 1000]))->assertSessionHasErrors('urutan');
+        $this->post(route('admin.edukasi.materi.store'), $this->isian(['urutan' => 'abc']))->assertSessionHasErrors('urutan');
+    }
+
     public function test_daftar_kosong_dan_formulir_tampil(): void
     {
         $this->get(route('admin.edukasi.materi.index'))->assertOk()->assertSee('Belum ada materi');

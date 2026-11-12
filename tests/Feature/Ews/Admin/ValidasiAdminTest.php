@@ -183,6 +183,72 @@ class ValidasiAdminTest extends TestCase
         $this->assertTrue($w->refresh()->status_awas);
     }
 
+    public function test_nyatakan_awas_butuh_alasan_dan_konfirmasi(): void
+    {
+        $w = Wilayah::factory()->create();
+        $url = route('admin.ews.awas.nyatakan', $w);
+
+        $this->post($url, [])->assertSessionHasErrors(['alasan', 'konfirmasi']);
+        $this->post($url, ['alasan' => 'aman', 'konfirmasi' => '1'])->assertSessionHasErrors('alasan');
+        $this->post($url, ['alasan' => 'Kader melihat retakan'])->assertSessionHasErrors('konfirmasi');
+        $this->assertFalse($w->refresh()->status_awas);
+    }
+
+    public function test_nyatakan_awas_mengunci_status_dan_mencatat_alasan_tanpa_membocorkannya(): void
+    {
+        $w = Wilayah::factory()->create(['nama' => 'Lereng Uji']);
+        Pembacaan::factory()->create(['wilayah_id' => $w->id, 'kelembapan_tanah' => 20, 'status' => 'Aman', 'warna' => 'hijau']);
+
+        $this->post(route('admin.ews.awas.nyatakan', $w), ['alasan' => 'Kader melihat retakan baru', 'konfirmasi' => '1'])
+            ->assertRedirect(route('admin.ews.validasi.index'))->assertSessionHas('sukses');
+
+        $w->refresh();
+        $this->assertTrue($w->status_awas);
+        $this->assertSame('Dinyatakan admin (manual)', $w->awas_sumber);
+        $this->assertNotNull($w->awas_sejak);
+
+        // Warga melihat Awas, tetapi alasan bebas dari admin hanya ada di log admin.
+        $this->getJson('/api/ews/data')
+            ->assertJsonPath('utama.status', 'Awas')
+            ->assertJsonPath('utama.pemicu', 'Dinyatakan admin (manual)');
+        $log = Aktivitas::query()->sole();
+        $this->assertSame('nyatakan_awas', $log->aksi);
+        $this->assertStringContainsString('Kader melihat retakan baru', $log->keterangan);
+        $this->assertStringNotContainsString('retakan', json_encode($this->getJson('/api/ews/data')->json()));
+
+        // Data sensor yang normal tidak menurunkan Awas; hanya admin yang bisa mencabutnya.
+        $this->kirim($w, ['kelembapan_tanah' => 10]);
+        $this->getJson('/api/ews/data')->assertJsonPath('utama.status', 'Awas');
+    }
+
+    public function test_nyatakan_awas_pada_wilayah_yang_sudah_awas_ditolak(): void
+    {
+        $w = Wilayah::factory()->awas('Kabel EWS putus (otomatis)')->create();
+
+        $this->post(route('admin.ews.awas.nyatakan', $w), ['alasan' => 'Kader melihat retakan', 'konfirmasi' => '1'])->assertSessionHas('galat');
+        $this->get(route('admin.ews.awas.form-nyatakan', $w))->assertRedirect()->assertSessionHas('galat');
+
+        $this->assertSame('Kabel EWS putus (otomatis)', $w->refresh()->awas_sumber);
+        $this->assertSame(0, Aktivitas::query()->count());
+    }
+
+    public function test_halaman_validasi_menandai_alat_diam_saat_waspada_paling_atas(): void
+    {
+        config(['ews.alat_offline_menit' => 15]);
+        $sunyi = Wilayah::factory()->create(['nama' => 'Lereng Sunyi']);
+        $biasa = Wilayah::factory()->create(['nama' => 'Jalan Biasa']);
+        Pembacaan::factory()->create(['wilayah_id' => $biasa->id]);
+        Pembacaan::factory()->create(['wilayah_id' => $sunyi->id, 'kelembapan_tanah' => 60, 'status' => 'Waspada', 'warna' => 'kuning', 'pemicu' => 'Kelembapan tanah 60%']);
+        $this->travel(16)->minutes();
+
+        $html = $this->get(route('admin.ews.validasi.index'))->assertOk()
+            ->assertSee('Alat berhenti mengirim data saat kondisi Waspada: Lereng Sunyi')
+            ->assertSee('Nyatakan Awas')
+            ->getContent();
+
+        $this->assertLessThan(strrpos($html, 'Jalan Biasa'), strrpos($html, 'Lereng Sunyi'), 'wilayah yang alatnya diam saat Waspada tampil lebih dulu');
+    }
+
     public function test_alur_lengkap_dari_simulator_sampai_dicabut(): void
     {
         $w = Wilayah::factory()->create(['nama' => 'Lereng Uji']);

@@ -6,16 +6,19 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Toko\PanenKopiRequest;
 use App\Models\Toko\PanenKopi;
 use App\Services\Toko\RekapHasil;
+use App\Services\Toko\VersiHasil;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class PanenKopiController extends Controller
 {
-    public function index(RekapHasil $rekap): View
+    public function index(RekapHasil $rekap, VersiHasil $versi): View
     {
         return view('admin.toko.panen-kopi.index', [
+            // Paling awal, sebelum data diambil (lihat toko/partials/penanda-segar).
+            'versi' => $versi->sekarang(),
             'ringkasan' => $rekap->kopi(),
-            'panen' => PanenKopi::query()->orderByDesc('tanggal_panen')->orderByDesc('id')->paginate(20),
+            'panen' => PanenKopi::query()->orderByDesc('tanggal_panen')->orderByDesc('id')->paginate(10),
         ]);
     }
 

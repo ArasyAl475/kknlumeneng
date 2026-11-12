@@ -17,7 +17,7 @@ class AksesAdminTokoTest extends TestCase
      */
     private function semuaRuteToko(): array
     {
-        $contoh = ['{marketplace}' => 'shopee', '{arah}' => 'naik'];
+        $contoh = ['{marketplace}' => 'shopee', '{arah}' => 'naik', '{jenis}' => 'panen-kopi'];
         $daftar = [];
 
         foreach (Route::getRoutes()->getRoutes() as $rute) {
