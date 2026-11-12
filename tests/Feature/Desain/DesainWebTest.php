@@ -94,20 +94,20 @@ class DesainWebTest extends TestCase
             ->assertSee('Muncul di:')
             ->assertSee('1920 × 1080 px')
             ->assertSee('Gambar bawaan')
-            ->assertSee(asset('images/default/beranda-hero.svg'), false)
+            ->assertSee(asset('images/lumeneng/beranda-hero.webp'), false)
             ->assertDontSee('Pulihkan bawaan');
     }
 
     public function test_helper_memakai_bawaan_bila_slot_kosong_atau_berkas_hilang(): void
     {
-        $this->assertSame(asset('images/default/beranda-hero.svg'), site_image('beranda.hero'));
+        $this->assertSame(asset('images/lumeneng/beranda-hero.webp'), site_image('beranda.hero'));
         $this->assertSame(asset(DaftarSlot::CADANGAN), site_image('tidak.ada'));
 
         $this->seed(DesainSeeder::class);
         $this->slot('beranda.hero')->update(['path' => 'desain/sudah-dihapus.webp']);
         app(GambarSitus::class)->lupakan();
 
-        $this->assertSame(asset('images/default/beranda-hero.svg'), site_image('beranda.hero'));
+        $this->assertSame(asset('images/lumeneng/beranda-hero.webp'), site_image('beranda.hero'));
         $this->assertSame('', site_image_alt('beranda.hero'));
         $this->assertSame('Foto kepala desa', site_image_alt('profil.kepala-desa'));
     }
@@ -139,6 +139,29 @@ class DesainWebTest extends TestCase
         $this->assertSame($isiBawaan, file_get_contents($bawaan));
 
         $this->get('/')->assertSee(asset('storage/'.$slot->path), false)->assertSee('alt="Kebun kopi di lereng"', false);
+    }
+
+    public function test_unggah_gambar_transparan_tetap_transparan_untuk_peta_3d(): void
+    {
+        $this->masukAdmin();
+        $this->seed(DesainSeeder::class);
+        $slot = $this->slot('beranda.peta-3d');
+
+        $png = imagecreatetruecolor(400, 250);
+        imagealphablending($png, false);
+        imagesavealpha($png, true);
+        imagefill($png, 0, 0, (int) imagecolorallocatealpha($png, 0, 0, 0, 127));
+        imagefilledrectangle($png, 100, 60, 300, 190, (int) imagecolorallocatealpha($png, 30, 120, 60, 0));
+        $berkas = tempnam(sys_get_temp_dir(), 'peta').'.png';
+        imagepng($png, $berkas);
+
+        $this->put(route('admin.desain.update', $slot), ['gambar' => new UploadedFile($berkas, 'peta.png', 'image/png', null, true)])
+            ->assertSessionHasNoErrors();
+
+        $hasil = imagecreatefromstring(Storage::disk('public')->get($slot->fresh()->path));
+        // Sudut kiri atas harus tetap bening (alfa GD 127), bukan berubah putih atau hitam; isi tetap buram.
+        $this->assertSame(127, (imagecolorat($hasil, 2, 2) >> 24) & 0x7F);
+        $this->assertSame(0, (imagecolorat($hasil, 200, 125) >> 24) & 0x7F);
     }
 
     public function test_ganti_gambar_menghapus_unggahan_lama(): void

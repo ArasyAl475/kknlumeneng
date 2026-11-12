@@ -34,6 +34,14 @@ final class DaftarSlot
             'rasio' => '16/9',
             'alt' => '',
         ],
+        'beranda.peta-3d' => [
+            'nama' => 'Peta 3D desa (bisa diputar)',
+            'halaman' => 'Beranda',
+            'penjelasan' => 'Gambar tiga dimensi desa di bagian "Lihat Lumeneng dari atas" di halaman depan; pengunjung bisa memutar dan memperbesarnya. Pakai gambar dengan latar transparan (PNG atau WebP) agar tampak melayang di latar biru tua. Gambar yang lebih tajam (HD) membuat tulisan nama dusun lebih mudah dibaca saat diperbesar.',
+            'ukuran' => '2000 × 1250 px (mendatar), PNG atau WebP berlatar transparan',
+            'rasio' => '8/5',
+            'alt' => 'Model tiga dimensi Desa Lumeneng yang berbukit, dengan penanda warna untuk enam dusun, antara lain Dusun 5 Kaliwishu, Dusun 6 Sikembang, dan Dusun 2 Krajan.',
+        ],
         'beranda.produk' => [
             'nama' => 'Foto produk warga',
             'halaman' => 'Beranda',
@@ -132,10 +140,15 @@ final class DaftarSlot
         return self::SEMUA[$kunci] ?? null;
     }
 
-    // Nama berkas bawaan mengikuti kunci (beranda.hero → beranda-hero.svg) agar mudah dicari.
+    // Nama berkas bawaan mengikuti kunci (beranda.hero → beranda-hero). Foto desa asli
+    // (public/images/lumeneng/*.webp, dari Kajian Pemetaan Bencana 2024) diutamakan;
+    // slot yang belum punya foto, mis. foto kepala desa, memakai gambar SVG bawaan.
     public static function bawaan(string $kunci): string
     {
-        return 'images/default/'.str_replace('.', '-', $kunci).'.svg';
+        $nama = str_replace('.', '-', $kunci);
+        $foto = "images/lumeneng/{$nama}.webp";
+
+        return is_file(public_path($foto)) ? $foto : "images/default/{$nama}.svg";
     }
 
     /**
