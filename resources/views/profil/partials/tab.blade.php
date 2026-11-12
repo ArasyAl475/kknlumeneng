@@ -3,6 +3,7 @@
 @php
     $tab = [
         ['tentang', 'Tentang Desa', 'desa'],
+        ...($potensi->isNotEmpty() ? [['potensi', 'Potensi', 'daun']] : []),
         ['visi-misi', 'Visi & Misi', 'aman'],
         ['pemerintahan', 'Pemerintahan', 'orang'],
     ];

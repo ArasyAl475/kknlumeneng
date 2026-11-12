@@ -57,6 +57,31 @@ class StrukturAdminTest extends TestCase
         $this->assertDatabaseCount('profil_perangkat', 0);
     }
 
+    public function test_halaman_profil_menampilkan_kartu_berfoto_tegak_dan_kartu_tanpa_foto_seperti_semula(): void
+    {
+        Storage::fake('public');
+        $this->post(route('admin.profil.perangkat.store'), [
+            'nama' => 'Budi Berfoto', 'jabatan' => 'Kasi Pemerintahan', 'kelompok' => 'kasi',
+            'foto' => UploadedFile::fake()->image('budi.jpg', 800, 1000),
+        ]);
+        Perangkat::factory()->create(['nama' => 'Citra Tanpafoto', 'jabatan' => 'Kasi Pelayanan', 'kelompok' => 'kasi']);
+        $berfoto = Perangkat::query()->where('nama', 'Budi Berfoto')->sole();
+
+        $html = $this->get(route('profil.index'))->assertOk()
+            // Dengan foto: foto potret berbingkai 4:5, nama dan jabatan di bawahnya.
+            ->assertSee('alt="Foto Budi Berfoto"', false)
+            ->assertSee($berfoto->urlFoto(), false)
+            ->assertSee('aspect-[4/5]', false)
+            ->assertSeeInOrder(['Foto Budi Berfoto', 'Budi Berfoto', 'Kasi Pemerintahan'])
+            // Tanpa foto: huruf awal nama, bukan gambar.
+            ->assertSee('Citra Tanpafoto')
+            ->assertDontSee('alt="Foto Citra Tanpafoto"', false)
+            ->getContent();
+
+        // Kartu tanpa foto selebar kolom (col-span-2), kartu berfoto setengah kolom.
+        $this->assertSame(1, substr_count($html, '<li class="col-span-2">'));
+    }
+
     public function test_kelompok_tak_dikenal_ditolak(): void
     {
         $this->post(route('admin.profil.perangkat.store'), ['nama' => 'X', 'jabatan' => 'Y', 'kelompok' => 'raja'])

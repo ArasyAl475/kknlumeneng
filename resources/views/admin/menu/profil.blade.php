@@ -8,6 +8,7 @@
         ['admin.profil.identitas.*', 'admin.profil.identitas.edit', 'Identitas & sambutan', 'desa'],
         ['admin.profil.sejarah.*', 'admin.profil.sejarah.edit', 'Sejarah, visi & misi', 'visi'],
         ['admin.profil.wilayah.*', 'admin.profil.wilayah.edit', 'Data wilayah', 'wilayah'],
+        ['admin.profil.potensi.*', 'admin.profil.potensi.index', 'Potensi & penghasil', 'galeri'],
         ['admin.profil.kontak.*', 'admin.profil.kontak.edit', 'Kontak kantor desa', 'kontak'],
         ['admin.profil.perangkat.*', 'admin.profil.perangkat.index', 'Perangkat desa', 'profil'],
         ['admin.profil.lembaga.*', 'admin.profil.lembaga.index', 'Lembaga desa', 'lembaga'],

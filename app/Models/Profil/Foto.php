@@ -24,7 +24,7 @@ class Foto extends Model
 
     protected $table = 'profil_galeri';
 
-    protected $fillable = ['berita_id', 'gambar', 'judul', 'keterangan', 'tanggal', 'urutan'];
+    protected $fillable = ['berita_id', 'potensi_id', 'gambar', 'judul', 'keterangan', 'tanggal', 'urutan'];
 
     protected function casts(): array
     {
@@ -34,6 +34,12 @@ class Foto extends Model
     public function berita(): BelongsTo
     {
         return $this->belongsTo(Berita::class, 'berita_id');
+    }
+
+    // Foto yang diunggah lewat menu Potensi Desa; otomatis ikut tampil di Galeri.
+    public function potensi(): BelongsTo
+    {
+        return $this->belongsTo(Potensi::class, 'potensi_id');
     }
 
     /**

@@ -1,8 +1,8 @@
 {{-- Pilih banyak foto sekaligus. Foto dikecilkan di HP sebelum dikirim (resources/js/profil/admin.js).
-     Variabel: $nama (nama isian tanpa []), $label, $bantuan (opsional), $wajib (opsional). --}}
+     Variabel: $nama (nama isian tanpa []), $label, $bantuan (opsional), $wajib (opsional), $maks (opsional, batas jumlah foto). --}}
 @php
     $batas = \App\Services\Profil\PenyimpanGambar::teksBatas();
-    $maks = \App\Http\Requests\Profil\BeritaRequest::MAKS_FOTO_SEKALIGUS;
+    $maks ??= \App\Http\Requests\Profil\BeritaRequest::MAKS_FOTO_SEKALIGUS;
     $galat = $errors->first($nama) ?: collect($errors->getMessages())->filter(fn ($p, $k) => str_starts_with($k, $nama.'.'))->flatten()->first();
 @endphp
 <div>
