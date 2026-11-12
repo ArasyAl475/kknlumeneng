@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Ews\Pengaturan;
+use App\Models\Ews\Titik;
 use App\Models\Ews\Wilayah;
 use Illuminate\Database\Seeder;
 
@@ -17,8 +18,21 @@ class EwsSeeder extends Seeder
             }
         }
 
-        foreach (config('ews.wilayah_awal') as $nama => $poligon) {
-            Wilayah::withTrashed()->firstOrCreate(['nama' => $nama], ['poligon' => $poligon]);
+        foreach (config('ews.wilayah_awal') as $nama => $data) {
+            Wilayah::withTrashed()->firstOrCreate(['nama' => $nama], [
+                'poligon' => $data['poligon'],
+                'lintang' => $data['lokasi_alat'][0],
+                'bujur' => $data['lokasi_alat'][1],
+            ]);
+        }
+
+        foreach (config('ews.titik_awal') as $nama => $data) {
+            Titik::query()->firstOrCreate(['nama' => $nama], [
+                'jenis' => $data['jenis'],
+                'poligon' => $data['poligon'] ?? null,
+                'lintang' => $data['lokasi_alat'][0],
+                'bujur' => $data['lokasi_alat'][1],
+            ]);
         }
     }
 }

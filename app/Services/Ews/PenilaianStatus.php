@@ -160,6 +160,16 @@ class PenilaianStatus
         return $terakhirKirim->diffInMinutes($sekarang ?? now(), true) >= $batasMenit;
     }
 
+    /**
+     * Alat yang diam saat wilayah sedang Waspada bukan berarti keadaan membaik: bisa jadi alatnya
+     * rusak atau terkena longsor. Tidak jadi Awas otomatis (alat juga sering mati karena listrik atau
+     * sinyal), tetapi warga diberi peringatan lebih keras dan admin diminta memutuskan.
+     */
+    public static function kondisiTakDiketahui(?string $status, bool $offline): bool
+    {
+        return $offline && $status === self::WASPADA;
+    }
+
     public static function teksSensor(string $sensor, float|int|null $nilai): string
     {
         $angka = self::angka(self::nilaiDinilai($sensor, $nilai));

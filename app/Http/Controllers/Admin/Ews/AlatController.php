@@ -13,9 +13,9 @@ class AlatController extends Controller
     {
         $batas = (int) config('ews.alat_offline_menit');
 
-        $alat = Wilayah::query()->with('pembacaanTerbaru')->orderBy('id')->get()
+        $alat = Wilayah::query()->with('pembacaanTerbaru')->orderBy('id_alat')->get()
             ->map(fn (Wilayah $w) => [
-                'id' => $w->id,
+                'id' => $w->id_alat,
                 'nama' => $w->nama,
                 'terakhir' => $w->pembacaanTerbaru?->created_at,
                 'offline' => PenilaianStatus::alatOffline($w->pembacaanTerbaru?->created_at, $batas),

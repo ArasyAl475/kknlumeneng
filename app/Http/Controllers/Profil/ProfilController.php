@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Profil;
 use App\Http\Controllers\Controller;
 use App\Models\Profil\Lembaga;
 use App\Models\Profil\Perangkat;
+use App\Models\Profil\Potensi;
 use App\Services\Profil\ProfilDesa;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -22,6 +23,7 @@ class ProfilController extends Controller
             // Satu kueri untuk semua perangkat, lalu dikelompokkan sesuai tingkat bagan.
             'perangkat' => Perangkat::query()->urut()->get()->groupBy('kelompok'),
             'lembaga' => Lembaga::query()->urut()->get(),
+            'potensi' => Potensi::query()->with('fotos')->urut()->get(),
         ]);
     }
 

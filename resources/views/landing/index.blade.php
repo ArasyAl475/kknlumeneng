@@ -40,6 +40,17 @@
     @vite('resources/js/landing/hero-gulir.js')
 @endpush
 
+{{-- Status longsor di hero dan kartu "Kondisi lereng" berubah sendiri tanpa muat ulang halaman. --}}
+@if ($adaEws)
+    @push('skrip')
+        @vite('resources/js/landing/status-langsung.js')
+    @endpush
+@endif
+
+@push('skrip')
+    @vite('resources/js/landing/bentang-3d.js')
+@endpush
+
 @if ($fotoTerbaru->isNotEmpty())
     @push('skrip')
         @vite('resources/js/profil/galeri.js')
@@ -91,9 +102,9 @@
                 {{-- Pil status ringkas: status longsor langsung terbaca di HP tanpa menggulir. Warna padat, bukan kaca. --}}
                 @if ($adaEws)
                     <div class="hero-geser mt-7" style="--d:0.2;--gx:72px;--gy:-136px">
-                        <a href="#kondisi" data-warna="{{ $warna }}" class="status-pekat inline-flex min-h-11 items-center gap-2.5 rounded-full py-2 pl-3 pr-4 font-bold shadow-lg [text-shadow:none] motion-safe:animate-muncul [animation-delay:360ms] hover:brightness-110">
+                        <a id="chip-status" href="#kondisi" data-warna="{{ $warna }}" class="status-pekat inline-flex min-h-11 items-center gap-2.5 rounded-full py-2 pl-3 pr-4 font-bold shadow-lg [text-shadow:none] motion-safe:animate-muncul [animation-delay:360ms] hover:brightness-110">
                             <x-ikon :nama="$ikonStatus[$warna]" class="size-5 shrink-0" />
-                            <span>Status longsor: {{ $status['status'] ?? 'Belum ada data' }}</span>
+                            <span data-isi="chip-teks">Status longsor: {{ $status['status'] ?? 'Belum ada data' }}</span>
                             <x-ikon nama="panah" class="size-4 rotate-90" />
                         </a>
                     </div>
@@ -129,8 +140,16 @@
                     </x-tombol>
                 </div>
 
-                {{-- Kotak status (komponen yang sama dengan dasbor EWS): warna + bentuk ikon + kata. --}}
+                {{-- Kotak status (komponen yang sama dengan dasbor EWS): warna + bentuk ikon + kata.
+                     langsung = true memberi id panel-* yang diperbarui oleh landing/status-langsung.js. --}}
+                <div id="status-langsung" hidden
+                     data-url-data="{{ route('ews.data') }}"
+                     data-saran="{{ json_encode($saranStatus + ['kosong' => __('landing.status.belum_ada')], JSON_UNESCAPED_UNICODE) }}"
+                     data-teks-offline="{{ __('landing.status.alat_mati') }}"
+                     data-teks-offline-waspada="{{ __('landing.status.alat_mati_waspada') }}"></div>
+                <p id="pengumuman" class="sr-only" aria-live="polite"></p>
                 <x-kartu-status
+                    :langsung="true"
                     :warna="$warna"
                     :status="$status['status'] ?? null"
                     :saran="$status ? $saranStatus[$warna] : __('landing.status.belum_ada')"
@@ -140,7 +159,7 @@
                     :jumlah-wilayah="$status['jumlah_wilayah'] ?? null"
                     :jumlah-offline="$status['jumlah_offline'] ?? 0"
                     :label="__('landing.status.judul')"
-                    :offline="($status['ada_offline'] ?? false) ? __('landing.status.alat_mati') : null"
+                    :offline="($status['ada_offline'] ?? false) ? __($status['ada_offline_saat_waspada'] ? 'landing.status.alat_mati_waspada' : 'landing.status.alat_mati') : null"
                     :detail="route($ews['rute']).'#sensor'"
                     :bagikan="route($ews['rute'])" />
             </div>
@@ -332,6 +351,65 @@
             </div>
         </section>
     @endif
+
+    {{-- ══════════ 4b. BENTANG ALAM 3D: gambar tiga dimensi desa yang bisa diputar (resources/js/landing/bentang-3d.js) ══════════ --}}
+    <section aria-labelledby="judul-bentang" class="pola-kontur relative isolate mt-16 overflow-hidden rounded-3xl bg-gradient-to-br from-navy-tua via-navy to-biru-tua text-white shadow-angkat">
+        <div class="grid items-center gap-6 p-6 sm:p-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.4fr)] lg:gap-10">
+            <div data-muncul>
+                <p class="kicker kicker--terang">Kenali desa kita</p>
+                <h2 id="judul-bentang" class="mt-2 text-[clamp(1.7rem,4vw,2.5rem)] font-extrabold leading-tight text-balance">Lihat Lumeneng dari atas, <span class="text-aksen-terang">putar sesukamu</span></h2>
+                <p class="mt-3 text-lg text-white/85">Desa kita berdiri di lereng perbukitan. Geser gambar untuk memutarnya, lalu perbesar untuk melihat letak dusun dan dukuh.</p>
+                <ul class="mt-4 space-y-2 text-white/85">
+                    <li class="flex items-start gap-2"><x-ikon nama="info" class="mt-0.5 size-5 shrink-0 text-aksen-terang" /><span><strong class="text-white">Geser</strong> dengan jari atau mouse untuk memutar.</span></li>
+                    <li class="flex items-start gap-2"><x-ikon nama="perbesar" class="mt-0.5 size-5 shrink-0 text-aksen-terang" /><span><strong class="text-white">Cubit</strong> dua jari, atau pakai tombol + dan −, untuk memperbesar.</span></li>
+                </ul>
+                @if ($adaEws)
+                    <x-tombol varian="terang" :href="route($ews['rute']).'#kerawanan'" class="mt-6 min-h-12 px-6">
+                        <x-ikon nama="peta" class="size-5" /><span>Lihat peta rawan longsor</span>
+                    </x-tombol>
+                @endif
+            </div>
+
+            {{-- Tanpa JavaScript, ini tetap gambar biasa; tombol kendali baru muncul bila skrip siap. --}}
+            <div data-bentang3d data-muncul>
+                <div data-b3d-panggung tabindex="0" role="group"
+                     aria-label="{{ $bentangAlam['judul'] }}. Gunakan tombol panah untuk memutar, plus dan minus untuk memperbesar."
+                     class="relative aspect-[1.6/1] touch-pan-y cursor-grab select-none overflow-hidden rounded-2xl bg-[radial-gradient(ellipse_at_50%_62%,rgb(59_130_246/0.28),transparent_68%)] [perspective:1100px] active:cursor-grabbing focus-visible:outline-aksen-terang">
+                    {{-- Bayangan di bawah model supaya terkesan melayang di atas lantai. --}}
+                    <span class="pointer-events-none absolute bottom-[6%] left-1/2 h-[7%] w-[62%] -translate-x-1/2 rounded-full bg-black/55 blur-xl" aria-hidden="true"></span>
+                    <div data-b3d-model class="absolute inset-0 [transform-style:preserve-3d] will-change-transform">
+                        <img src="{{ site_image('beranda.peta-3d') }}" alt="{{ site_image_alt('beranda.peta-3d') }}" loading="lazy" decoding="async" draggable="false"
+                             class="pointer-events-none size-full object-contain drop-shadow-[0_18px_28px_rgb(0_0_0/0.45)]">
+                    </div>
+                    <p data-b3d-petunjuk class="kaca pointer-events-none absolute left-3 top-3 whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-bold text-white transition-opacity duration-500">
+                        Geser untuk memutar
+                    </p>
+                </div>
+
+                <div data-b3d-kendali hidden class="mt-3 flex flex-wrap items-center justify-center gap-2">
+                    @php
+                        $tombol3d = [
+                            ['kiri', 'Putar ke kiri', 'm15 5-7 7 7 7'],
+                            ['kanan', 'Putar ke kanan', 'm9 5 7 7-7 7'],
+                            ['kecil', 'Perkecil', 'M5 12h14'],
+                            ['besar', 'Perbesar', 'M12 5v14M5 12h14'],
+                            ['ulang', 'Atur ulang', 'M4 12a8 8 0 1 0 2.5-5.8M4 4v5h5'],
+                        ];
+                    @endphp
+                    @foreach ($tombol3d as [$aksi, $nama, $garis])
+                        <button type="button" data-aksi="{{ $aksi }}" title="{{ $nama }}"
+                                class="kaca inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-full px-3 font-bold text-white transition-colors duration-200 hover:bg-white/25 focus-visible:outline-white disabled:opacity-40 sm:px-4">
+                            <svg class="size-5" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ $garis }}" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            <span class="{{ in_array($aksi, ['kiri', 'kanan'], true) ? 'sr-only' : 'sr-only sm:not-sr-only' }}">{{ $nama }}</span>
+                        </button>
+                    @endforeach
+                </div>
+                <p data-b3d-info class="sr-only" aria-live="polite"></p>
+
+                <p class="mt-3 text-center text-sm text-white/70">{{ $bentangAlam['penjelasan'] }} Gambar dari Kajian Pemetaan Bencana Desa Lumeneng 2024; bukan peta untuk navigasi.</p>
+            </div>
+        </div>
+    </section>
 
     {{-- ══════════ 5. SIAGA BENCANA: foto di kiri, sensor + nomor darurat di kanan ══════════ --}}
     <section aria-labelledby="judul-siaga" class="mt-16 grid items-center gap-10 lg:grid-cols-2">

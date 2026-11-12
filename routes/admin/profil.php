@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\Profil\GambarIsiController;
 use App\Http\Controllers\Admin\Profil\LembagaController;
 use App\Http\Controllers\Admin\Profil\PengaturanController;
 use App\Http\Controllers\Admin\Profil\PerangkatController;
+use App\Http\Controllers\Admin\Profil\PotensiController;
 use App\Services\Profil\BagianProfil;
 use Illuminate\Support\Facades\Route;
 
@@ -19,6 +20,7 @@ Route::prefix('profil')->name('profil.')->group(function () {
 
     Route::resource('perangkat', PerangkatController::class)->except('show')->parameters(['perangkat' => 'perangkat']);
     Route::resource('lembaga', LembagaController::class)->except('show')->parameters(['lembaga' => 'lembaga']);
+    Route::resource('potensi', PotensiController::class)->except('show')->parameters(['potensi' => 'potensi']);
 
     Route::resource('berita', BeritaController::class)->except('show')->parameters(['berita' => 'berita']);
     Route::get('berita/{berita}/pratinjau', [BeritaController::class, 'pratinjau'])->name('berita.pratinjau');

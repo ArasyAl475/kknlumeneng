@@ -13,6 +13,8 @@ kelembapan tanah, intensitas hujan, kemiringan, dan kelembapan udara.
    Teks yang sama dipasang di kode ESP32. Kalau kosong, semua kiriman ditolak (HTTP 401).
 2. Daerah (wilayah) harus sudah ada di halaman **Admin → Daftar wilayah**.
    Kolom **ID alat** di tabel itu dipakai ESP32 untuk menyebut "saya alat di daerah mana".
+   Angka ID alat bisa diganti admin lewat tombol **Ubah** (supaya cocok dengan `WILAYAH_ID` yang sudah terpasang di alat).
+   ID alat bukan nomor baris basis data: bila diganti, alat yang masih memakai angka lama ditolak (422) sampai kodenya disamakan.
 3. Jalankan `php artisan migrate` sekali setelah file baru ditimpa (menambah kolom sensor baru).
 
 ## 2. Alamat
@@ -43,7 +45,7 @@ jadi GET dan datanya hilang tanpa pesan jelas.
 
 | Field | Wajib? | Satuan | Rentang | Keterangan |
 |---|---|---|---|---|
-| `wilayah_id` | ya* | angka | — | ID dari Admin → Daftar wilayah. Alternatif: `lokasi` (nama persis, huruf besar-kecil dan spasi harus sama) |
+| `wilayah_id` | ya* | angka | — | ID alat dari Admin → Daftar wilayah (kolom ID alat). Alternatif: `lokasi` (nama persis, huruf besar-kecil dan spasi harus sama) |
 | `kelembapan_tanah` | tidak | % | 0 – 100 | Nama lama `kelembapan` juga diterima |
 | `intensitas_hujan` | tidak | % | 0 – 100 | Seberapa basah papan sensor hujan: 0 = kering, 100 = basah kuyup (lihat bagian 5) |
 | `kemiringan` | tidak | derajat | −90 – 90 | Selisih sudut dari posisi saat alat dipasang (negatif/positif sama saja, yang dinilai nilai mutlaknya) |

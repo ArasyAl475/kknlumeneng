@@ -37,7 +37,7 @@
             <x-bidang nama="urutan" label="Urutan tampil" type="number" min="0" max="999" inputmode="numeric" :value="old('urutan', $perangkat->urutan ?? 0)"
                 bantuan="Angka kecil tampil lebih dulu dalam kelompok yang sama. Contoh: Kaur Keuangan 1, Kaur Umum 2." class="max-w-xs" />
 
-            @include('admin.profil.partials.foto', ['nama' => 'foto', 'label' => 'Foto (boleh dikosongkan)', 'url' => $perangkat->urlFoto(), 'bantuan' => 'Tanpa foto, situs menampilkan huruf awal nama.'])
+            @include('admin.profil.partials.foto', ['nama' => 'foto', 'label' => 'Foto (boleh dikosongkan)', 'url' => $perangkat->urlFoto(), 'bantuan' => 'Foto potret (tegak, wajah di bagian atas) paling bagus. Dengan foto, kartu tampil tegak dengan nama dan jabatan di bawah foto. Tanpa foto, situs menampilkan huruf awal nama.'])
 
             <x-tombol>{{ $perangkat->exists ? 'Simpan perubahan' : 'Tambahkan' }}</x-tombol>
         </form>

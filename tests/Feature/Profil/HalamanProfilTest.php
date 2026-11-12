@@ -137,10 +137,14 @@ class HalamanProfilTest extends TestCase
         $this->assertSame(11, Perangkat::query()->count());
         $this->assertSame(6, Lembaga::query()->count());
         $this->assertSame(6, Berita::query()->count());
-        $this->assertSame(4, Foto::query()->count());
-        $this->assertSame(1, Foto::query()->whereNull('berita_id')->count());
+        // 4 foto contoh + 20 foto potensi (5 + 4 + 3 + 5 + 3) yang otomatis ikut masuk galeri.
+        $this->assertSame(24, Foto::query()->count());
+        $this->assertSame(20, Foto::query()->whereNotNull('potensi_id')->count());
+        $this->assertSame(21, Foto::query()->whereNull('berita_id')->count());
         Foto::query()->pluck('gambar')->each(fn (string $jalur) => Storage::disk('public')->assertExists($jalur));
-        $this->get(route('galeri.index'))->assertOk()->assertSee('Kopi hasil kebun warga (contoh)');
+        // Foto potensi paling baru, jadi tampil di halaman pertama galeri; foto contoh ada di halaman berikutnya.
+        $this->get(route('galeri.index'))->assertOk()->assertSee('Mata air desa');
+        $this->get(route('galeri.index', ['page' => 2]))->assertOk()->assertSee('Kopi hasil kebun warga (contoh)');
 
         $this->get(route('profil.index'))->assertOk()->assertSee('Sambutan')->assertSee('Desa dalam angka')->assertSee('Batas wilayah');
         // Seeder ulang tidak menimpa tulisan admin.

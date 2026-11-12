@@ -172,6 +172,15 @@ class PenilaianStatusTest extends TestCase
         $this->assertSame(['status' => null, 'warna' => 'kosong', 'pemicu' => null], PenilaianStatus::statusTerkini(null, null, [], self::AMBANG, false));
     }
 
+    public function test_kondisi_tak_diketahui_hanya_saat_waspada_dan_alat_diam(): void
+    {
+        $this->assertTrue(PenilaianStatus::kondisiTakDiketahui('Waspada', true));
+        $this->assertFalse(PenilaianStatus::kondisiTakDiketahui('Waspada', false), 'alat masih mengirim');
+        $this->assertFalse(PenilaianStatus::kondisiTakDiketahui('Aman', true), 'alat diam saat Aman cukup peringatan biasa');
+        $this->assertFalse(PenilaianStatus::kondisiTakDiketahui('Awas', true), 'Awas sudah terkunci');
+        $this->assertFalse(PenilaianStatus::kondisiTakDiketahui(null, true));
+    }
+
     public function test_warna_terburuk(): void
     {
         $this->assertSame('kosong', PenilaianStatus::warnaTerburuk([]));

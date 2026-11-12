@@ -134,6 +134,10 @@ class PenyimpanGambarSitus
 
     private function kecilkan(GdImage $asli): GdImage
     {
+        if (! imageistruecolor($asli)) {
+            imagepalettetotruecolor($asli);
+        }
+
         $lebar = imagesx($asli);
         $tinggi = imagesy($asli);
         $skala = min(1, self::SISI_TERPANJANG / max($lebar, $tinggi));
@@ -141,11 +145,45 @@ class PenyimpanGambarSitus
         $tinggiBaru = max(1, (int) round($tinggi * $skala));
 
         $hasil = imagecreatetruecolor($lebarBaru, $tinggiBaru);
-        // Latar putih agar bagian transparan pada PNG tidak berubah hitam.
-        imagefill($hasil, 0, 0, (int) imagecolorallocate($hasil, 255, 255, 255));
+
+        // Gambar bertransparansi (mis. model 3D tanpa latar) dipertahankan bila WebP tersedia.
+        // Selain itu latar putih dipakai agar bagian transparan pada PNG tidak berubah hitam.
+        if ($this->bisaWebp() && $this->punyaTransparansi($asli)) {
+            imagealphablending($hasil, false);
+            imagesavealpha($hasil, true);
+            imagefill($hasil, 0, 0, (int) imagecolorallocatealpha($hasil, 255, 255, 255, 127));
+        } else {
+            imagefill($hasil, 0, 0, (int) imagecolorallocate($hasil, 255, 255, 255));
+        }
+
         imagecopyresampled($hasil, $asli, 0, 0, 0, 0, $lebarBaru, $tinggiBaru, $lebar, $tinggi);
 
         return $hasil;
+    }
+
+    // Cukup memeriksa titik-titik contoh (termasuk tepi): gambar bertransparansi hampir selalu punya latar bening di tepinya.
+    private function punyaTransparansi(GdImage $gambar): bool
+    {
+        $lebar = imagesx($gambar);
+        $tinggi = imagesy($gambar);
+        $langkahX = max(1, intdiv($lebar, 48));
+        $langkahY = max(1, intdiv($tinggi, 48));
+
+        for ($y = 0; $y < $tinggi; $y += $langkahY) {
+            for ($x = 0; $x < $lebar; $x += $langkahX) {
+                // Alfa GD: 0 = buram, 127 = bening penuh.
+                if (((imagecolorat($gambar, $x, $y) >> 24) & 0x7F) > 8) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private function bisaWebp(): bool
+    {
+        return function_exists('imagewebp') && (imagetypes() & IMG_WEBP);
     }
 
     /**
@@ -153,7 +191,7 @@ class PenyimpanGambarSitus
      */
     private function sandikan(GdImage $gambar): array
     {
-        $bisaWebp = function_exists('imagewebp') && (imagetypes() & IMG_WEBP);
+        $bisaWebp = $this->bisaWebp();
 
         ob_start();
         $bisaWebp ? imagewebp($gambar, null, self::MUTU) : imagejpeg($gambar, null, self::MUTU);

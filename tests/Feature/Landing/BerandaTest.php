@@ -93,6 +93,30 @@ class BerandaTest extends TestCase
         $this->assertDoesNotMatchRegularExpression('/<(script|link)[^>]+(src|href)="https?:\/\/(?!localhost)/i', $html);
     }
 
+    public function test_status_beranda_siap_diperbarui_otomatis(): void
+    {
+        config(['modul.ews.aktif' => true]);
+        Pembacaan::factory()->create();
+
+        $html = $this->get('/')->assertOk()
+            ->assertSee('id="status-langsung"', false)
+            ->assertSee('data-url-data="'.route('ews.data').'"', false)
+            ->assertSee('id="chip-status"', false)
+            ->assertSee('id=panel-status', false)
+            ->assertSee('id="pengumuman"', false)
+            ->getContent();
+
+        // Kalimat saran yang dikirim ke skrip harus sama dengan yang tampil saat halaman dimuat.
+        $this->assertStringContainsString('Kondisi lereng terpantau normal.', html_entity_decode($html));
+    }
+
+    public function test_status_beranda_tanpa_modul_ews_tidak_memuat_pembaruan(): void
+    {
+        config(['modul.ews.aktif' => false]);
+
+        $this->get('/')->assertOk()->assertDontSee('id="status-langsung"', false);
+    }
+
     public function test_ringkasan_memakai_status_terburuk_ews(): void
     {
         Pembacaan::factory()->create(['wilayah_id' => Wilayah::factory()->awas()->create(['nama' => 'Lereng Uji'])]);

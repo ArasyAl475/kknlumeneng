@@ -125,6 +125,9 @@
         @endif
     </section>
 
+    {{-- ═══════════════ POTENSI & PENGHASIL DESA ═══════════════ --}}
+    @include('profil.partials.potensi')
+
     {{-- ═══════════════ 2. VISI & MISI: pita navy yang memudar di atas dan bawah ═══════════════ --}}
     <section id="visi-misi" aria-labelledby="judul-visi-misi" class="latar-pudar mt-8 scroll-mt-16 text-white [--ke-tengah:var(--color-biru-tua)]">
         <div class="lapis-pudar pola-kontur" aria-hidden="true"></div>
@@ -185,7 +188,7 @@
                     @if ($tingkat->isNotEmpty())
                         <div class="mx-auto flex max-w-md flex-col gap-3">
                             @foreach ($tingkat as $orang)
-                                @include('profil.partials.kartu-perangkat', ['besar' => $loop->parent->first])
+                                @include('profil.partials.kartu-perangkat', ['besar' => $loop->parent->first, 'tunggal' => true])
                             @endforeach
                         </div>
                         <div class="mx-auto h-8 w-1 rounded-full bg-gradient-to-b from-biru/50 to-biru/20" aria-hidden="true"></div>
@@ -203,9 +206,10 @@
                                     {{ $judulKelompok }}
                                     <span class="block text-sm font-normal text-white/80">{{ $sebutan }}</span>
                                 </h3>
-                                <ul class="space-y-3">
+                                {{-- 2 kolom: kartu berfoto berdampingan, kartu tanpa foto selebar kolom. Dense mengisi celah. --}}
+                                <ul class="grid grid-flow-dense grid-cols-2 gap-3">
                                     @foreach ($perangkat[$kelompok] as $orang)
-                                        <li>@include('profil.partials.kartu-perangkat')</li>
+                                        <li @class(['col-span-2' => ! $orang->urlFoto()])>@include('profil.partials.kartu-perangkat')</li>
                                     @endforeach
                                 </ul>
                             </div>

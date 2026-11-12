@@ -13,7 +13,7 @@ class SimulasiCommand extends Command
 {
     protected $signature = 'ews:simulasi
         {--skenario=acak : acak, aman, waspada, validasi, atau kabel}
-        {--wilayah= : ID wilayah (kosong = semua)}
+        {--wilayah= : ID alat wilayah (kosong = semua)}
         {--riwayat=0 : isi riwayat sekian jam ke belakang, tiap 10 menit, tanpa memicu pemberitahuan}';
 
     protected $description = 'Membuat data sensor buatan untuk demo dan pengembangan (ditolak di produksi)';
@@ -34,7 +34,7 @@ class SimulasiCommand extends Command
         }
 
         $daftar = Wilayah::query()
-            ->when($this->option('wilayah'), fn ($q, $id) => $q->whereKey($id))
+            ->when($this->option('wilayah'), fn ($q, $id) => $q->where('id_alat', $id))
             ->get();
 
         if ($daftar->isEmpty()) {

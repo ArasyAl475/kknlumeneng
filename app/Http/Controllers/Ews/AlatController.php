@@ -16,7 +16,9 @@ class AlatController extends Controller
         return response()->json([
             'pesan' => 'OK',
             'waktu_server' => now()->toIso8601String(),
-            'wilayah' => Wilayah::query()->orderBy('id')->get(['id', 'nama']),
+            // Kunci "id" tetap sesuai kontrak alat, isinya ID alat yang dipakai di wilayah_id.
+            'wilayah' => Wilayah::query()->orderBy('id_alat')->get(['id_alat', 'nama'])
+                ->map(fn (Wilayah $w) => ['id' => $w->id_alat, 'nama' => $w->nama])->values(),
         ]);
     }
 

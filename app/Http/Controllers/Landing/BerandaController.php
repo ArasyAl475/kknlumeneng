@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Landing;
 use App\Http\Controllers\Controller;
 use App\Models\Profil\Berita;
 use App\Models\Profil\Foto;
+use App\Services\Ews\PetaKerawanan;
 use App\Services\Landing\RingkasanEws;
 use App\Services\Profil\ProfilDesa;
 use App\Support\Modul;
@@ -34,6 +35,7 @@ class BerandaController extends Controller
                 : collect(),
             'fotoTerbaru' => $foto->take(5)->values(),
             'fotoGilir' => $foto->slice(5)->values(),
+            'bentangAlam' => PetaKerawanan::bentangAlam(),
             'profil' => ($modul['profil']['tersedia'] ?? false) ? ProfilDesa::muat() : null,
         ]);
     }
