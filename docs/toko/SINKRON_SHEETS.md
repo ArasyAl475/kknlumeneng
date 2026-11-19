@@ -21,9 +21,9 @@ dengan kolom ID dikosongkan.
 - Di panel admin (daftar Panen kopi, Panen jamur, Penjualan jamur) ada tombol **Buka Google Sheets** yang
   langsung membuka tab yang sesuai. Tombol hanya tampil bila `TOKO_SHEETS_AKTIF=true`. Yang bisa membuka
   Sheet tetap hanya akun Google yang sudah diundang.
-- Di halaman publik `/toko/hasil`, tombol **Unduh Excel** diganti **Buka Google Sheets** yang membuka Sheet
-  yang sama. Warga yang tidak diundang akan melihat halaman Google "Anda memerlukan akses". Selama
-  sinkron Sheets mati, tombol Unduh Excel yang tampil.
+- Halaman publik `/toko/hasil` **tidak** menautkan Sheet. Warga hanya bisa melihat dan menekan **Unduh Excel**
+  (tanpa biaya baglog dan uang per transaksi, tidak bisa mengubah data). Mengedit hanya lewat tombol
+  **Buka Google Sheets** di panel admin.
 - Sistem yang menarik data dari Google. Tidak ada alamat web yang dibuka untuk Google, dan kunci
   rahasia hanya ada di server.
 

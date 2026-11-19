@@ -517,12 +517,13 @@ class SinkronSheetsTest extends TestCase
         Http::assertNothingSent();
     }
 
-    public function test_halaman_publik_hasil_memakai_link_sheets_menggantikan_unduh_excel(): void
+    public function test_halaman_publik_hasil_hanya_unduh_excel_walau_sinkron_aktif(): void
     {
+        // Warga hanya melihat; Sheet (bisa diedit, berisi biaya baglog) hanya dibuka dari panel admin.
         $this->get(route('toko.hasil'))->assertOk()
-            ->assertSee('Buka Google Sheets')
-            ->assertSee('https://docs.google.com/spreadsheets/d/sheet-uji/edit', false)
-            ->assertDontSee('Unduh Excel');
+            ->assertSee('Unduh Excel')
+            ->assertDontSee('Buka Google Sheets')
+            ->assertDontSee('docs.google.com', false);
 
         // Halaman publik tidak pernah menunggu Google.
         Http::assertNothingSent();

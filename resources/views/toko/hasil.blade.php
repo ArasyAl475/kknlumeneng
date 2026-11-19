@@ -62,19 +62,13 @@
                 </button>
                 {{-- Dibungkus agar alamat unduhan ikut filter baru saat pilihan berganti tanpa memuat ulang. --}}
                 <span data-segar-bagian="unduh" style="display: contents">
-                    @if ($alamatSheet)
-                        {{-- Sheet yang sama dengan panel admin; hanya terbuka bagi akun Google yang diundang. --}}
-                        <a href="{{ $alamatSheet }}" class="tombol-kustom" target="_blank" rel="noopener">
-                            @include('toko.partials.ikon', ['nama' => 'tabel', 'kelas' => 'size-4'])
-                            Buka Google Sheets
-                        </a>
-                    @else
-                        {{-- Unduhan membawa filter yang sedang aktif, jadi isi Excel sama dengan yang terlihat di layar. --}}
-                        <a href="{{ route('toko.hasil.excel', array_filter($filter)) }}" class="tombol-kustom" download>
-                            @include('toko.partials.ikon', ['nama' => 'unduh', 'kelas' => 'size-4'])
-                            Unduh Excel
-                        </a>
-                    @endif
+                    {{-- Warga hanya melihat: Excel tidak bisa mengubah data dan tanpa biaya baglog / uang per transaksi.
+                         Google Sheets (bisa diedit) hanya dibuka dari panel admin. Unduhan membawa filter yang
+                         sedang aktif, jadi isi Excel sama dengan yang terlihat di layar. --}}
+                    <a href="{{ route('toko.hasil.excel', array_filter($filter)) }}" class="tombol-kustom" download>
+                        @include('toko.partials.ikon', ['nama' => 'unduh', 'kelas' => 'size-4'])
+                        Unduh Excel
+                    </a>
                 </span>
             </div>
         </div>
@@ -475,7 +469,7 @@
             @include('toko.partials.timbang', ['baris' => $kopi['timbang'], 'jumlah' => $kopi['timbang_jumlah'], 'totalKotor' => $kopi['panen'], 'totalBersih' => $kopi['bersih']])
             <div data-segar-bagian="rincian-ket">
                 @if ($kopi['timbang_jumlah'] > count($kopi['timbang']))
-                    <p class="catatan-kecil">Menampilkan {{ count($kopi['timbang']) }} catatan terbaru dari {{ $kopi['timbang_jumlah'] }}. {{ $alamatSheet ? 'Buka Google Sheets' : 'Unduh Excel' }} untuk melihat semuanya, atau pilih tanggal di Kustom.</p>
+                    <p class="catatan-kecil">Menampilkan {{ count($kopi['timbang']) }} catatan terbaru dari {{ $kopi['timbang_jumlah'] }}. Unduh Excel untuk melihat semuanya, atau pilih tanggal di Kustom.</p>
                 @endif
             </div>
         @endif
