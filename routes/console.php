@@ -4,6 +4,10 @@ use Illuminate\Support\Facades\Schedule;
 
 // Berjalan bila hosting menyediakan cron `php artisan schedule:run` (lihat docs/DEPLOY.md).
 Schedule::command('ews:bersihkan')->dailyAt('02:00')->withoutOverlapping();
+// Notifikasi HP warga untuk alat yang berhenti mengirim data (tidak ada kiriman yang memicunya), dan
+// pengiriman ulang notifikasi yang sebelumnya gagal. Perubahan lain sudah dikirim saat terjadi.
+Schedule::command('ews:pantau-notifikasi')->everyMinute()->withoutOverlapping(2)
+    ->when(fn () => config('ews.push.aktif'));
 // Token akses Shopee hanya hidup ±4 jam; dicek tiap jam dan diperpanjang bila sisa umurnya < 90 menit.
 Schedule::command('toko:perpanjang-token-shopee')->hourly()->withoutOverlapping();
 

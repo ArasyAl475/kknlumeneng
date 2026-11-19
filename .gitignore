@@ -31,3 +31,6 @@ Thumbs.db
 CLAUDE.local.md
 *.sqlite
 *.sqlite-journal
+# Kunci akun layanan Google/Firebase: hanya di server, di luar folder proyek.
+*firebase-adminsdk*.json
+ews-lumeneng-*.json

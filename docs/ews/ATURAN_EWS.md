@@ -81,6 +81,10 @@ Tidak jadi Awas otomatis (alat juga mati karena listrik/sinyal), tetapi:
 Aturannya ada di `PenilaianStatus::kondisiTakDiketahui()`. Alat diam saat Aman cukup peringatan biasa;
 alat diam saat Awas tidak berubah (Awas sudah terkunci).
 
+## Notifikasi HP warga
+Perubahan status wilayah dikirim ke aplikasi Android lewat Firebase: Awas selalu, Waspada dan "alat tidak mengirim
+data" paling sering sekali per 10 menit, Aman tidak dikirim. Rincian: `docs/ews/NOTIFIKASI_HP.md`.
+
 ## Kontrak API alat
 Lihat `docs/ews/API_ALAT.md`. Tidak boleh berubah tanpa persetujuan pembuat alat.
 Endpoint: `POST /api/sensor`, `GET /api/ping`, header `X-API-KEY`.
