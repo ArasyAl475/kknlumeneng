@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Rules\SandiKuat;
 use Illuminate\Database\Seeder;
 use RuntimeException;
 
@@ -29,16 +30,19 @@ class AdminSeeder extends Seeder
             $this->command?->warn('ADMIN_PASSWORD lemah. Di server, kata sandi seperti ini akan ditolak.');
         }
 
-        User::query()->updateOrCreate(['email' => $email], ['name' => 'Admin', 'password' => $sandi])
-            ->forceFill(['is_admin' => true])
-            ->save();
+        $admin = User::query()->firstOrNew(['email' => $email]);
+
+        // Sandi hanya dipasang saat akun dibuat. Seed boleh dijalankan ulang kapan saja (docs/DEPLOY.md),
+        // jadi sandi yang sudah diganti admin lewat web tidak boleh kembali ke ADMIN_PASSWORD di .env.
+        if (! $admin->exists) {
+            $admin->fill(['name' => 'Admin', 'password' => $sandi]);
+        }
+
+        $admin->forceFill(['is_admin' => true])->save();
     }
 
     public static function sandiKuat(string $sandi): bool
     {
-        return mb_strlen($sandi) >= 12
-            && preg_match('/\pL/u', $sandi) === 1
-            && preg_match('/\d/', $sandi) === 1
-            && preg_match('/password|sandi|admin|lumeneng|qwerty|12345/i', $sandi) !== 1;
+        return SandiKuat::memenuhi($sandi);
     }
 }

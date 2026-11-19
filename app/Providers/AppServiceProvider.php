@@ -32,5 +32,15 @@ class AppServiceProvider extends ServiceProvider
             Limit::perMinute(5)->by(mb_strtolower((string) $request->input('email')).'|'.$request->ip()),
             Limit::perMinute(20)->by($request->ip()),
         ]);
+
+        // Tiap permintaan mengirim email: dibatasi per alamat tujuan agar tidak dipakai membanjiri
+        // kotak masuk admin, dan per IP agar tidak dipakai menebak banyak email.
+        RateLimiter::for('lupa-sandi', fn (Request $request) => [
+            Limit::perMinute(3)->by(mb_strtolower((string) $request->input('email'))),
+            Limit::perMinute(10)->by($request->ip()),
+        ]);
+
+        // Simpan sandi baru (lupa sandi dan ganti sandi). Cukup longgar untuk salah ketik beberapa kali.
+        RateLimiter::for('atur-sandi', fn (Request $request) => Limit::perMinute(10)->by($request->user()?->id ?? $request->ip()));
     }
 }
