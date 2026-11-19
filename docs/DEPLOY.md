@@ -27,6 +27,8 @@ Jangan pernah menempel isi `.env` ke chat atau Git.
 6. `php artisan config:cache`, `php artisan route:cache`, `php artisan view:cache`: mempercepat situs. Ulangi setelah `.env` diubah.
 
 Seed aman dijalankan ulang kapan saja (`php artisan db:seed --force`): data yang sudah ada atau sudah diubah admin tidak ditimpa.
+Termasuk kata sandi admin: `ADMIN_PASSWORD` hanya dipakai saat akun admin pertama kali dibuat. Setelah itu kata sandi
+diganti lewat panel admin (**Ganti kata sandi**) atau halaman **Lupa kata sandi?**, bukan dengan mengubah `.env`.
 
 ## 3. Yang diisi seeder di server (data asli saja)
 | Modul | Terisi otomatis |
@@ -42,7 +44,7 @@ Data karangan (nama perangkat, berita, nomor telepon palsu, materi dan catatan p
 Untuk latihan di komputer lokal tersedia `ProfilContohSeeder`, `EdukasiContohSeeder`, dan `TokoContohHasilSeeder`; ketiganya menolak jalan di server.
 
 ## 4. Yang harus diisi admin setelah masuk
-Masuk di `/masuk`, lalu **ganti kata sandi** bila perlu. Isi lewat panel admin:
+Masuk di `/masuk`, lalu **ganti kata sandi** bila perlu (tombol **Ganti kata sandi** di bawah menu admin). Isi lewat panel admin:
 - **Profil Desa**: nama kepala desa, sambutan, sejarah, visi dan misi, alamat dan kontak kantor, foto kepala desa (menu Desain Web, slot "Foto kepala desa").
 - **Perangkat desa** (bisa dengan foto), **Lembaga desa**, serta **Berita & Artikel**.
 - **Toko**: harga, foto, dan tautan marketplace tiap produk.
@@ -61,3 +63,29 @@ Untuk MQTT, ikuti `docs/ews/PANDUAN_MQTT.md` (jalankan `php artisan ews:mqtt` te
 ## 6. Setelah memperbarui kode
 `git pull`, lalu `composer install --no-dev --optimize-autoloader`, `php artisan migrate --force`, `npm run build`, dan `php artisan config:cache route:cache view:cache`.
 Bila ada seeder baru, jalankan `php artisan db:seed --force`.
+
+## 7. Email "Lupa kata sandi" lewat Gmail
+Halaman **Lupa kata sandi?** (di bawah isian kata sandi pada `/masuk`) mengirim tautan ke email akun admin.
+Tautan berlaku 60 menit dan hanya bisa dipakai sekali. Email hanya dikirim ke akun admin; untuk email lain
+halaman menampilkan pesan yang sama tanpa mengirim apa pun (agar orang luar tidak bisa menebak email admin).
+
+Supaya email benar-benar terkirim, server butuh akun Gmail pengirim:
+1. Masuk ke akun Gmail pengirim, buka https://myaccount.google.com/security, aktifkan **Verifikasi 2 Langkah**.
+2. Buka https://myaccount.google.com/apppasswords, buat sandi aplikasi bernama mis. `Web Lumeneng`.
+   Google menampilkan 16 huruf; salin (spasi boleh dihapus). Ini yang dipakai server, bukan kata sandi Gmail.
+3. Di `.env` server, ganti baris `MAIL_*` menjadi:
+
+   | Isian | Nilai |
+   |---|---|
+   | `MAIL_MAILER` | `smtp` |
+   | `MAIL_HOST` | `smtp.gmail.com` |
+   | `MAIL_PORT` | `587` |
+   | `MAIL_USERNAME` | alamat Gmail pengirim |
+   | `MAIL_PASSWORD` | sandi aplikasi 16 huruf (dalam tanda kutip) |
+   | `MAIL_FROM_ADDRESS` | alamat Gmail pengirim yang sama |
+4. Jalankan `php artisan config:cache` (wajib setiap `.env` diubah).
+5. Coba: keluar dari admin, buka **Lupa kata sandi?**, isi email admin, lalu cek kotak masuk dan folder **Spam**.
+
+Email tidak datang? Buka `storage/logs/laravel.log` di server dan cari baris terbaru. `535 Username and Password not accepted`
+berarti `MAIL_USERNAME`/`MAIL_PASSWORD` salah (pastikan memakai sandi aplikasi). Gmail membatasi sekitar 500 email per hari,
+jauh di atas kebutuhan fitur ini.

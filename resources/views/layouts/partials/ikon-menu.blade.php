@@ -82,6 +82,9 @@
         @case('keluar')
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
             @break
+        @case('kunci')
+            <rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4M12 15v2" />
+            @break
         @default
             <circle cx="12" cy="12" r="3" />
     @endswitch

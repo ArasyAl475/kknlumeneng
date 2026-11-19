@@ -1,4 +1,4 @@
-{{-- Bagian bawah sidebar admin: pengguna yang masuk, lihat situs, dan keluar.
+{{-- Bagian bawah sidebar admin: pengguna yang masuk, ganti kata sandi, lihat situs, dan keluar.
      Dipisah dari daftar menu supaya tombol Keluar selalu terlihat tanpa menggulir sidebar. --}}
 @if (auth()->user())
     <div class="menu-admin__pengguna">
@@ -8,6 +8,11 @@
             <span class="block text-xs text-white/70">Admin</span>
         </span>
     </div>
+    @php $diHalamanSandi = request()->routeIs('admin.akun.sandi.*'); @endphp
+    <a href="{{ route('admin.akun.sandi.edit') }}" class="menu-admin__aksi mt-2 w-full" @if ($diHalamanSandi) aria-current="page" @endif>
+        @include('layouts.partials.ikon-menu', ['nama' => 'kunci'])
+        Ganti kata sandi
+    </a>
 @endif
 <div class="mt-2 grid grid-cols-2 gap-2">
     <a href="{{ route('landing') }}" class="menu-admin__aksi">
