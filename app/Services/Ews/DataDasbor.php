@@ -71,6 +71,10 @@ class DataDasbor
     public static function lupakan(): void
     {
         Cache::forget(self::KUNCI);
+
+        // Semua perubahan status (kiriman alat, keputusan admin, ambang) melewati sini, jadi notifikasi HP
+        // cukup diperiksa di satu tempat. Alat yang berhenti mengirim diperiksa penjadwal tiap menit.
+        NotifikasiWarga::periksaNanti();
     }
 
     /**

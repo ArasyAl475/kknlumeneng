@@ -33,6 +33,22 @@ return [
         'jadwal' => (bool) env('EWS_MQTT_JADWAL', false),
     ],
 
+    // Notifikasi ke HP warga lewat Firebase Cloud Messaging (aplikasi EWS Lumeneng). Dikirim server, jadi
+    // tetap muncul walau aplikasi tertutup. Aturan kapan dikirim: docs/ews/NOTIFIKASI_HP.md.
+    'push' => [
+        'aktif' => (bool) env('EWS_PUSH_AKTIF', false),
+        // Jalur berkas kunci akun layanan Firebase (JSON). Simpan di luar folder proyek, jangan masuk Git.
+        'kredensial' => env('FIREBASE_CREDENTIALS'),
+        // Semua HP berlangganan topik ini otomatis saat aplikasi dibuka.
+        'topik' => env('EWS_PUSH_TOPIK', 'warga-lumeneng'),
+        // Waspada/offline yang sama untuk wilayah yang sama tidak dikirim ulang dalam jeda ini. Awas selalu dikirim.
+        'jeda_menit' => (int) env('EWS_PUSH_JEDA_MENIT', 10),
+        // Kabar "alat tidak mengirim data". Matikan bila terlalu sering (mis. listrik desa sering padam).
+        'kirim_offline' => (bool) env('EWS_PUSH_OFFLINE', true),
+        // Singkat: pengiriman tidak boleh lama menahan proses lain.
+        'timeout_detik' => 5,
+    ],
+
     // Data awal untuk seeder, dari lokasi alat sebenarnya. Urutan titik: [lintang, bujur].
     // Wilayah = EWS pintar yang mengirim data (ID-nya dipasang di ESP32).
     'wilayah_awal' => [
