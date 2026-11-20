@@ -12,7 +12,7 @@ Salin `.env.example` menjadi `.env`, lalu isi minimal ini:
 | `APP_DEBUG` | `false` |
 | `APP_URL` | alamat situs, mis. `https://lumeneng.example` |
 | `DB_CONNECTION`, `DB_HOST`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | data MySQL dari hosting |
-| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | akun admin pertama. Kata sandi minimal 12 karakter, ada huruf dan angka, tanpa kata umum (`admin`, `password`, `lumeneng`). Bila lemah, proses seed berhenti dengan pesan galat. |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | akun admin pertama. Kata sandi minimal 8 karakter, ada huruf dan angka, tanpa kata umum (`admin`, `password`, `lumeneng`). Bila lemah, proses seed berhenti dengan pesan galat. |
 | `EWS_API_KEY` | teks acak panjang (32 karakter); sama dengan yang dipasang di ESP32 |
 | `SEEDER_DATA_CONTOH` | **kosongkan** (di server nilainya otomatis nonaktif) |
 

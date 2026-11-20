@@ -3,7 +3,7 @@
 
 @section('isi')
     <h1 class="text-2xl font-extrabold text-navy">Buat kata sandi baru</h1>
-    <p class="mt-1 text-redup">Minimal 12 karakter, berisi huruf dan angka. Hindari kata umum seperti "admin" atau "lumeneng".</p>
+    <p class="mt-1 text-redup">Minimal 8 karakter, berisi huruf dan angka. Hindari kata umum seperti "admin" atau "lumeneng".</p>
 
     <div class="mt-5">
         <x-pesan />
@@ -13,7 +13,7 @@
         @csrf
         <input type="hidden" name="token" value="{{ $token }}">
         <x-bidang nama="email" label="Email akun admin" type="email" autocomplete="username" required :value="old('email', $email)" />
-        <x-bidang nama="password" label="Kata sandi baru" type="password" value="" autocomplete="new-password" required autofocus minlength="12" maxlength="72" />
+        <x-bidang nama="password" label="Kata sandi baru" type="password" value="" autocomplete="new-password" required autofocus minlength="8" maxlength="72" />
         <x-bidang nama="password_confirmation" label="Ulangi kata sandi baru" type="password" value="" autocomplete="new-password" required maxlength="72" />
         <x-tombol class="w-full py-3 text-base">Simpan kata sandi baru <x-ikon nama="panah" class="size-5" /></x-tombol>
     </form>
