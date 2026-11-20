@@ -102,6 +102,37 @@ class SandiAdminTest extends TestCase
         ])->assertSessionHasErrors('password');
     }
 
+    public function test_sandi_delapan_karakter_diterima(): void
+    {
+        $admin = $this->admin();
+
+        $this->actingAs($admin)->put(route('admin.akun.sandi.update'), [
+            'sandi_lama' => self::SANDI_LAMA,
+            'password' => 'bukit7ab',
+            'password_confirmation' => 'bukit7ab',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertTrue(Hash::check('bukit7ab', $admin->fresh()->password));
+    }
+
+    public function test_semua_isian_sandi_punya_tombol_mata(): void
+    {
+        $this->get(route('login'))->assertOk()
+            ->assertSee('data-lihat-sandi aria-controls="password"', false)
+            ->assertSee('Tampilkan kata sandi');
+
+        $this->get(route('password.reset', ['token' => 'apa-saja']))->assertOk()
+            ->assertSee('aria-controls="password"', false)
+            ->assertSee('aria-controls="password_confirmation"', false);
+
+        $halaman = $this->actingAs($this->admin())->get(route('admin.akun.sandi.edit'))->assertOk();
+        foreach (['sandi_lama', 'password', 'password_confirmation'] as $isian) {
+            $halaman->assertSee('aria-controls="'.$isian.'"', false);
+        }
+        // Skripnya cukup sekali per halaman walau ada tiga isian.
+        $this->assertSame(1, substr_count($halaman->getContent(), "addEventListener('submit'"));
+    }
+
     // ───────────────────────────── Lupa kata sandi ─────────────────────────────
 
     public function test_halaman_masuk_punya_tautan_lupa_kata_sandi(): void

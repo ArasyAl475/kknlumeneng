@@ -18,6 +18,8 @@ class SandiAdminTest extends TestCase
     {
         return [
             'pendek' => ['abc123', false],
+            '7 karakter' => ['bukit7a', false],
+            '8 karakter cukup' => ['bukit7ab', true],
             'tanpa angka' => ['hanyahurufsaja', false],
             'tanpa huruf' => ['987654321098', false],
             'kata umum' => ['password12345678', false],

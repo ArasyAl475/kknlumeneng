@@ -24,7 +24,7 @@ class AdminSeeder extends Seeder
         // di server hal ini harus menghentikan proses, bukan sekadar peringatan yang terlewat.
         if (! self::sandiKuat($sandi)) {
             if (! app()->environment(['local', 'testing'])) {
-                throw new RuntimeException('ADMIN_PASSWORD terlalu lemah: minimal 12 karakter, berisi huruf dan angka, tanpa kata umum.');
+                throw new RuntimeException('ADMIN_PASSWORD terlalu lemah: minimal 8 karakter, berisi huruf dan angka, tanpa kata umum.');
             }
 
             $this->command?->warn('ADMIN_PASSWORD lemah. Di server, kata sandi seperti ini akan ditolak.');
