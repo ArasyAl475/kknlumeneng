@@ -6,7 +6,7 @@
     <title>@hasSection('judul')@yield('judul') · @endif{{ config('app.name') }}</title>
     <meta name="description" content="@yield('deskripsi', 'Web terpadu Desa Lumeneng, Kecamatan Paninggaran, Kabupaten Pekalongan: peringatan dini longsor, toko desa, dan edukasi.')">
     <meta name="theme-color" content="#0f2a5c">
-    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+    <link rel="icon" href="{{ site_image('situs.logo') }}">
     {{-- Dipasang sebelum halaman tergambar agar efek muncul tidak berkedip. Bila app.js gagal dimuat
          (sinyal lemah), semua bagian dipaksa tampil setelah 2,5 detik, jadi isi tidak pernah tersembunyi. --}}
     <script>document.documentElement.classList.add('js', 'js-siap'); window.__paksaTampil = setTimeout(function () { document.querySelectorAll('[data-muncul],[data-stagger]').forEach(function (e) { e.classList.add('tampak'); }); }, 2500);</script>

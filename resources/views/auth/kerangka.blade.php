@@ -6,7 +6,7 @@
     <meta name="robots" content="noindex">
     <meta name="theme-color" content="#0f2a5c">
     <title>@yield('judul') · {{ config('app.name') }}</title>
-    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+    <link rel="icon" href="{{ site_image('situs.logo') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 {{-- Kerangka halaman masuk, lupa sandi, dan atur ulang sandi: foto desa penuh (slot Desain Web
@@ -19,9 +19,7 @@
 
         <div class="w-full max-w-md motion-safe:animate-muncul">
             <a href="{{ route('landing') }}" class="kaca mx-auto mb-6 flex w-fit items-center gap-3 rounded-2xl px-4 py-2.5 text-white focus-visible:outline-white">
-                <span class="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-biru to-navy-tua ring-1 ring-white/20">
-                    <svg class="size-6 text-aksen-terang" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 19.5 9 9l4 6 2.5-3.5 6 8Z" /><circle cx="17" cy="6" r="2.2" /></svg>
-                </span>
+                <x-logo-desa class="size-10" />
                 <span class="leading-tight">
                     <span class="block font-judul font-extrabold">Desa Lumeneng</span>
                     <span class="block text-xs text-white/80">Panel pengelola situs</span>

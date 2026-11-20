@@ -18,13 +18,7 @@
             @if (Route::has('profil.index'))
                 <li><a href="{{ route('profil.index') }}#judul-kontak" class="inline-flex min-h-8 items-center gap-1.5 rounded px-2 hover:text-white hover:underline focus-visible:outline-white"><x-ikon nama="telepon" class="size-4" />Kontak</a></li>
             @endif
-            <li>
-                @auth
-                    <a href="{{ route('admin.beranda') }}" class="inline-flex min-h-8 items-center gap-1.5 rounded px-2 hover:text-white hover:underline focus-visible:outline-white"><x-ikon nama="orang" class="size-4" />Panel Admin</a>
-                @else
-                    <a href="{{ route('login') }}" class="inline-flex min-h-8 items-center gap-1.5 rounded px-2 hover:text-white hover:underline focus-visible:outline-white"><x-ikon nama="orang" class="size-4" />Masuk Admin</a>
-                @endauth
-            </li>
+            {{-- Sengaja tanpa tautan ke panel admin: pengelola membukanya lewat alamat /admin. --}}
         </ul>
     </div>
 </div>
@@ -44,11 +38,7 @@
 
     <div class="mx-auto flex h-full max-w-6xl items-center justify-between gap-x-4 px-4">
         <a href="{{ route('landing') }}" class="flex shrink-0 items-center gap-3 rounded-xl py-2">
-            <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-biru to-navy text-white shadow-md ring-1 ring-white/20">
-                <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M2.5 19.5 9 9l4 6 2.5-3.5 6 8Z" /><circle cx="17" cy="6" r="2.2" />
-                </svg>
-            </span>
+            <x-logo-desa class="size-10" />
             <span class="leading-tight">
                 <span class="block font-judul text-[1.05rem] font-extrabold">Desa Lumeneng</span>
                 <span @class(['block text-xs', 'text-white/80 group-data-[padat]/header:text-redup' => $transparan, 'text-redup' => ! $transparan])>Kab. Pekalongan · Jawa Tengah</span>
@@ -93,11 +83,39 @@
                         {{ $modul['nama'] }}
                     </a>
                 @endforeach
-                <a href="{{ auth()->check() ? route('admin.beranda') : route('login') }}" class="flex min-h-12 items-center gap-3 rounded-xl px-3 py-2 font-judul font-bold text-redup hover:bg-biru-lembut sm:hidden">
-                    <span class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-krem-tua"><x-ikon nama="orang" class="size-5" /></span>
-                    {{ auth()->check() ? 'Panel Admin' : 'Masuk Admin' }}
-                </a>
             </nav>
         </details>
     </div>
 </header>
+
+{{-- Menu HP bergeser masuk dari kiri dan keluar ke kiri. Gaya dan skrip sebaris (bukan di app.css/app.js)
+     agar server cukup git pull tanpa membangun ulang public/build. --}}
+@once
+    <style>
+        @keyframes menu-hp-masuk { from { transform: translateX(-100%); opacity: 0; } to { transform: none; opacity: 1; } }
+        @keyframes menu-hp-keluar { from { transform: none; opacity: 1; } to { transform: translateX(-100%); opacity: 0; } }
+        @media (prefers-reduced-motion: no-preference) {
+            details[data-menu-hp][open] > nav { animation: menu-hp-masuk 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
+            details[data-menu-hp][data-menutup] > nav { animation: menu-hp-keluar 0.22s ease-in forwards; }
+        }
+    </style>
+    <script>
+        document.querySelectorAll('details[data-menu-hp]').forEach(function (menu) {
+            menu.querySelector('summary').addEventListener('click', function (e) {
+                if (!menu.open || menu.hasAttribute('data-menutup') || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+                // Tahan penutupan sampai animasi keluar selesai; batas waktu menjaga menu tetap bisa ditutup bila animasi tidak jalan.
+                e.preventDefault();
+                menu.setAttribute('data-menutup', '');
+                var selesai = false;
+                function tutup() {
+                    if (selesai) return;
+                    selesai = true;
+                    menu.removeAttribute('data-menutup');
+                    menu.open = false;
+                }
+                menu.querySelector('nav').addEventListener('animationend', tutup, { once: true });
+                setTimeout(tutup, 400);
+            });
+        });
+    </script>
+@endonce

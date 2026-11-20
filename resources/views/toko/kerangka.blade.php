@@ -8,7 +8,7 @@
     <title>@yield('judul') · {{ config('app.name') }}</title>
     <meta name="description" content="@yield('deskripsi')">
     <meta name="theme-color" content="#0f2a5c">
-    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+    <link rel="icon" href="{{ site_image('situs.logo') }}">
     <script>document.documentElement.classList.add('js');</script>
     {{-- Huruf diunduh lebih awal agar teks tidak "melompat" saat huruf cadangan berganti huruf asli. --}}
     <link rel="preload" href="{{ \Illuminate\Support\Facades\Vite::asset('resources/fonts/plus-jakarta-sans-latin-wght.woff2') }}" as="font" type="font/woff2" crossorigin>
