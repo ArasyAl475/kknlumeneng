@@ -20,7 +20,7 @@ class BerandaTest extends TestCase
             ->assertSee('Karang Taruna Giri')
             ->assertSee('Petani Muda Jaya')
             ->assertSee(__('landing.deskripsi_meta'))
-            ->assertSee('favicon.svg');
+            ->assertSee('<link rel="icon" href="'.site_image('situs.logo').'">', false);
     }
 
     public function test_modul_mati_tampil_segera_hadir_tanpa_tautan(): void

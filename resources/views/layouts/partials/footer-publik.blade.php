@@ -8,9 +8,7 @@
     <div class="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-[1.3fr_1fr_1fr_1.3fr]">
         <div>
             <p class="flex items-center gap-3 font-judul text-xl font-extrabold">
-                <span class="flex size-10 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15">
-                    <svg class="size-6 text-aksen-terang" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 19.5 9 9l4 6 2.5-3.5 6 8Z" /><circle cx="17" cy="6" r="2.2" /></svg>
-                </span>
+                <x-logo-desa class="size-10" />
                 Desa Lumeneng
             </p>
             <p class="mt-3 text-white/75">Kec. Paninggaran, Kab. Pekalongan, Jawa Tengah. Desa di lereng perbukitan dengan kebun kopi dan jamur tiram warga.</p>

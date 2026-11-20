@@ -6,7 +6,7 @@
     <meta name="robots" content="noindex">
     <meta name="theme-color" content="#0f2a5c">
     <title>@hasSection('judul')@yield('judul') · @endif Admin {{ config('app.name') }}</title>
-    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+    <link rel="icon" href="{{ site_image('situs.logo') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('kepala')
 </head>
@@ -21,9 +21,7 @@
         <aside class="pola-kontur sticky top-0 z-40 bg-navy text-white lg:flex lg:h-dvh lg:flex-col">
             <div class="flex items-center justify-between gap-2 px-4 py-2 lg:px-5 lg:py-5">
                 <a href="{{ route('admin.beranda') }}" class="flex min-h-11 items-center gap-3 rounded-xl focus-visible:outline-white">
-                    <span class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-biru to-navy-tua ring-1 ring-white/15">
-                        <svg class="size-6 text-aksen-terang" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 19.5 9 9l4 6 2.5-3.5 6 8Z" /><circle cx="17" cy="6" r="2.2" /></svg>
-                    </span>
+                    <x-logo-desa class="size-11" />
                     <span class="leading-tight">
                         <span class="block font-judul text-base font-extrabold">Desa Lumeneng</span>
                         <span class="mt-1 inline-block rounded-full bg-white/12 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-langit">Panel Admin</span>

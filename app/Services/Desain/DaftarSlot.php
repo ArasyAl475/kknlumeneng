@@ -18,6 +18,15 @@ final class DaftarSlot
     private const HERO_BANNER = '1920 × 640 px (mendatar, 3:1)';
 
     public const SEMUA = [
+        // Satu gambar untuk ikon tab browser dan logo di samping tulisan "Desa Lumeneng" (header, kaki, panel admin).
+        'situs.logo' => [
+            'nama' => 'Logo desa',
+            'halaman' => 'Umum',
+            'penjelasan' => 'Logo kecil di samping tulisan "Desa Lumeneng" (bagian atas dan bawah semua halaman, halaman Masuk, panel admin) dan ikon di tab browser. Pakai gambar persegi; PNG berlatar transparan paling rapi. Setelah diganti, ikon tab kadang baru berubah setelah halaman dimuat ulang.',
+            'ukuran' => '512 × 512 px (persegi, 1:1), PNG berlatar transparan',
+            'rasio' => '1/1',
+            'alt' => '',
+        ],
         'beranda.hero' => [
             'nama' => 'Foto utama Beranda',
             'halaman' => 'Beranda',
