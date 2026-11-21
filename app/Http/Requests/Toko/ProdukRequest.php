@@ -37,9 +37,9 @@ class ProdukRequest extends FormRequest
         $aturan = [
             'nama' => ['required', 'string', 'max:120'],
             'deskripsi' => ['nullable', 'string', 'max:5000'],
-            // Harga wajib karena pembeli memutuskan membeli dari harga. Varian berharga tidak menggantikannya:
-            // harga ini jadi harga dasar bila varian dihapus atau semua variannya tidak tersedia.
-            'harga' => ['required', 'integer', 'min:1', 'max:100000000'],
+            // Harga boleh kosong: sebagian produk harganya berubah-ubah dan hanya dilihat di marketplace.
+            // Situs lalu menulis "Lihat harga di marketplace". Bila diisi, tetap harus angka lebih dari 0.
+            'harga' => ['nullable', 'integer', 'min:1', 'max:100000000'],
             'tersedia' => ['required', 'boolean'],
             'tampil' => ['required', 'boolean'],
             'urutan' => ['nullable', 'integer', 'min:0', 'max:999'],
@@ -52,19 +52,42 @@ class ProdukRequest extends FormRequest
             'varian.*.harga' => ['nullable', 'integer', 'min:0', 'max:100000000'],
             'varian.*.tersedia' => ['nullable', 'boolean'],
 
-            'utama' => ['nullable', 'array'],
+            // Spesifikasi bebas: judul dan isi diketik admin sendiri. Baris yang isinya kosong dibuang,
+            // jadi baris contoh dari form yang tidak dipakai tidak ikut tersimpan.
+            // Batas 20 hanya menghitung baris berisi; baris contoh yang kosong tidak ikut. Batas 100 mencegah kiriman raksasa.
+            'spesifikasi' => ['nullable', 'array', 'max:100', self::aturanJumlahSpesifikasi()],
+            'spesifikasi.*' => ['array'],
+            'spesifikasi.*.label' => ['nullable', 'string', 'max:60', 'required_with:spesifikasi.*.nilai', self::aturanLabelOtomatis()],
+            'spesifikasi.*.nilai' => ['nullable', 'string', 'max:200'],
         ];
 
         foreach (DaftarMarketplace::KUNCI as $kunci) {
             $aturan["tautan.{$kunci}"] = ['nullable', 'string', 'max:500', self::aturanTautan($kunci)];
         }
 
-        // Isian utama semuanya boleh kosong: tidak semua berlaku untuk tiap produk (jamur tidak punya biji-bijian).
-        foreach (array_keys(Produk::SPESIFIKASI_UTAMA) as $kunci) {
-            $aturan["utama.{$kunci}"] = ['nullable', 'string', 'max:200'];
-        }
-
         return $aturan;
+    }
+
+    private static function aturanJumlahSpesifikasi(): Closure
+    {
+        return function (string $kolom, mixed $nilai, Closure $gagal): void {
+            $berisi = collect(is_array($nilai) ? $nilai : [])
+                ->filter(fn ($b) => is_array($b) && is_string($b['nilai'] ?? null) && trim($b['nilai']) !== '');
+
+            if ($berisi->count() > self::MAKS_BARIS) {
+                $gagal('Spesifikasi paling banyak '.self::MAKS_BARIS.' baris. Hapus baris yang kurang penting.');
+            }
+        };
+    }
+
+    // Stok dan Dikirim Dari dihitung otomatis; kalau diketik juga, tabel di situs akan dobel dan bisa bertentangan.
+    private static function aturanLabelOtomatis(): Closure
+    {
+        return function (string $kolom, mixed $nilai, Closure $gagal): void {
+            if (is_string($nilai) && Produk::labelOtomatis($nilai)) {
+                $gagal('Baris "'.trim($nilai).'" sudah terisi otomatis di situs (dari status stok dan menu Info penjual). Hapus baris ini.');
+            }
+        };
     }
 
     public static function aturanTautan(string $kunci): Closure
@@ -85,14 +108,12 @@ class ProdukRequest extends FormRequest
             'urutan' => 'urutan tampil',
             'varian.*.nama' => 'nama varian',
             'varian.*.harga' => 'harga varian',
+            'spesifikasi.*.label' => 'judul spesifikasi',
+            'spesifikasi.*.nilai' => 'isi spesifikasi',
         ];
 
         foreach (DaftarMarketplace::KUNCI as $kunci) {
             $nama["tautan.{$kunci}"] = 'tautan '.DaftarMarketplace::nama($kunci);
-        }
-
-        foreach (Produk::SPESIFIKASI_UTAMA as $kunci => $label) {
-            $nama["utama.{$kunci}"] = mb_strtolower($label);
         }
 
         return $nama;
@@ -103,11 +124,14 @@ class ProdukRequest extends FormRequest
         return [
             'nama.required' => 'Nama produk wajib diisi.',
             'nama.max' => 'Nama produk terlalu panjang. Tulis paling banyak 120 huruf.',
-            'harga.required' => 'Harga wajib diisi. Tulis angkanya saja, misalnya 25000.',
-            'harga.min' => 'Harga harus lebih dari 0.',
+            'harga.min' => 'Harga harus lebih dari 0. Kosongkan saja bila harga hanya dilihat di marketplace.',
             'harga.max' => 'Harga terlalu besar. Periksa lagi jumlah nolnya.',
             'varian.*.nama.required_with' => 'Varian yang diberi harga juga perlu diberi nama, misalnya "250 g".',
             'harga.integer' => 'Harga hanya boleh berisi angka.',
+            'spesifikasi.*.label.required_with' => 'Baris spesifikasi yang diberi isi juga perlu diberi judul, misalnya "Berat".',
+            'spesifikasi.*.label.max' => 'Judul spesifikasi terlalu panjang. Tulis paling banyak 60 huruf.',
+            'spesifikasi.*.nilai.max' => 'Isi spesifikasi terlalu panjang. Tulis paling banyak 200 huruf.',
+            'spesifikasi.max' => 'Spesifikasi paling banyak '.self::MAKS_BARIS.' baris. Hapus baris yang kurang penting.',
         ];
     }
 
@@ -138,11 +162,10 @@ class ProdukRequest extends FormRequest
                     'tersedia' => (bool) ($b['tersedia'] ?? true),
                 ])
                 ->values()->all(),
-            // Hanya isian utama yang disimpan, urut tetap. Baris tambahan bebas sudah ditiadakan, jadi
-            // sisa baris tambahan lama ikut terbuang saat produk disimpan ulang.
-            'spesifikasi' => collect(Produk::SPESIFIKASI_UTAMA)
-                ->map(fn (string $label, string $kunci) => ['label' => $label, 'nilai' => trim((string) ($data['utama'][$kunci] ?? ''))])
-                ->filter(fn (array $b) => $b['nilai'] !== '')
+            // Urutan mengikuti susunan admin di form.
+            'spesifikasi' => collect($data['spesifikasi'] ?? [])
+                ->map(fn (array $b) => ['label' => trim((string) ($b['label'] ?? '')), 'nilai' => trim((string) ($b['nilai'] ?? ''))])
+                ->filter(fn (array $b) => $b['label'] !== '' && $b['nilai'] !== '')
                 ->values()->all(),
         ];
     }

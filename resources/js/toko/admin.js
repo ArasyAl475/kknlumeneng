@@ -27,13 +27,36 @@ document.querySelectorAll('[data-tambah-baris]').forEach((tombol) => {
     if (!daftar || !cetakan) return;
 
     const MAKS = 20;
-    tombol.hidden = false;
+    const tampilkanTombolHapus = () => daftar.querySelectorAll('[data-hapus-baris]').forEach((b) => { b.hidden = false; });
+    const perbaruiTombolTambah = () => { tombol.hidden = daftar.children.length >= MAKS; };
+
+    // Nomor baris baru diambil dari nomor terbesar yang ada, bukan jumlah baris: setelah ada baris dihapus,
+    // memakai jumlah baris bisa membuat dua baris bernomor sama sehingga salah satunya hilang saat disimpan.
+    let berikut = 0;
+    daftar.querySelectorAll('[name]').forEach((isian) => {
+        const nomor = Number(isian.name.match(/\[(\d+)\]/)?.[1] ?? -1);
+        berikut = Math.max(berikut, nomor + 1);
+    });
+
+    tampilkanTombolHapus();
+    perbaruiTombolTambah();
 
     tombol.addEventListener('click', () => {
-        const nomor = daftar.children.length;
-        if (nomor >= MAKS) return;
-        daftar.insertAdjacentHTML('beforeend', cetakan.innerHTML.replaceAll('__i__', String(nomor)));
+        if (daftar.children.length >= MAKS) return;
+        daftar.insertAdjacentHTML('beforeend', cetakan.innerHTML.replaceAll('__i__', String(berikut++)));
+        tampilkanTombolHapus();
         daftar.lastElementChild?.querySelector('input')?.focus();
-        if (nomor + 1 >= MAKS) tombol.hidden = true;
+        perbaruiTombolTambah();
+    });
+
+    daftar.addEventListener('click', (e) => {
+        const hapus = e.target.closest('[data-hapus-baris]');
+        if (!hapus) return;
+        const baris = hapus.closest('fieldset');
+        // Fokus dipindah ke baris berikutnya (atau tombol Tambah) agar pengguna pembaca layar tidak "tersesat".
+        const tujuan = baris.nextElementSibling?.querySelector('input') ?? tombol;
+        baris.remove();
+        perbaruiTombolTambah();
+        tujuan.focus();
     });
 });

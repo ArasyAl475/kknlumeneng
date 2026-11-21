@@ -16,19 +16,25 @@ class Produk extends Model
     public const MAKS_FOTO = 5;
 
     /**
-     * Isian spesifikasi yang disediakan sebagai baris siap pakai di form admin, urut seperti di Shopee.
-     * Stok dan "Dikirim Dari" sengaja tidak ada di sini: keduanya terisi otomatis (status stok dan Info penjual).
-     * Tersimpan tetap sebagai daftar {label, nilai} di kolom spesifikasi, jadi tidak perlu migrasi.
+     * Judul spesifikasi yang disarankan (judul => contoh isi), urut seperti di Shopee. Ini hanya bantuan:
+     * produk baru diberi baris berisi judul ini, dan admin bebas mengganti, menghapus, atau menambah judul
+     * sendiri karena tiap produk desa berbeda (kopi punya jenis biji, jamur tidak).
      */
-    public const SPESIFIKASI_UTAMA = [
-        'kategori' => 'Kategori',
-        'merek' => 'Merek',
-        'tipe_paket' => 'Tipe Paket',
-        'asal_produk' => 'Asal Produk',
-        'produk_custom' => 'Produk Custom',
-        'jenis_biji_bijian' => 'Jenis Biji-Bijian',
-        'spesies_tanaman' => 'Spesies Tanaman',
+    public const SARAN_SPESIFIKASI = [
+        'Kategori' => 'contoh: Makanan & Minuman',
+        'Merek' => 'contoh: nama usaha, atau Tanpa merek',
+        'Tipe Paket' => 'contoh: Kemasan 250 g',
+        'Asal Produk' => 'contoh: Desa Lumeneng, Pekalongan',
+        'Produk Custom' => 'contoh: Tidak',
+        'Jenis Biji-Bijian' => 'contoh: Kopi Arabika (khusus produk kopi)',
+        'Spesies Tanaman' => 'contoh: Coffea arabica (khusus produk kopi)',
     ];
+
+    /**
+     * Baris yang selalu dihitung sendiri dari status stok dan Info penjual, bukan diketik admin,
+     * supaya tidak pernah bertentangan dengan keadaan sebenarnya.
+     */
+    public const LABEL_OTOMATIS = ['Stok', 'Dikirim Dari'];
 
     protected $table = 'toko_produk';
 
@@ -97,53 +103,49 @@ class Produk extends Model
         return $min === $maks ? self::rupiah($min) : self::rupiah($min).' – '.self::rupiah($maks);
     }
 
-    /**
-     * Mengambil isian utama (kunci => nilai) dari spesifikasi tersimpan.
-     * Label dicocokkan tanpa membedakan huruf besar-kecil agar data lama yang diketik manual tetap terbaca.
-     * Baris lain (sisa "spesifikasi tambahan" lama) sengaja diabaikan: admin tidak bisa lagi mengaturnya,
-     * jadi tidak boleh tampil di situs.
-     *
-     * @return array<string, string>
-     */
-    public function spesifikasiUtama(): array
+    // Judul dibandingkan tanpa membedakan huruf besar-kecil dan spasi tepi: admin awam mengetik "stok " atau "KATEGORI".
+    public static function samakanLabel(string $label): string
     {
-        $peta = collect(self::SPESIFIKASI_UTAMA)->mapWithKeys(fn (string $label, string $kunci) => [mb_strtolower($label) => $kunci]);
-        $utama = [];
+        return mb_strtolower(trim($label));
+    }
 
-        foreach ($this->spesifikasi ?? [] as $baris) {
-            $kunci = $peta[mb_strtolower($baris['label'])] ?? null;
-
-            // Label kembar: yang pertama dipakai.
-            if ($kunci !== null && ! isset($utama[$kunci])) {
-                $utama[$kunci] = $baris['nilai'];
-            }
-        }
-
-        return $utama;
+    public static function labelOtomatis(string $label): bool
+    {
+        return in_array(self::samakanLabel($label), array_map(self::samakanLabel(...), self::LABEL_OTOMATIS), true);
     }
 
     /**
-     * Tabel "Spesifikasi Produk" di halaman publik, urut seperti Shopee: Kategori, Stok, isian lain,
-     * lalu Dikirim Dari. Stok dan Dikirim Dari selalu dihitung di sini, bukan diketik admin.
+     * Baris spesifikasi isian admin yang layak tampil, urut seperti yang disusun admin.
+     * Baris kosong dan baris berjudul Stok / Dikirim Dari (data lama) dibuang agar tidak dobel dengan baris otomatis.
+     *
+     * @return array<int, array{label: string, nilai: string}>
+     */
+    public function spesifikasiIsian(): array
+    {
+        return collect($this->spesifikasi ?? [])
+            ->map(fn ($b) => ['label' => trim((string) ($b['label'] ?? '')), 'nilai' => trim((string) ($b['nilai'] ?? ''))])
+            ->filter(fn (array $b) => $b['label'] !== '' && $b['nilai'] !== '' && ! self::labelOtomatis($b['label']))
+            ->values()->all();
+    }
+
+    /**
+     * Tabel "Spesifikasi Produk" di halaman publik, mirip Shopee: Kategori (bila ada) di atas, lalu Stok,
+     * baris lain sesuai urutan admin, dan Dikirim Dari di akhir.
      *
      * @return array<int, array{label: string, nilai: string}>
      */
     public function spesifikasiPublik(?string $dikirimDari): array
     {
-        $utama = $this->spesifikasiUtama();
+        $isian = collect($this->spesifikasiIsian());
+        $posisiKategori = $isian->search(fn (array $b) => self::samakanLabel($b['label']) === 'kategori');
         $baris = [];
 
-        if (isset($utama['kategori'])) {
-            $baris[] = ['label' => self::SPESIFIKASI_UTAMA['kategori'], 'nilai' => $utama['kategori']];
+        if ($posisiKategori !== false) {
+            $baris[] = $isian->pull($posisiKategori);
         }
 
         $baris[] = ['label' => 'Stok', 'nilai' => $this->adaStok() ? 'Tersedia' : 'Habis'];
-
-        foreach (self::SPESIFIKASI_UTAMA as $kunci => $label) {
-            if ($kunci !== 'kategori' && isset($utama[$kunci])) {
-                $baris[] = ['label' => $label, 'nilai' => $utama[$kunci]];
-            }
-        }
+        array_push($baris, ...$isian->values()->all());
 
         if (filled($dikirimDari)) {
             $baris[] = ['label' => 'Dikirim Dari', 'nilai' => $dikirimDari];
