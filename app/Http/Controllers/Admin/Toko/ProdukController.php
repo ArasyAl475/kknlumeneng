@@ -85,7 +85,10 @@ class ProdukController extends Controller
 
         return [
             'produk' => $produk,
-            'spesifikasiUtama' => $produk->spesifikasiUtama(),
+            // Produk yang belum punya spesifikasi diberi judul contoh agar admin tinggal mengisi; isi kosong tidak tersimpan.
+            'barisSpesifikasi' => filled($produk->spesifikasi)
+                ? collect($produk->spesifikasi)->map(fn ($b) => ['label' => $b['label'] ?? '', 'nilai' => $b['nilai'] ?? ''])->all()
+                : collect(array_keys(Produk::SARAN_SPESIFIKASI))->map(fn (string $label) => ['label' => $label, 'nilai' => ''])->all(),
             'kembali' => is_string($kembali) && DaftarMarketplace::ada($kembali) ? $kembali : null,
             'batasFoto' => FotoProdukRequest::batasTeks(),
             'jenisFoto' => FotoProdukRequest::jenisTeks(),

@@ -7,35 +7,53 @@ use Tests\TestCase;
 
 class SpesifikasiProdukTest extends TestCase
 {
-    public function test_label_dicocokkan_tanpa_membedakan_huruf_besar_kecil(): void
-    {
-        $produk = new Produk(['spesifikasi' => [
-            ['label' => 'MEREK', 'nilai' => 'A'],
-            ['label' => 'tipe paket', 'nilai' => 'B'],
-        ]]);
-
-        $this->assertSame(['merek' => 'A', 'tipe_paket' => 'B'], $produk->spesifikasiUtama());
-    }
-
-    public function test_label_kembar_memakai_yang_pertama(): void
-    {
-        $produk = new Produk(['spesifikasi' => [
-            ['label' => 'Merek', 'nilai' => 'Pertama'],
-            ['label' => 'merek', 'nilai' => 'Kedua'],
-        ]]);
-
-        $this->assertSame(['merek' => 'Pertama'], $produk->spesifikasiUtama());
-    }
-
-    public function test_baris_tambahan_lama_diabaikan(): void
+    public function test_judul_bebas_tampil_sesuai_urutan_admin(): void
     {
         $produk = new Produk(['tersedia' => true, 'spesifikasi' => [
-            ['label' => 'Merek', 'nilai' => 'A'],
-            ['label' => 'Berat', 'nilai' => '250 g'],
+            ['label' => 'Berat Bersih', 'nilai' => '250 g'],
+            ['label' => 'Cara Seduh', 'nilai' => 'Tubruk atau V60'],
+            ['label' => 'Merek', 'nilai' => 'Kopi Lumeneng'],
         ]]);
 
-        $this->assertSame(['merek' => 'A'], $produk->spesifikasiUtama());
-        $this->assertNotContains('Berat', array_column($produk->spesifikasiPublik(null), 'label'));
+        $this->assertSame(
+            ['Stok', 'Berat Bersih', 'Cara Seduh', 'Merek', 'Dikirim Dari'],
+            array_column($produk->spesifikasiPublik('Pekalongan'), 'label'),
+        );
+    }
+
+    public function test_kategori_selalu_di_atas_lalu_stok(): void
+    {
+        // Kategori sengaja ditaruh di akhir dan ditulis huruf kecil untuk membuktikan posisinya ditentukan kode.
+        $produk = new Produk(['tersedia' => true, 'spesifikasi' => [
+            ['label' => 'Merek', 'nilai' => 'M'],
+            ['label' => 'Berat', 'nilai' => '250 g'],
+            ['label' => 'kategori', 'nilai' => 'K'],
+        ]]);
+
+        $this->assertSame([
+            ['label' => 'kategori', 'nilai' => 'K'],
+            ['label' => 'Stok', 'nilai' => 'Tersedia'],
+            ['label' => 'Merek', 'nilai' => 'M'],
+            ['label' => 'Berat', 'nilai' => '250 g'],
+            ['label' => 'Dikirim Dari', 'nilai' => 'Pekalongan'],
+        ], $produk->spesifikasiPublik('Pekalongan'));
+    }
+
+    public function test_baris_kosong_dan_baris_otomatis_lama_dibuang(): void
+    {
+        $produk = new Produk(['tersedia' => false, 'spesifikasi' => [
+            ['label' => 'Merek', 'nilai' => ''],
+            ['label' => '', 'nilai' => 'tanpa judul'],
+            ['label' => ' stok ', 'nilai' => 'Banyak'],
+            ['label' => 'DIKIRIM DARI', 'nilai' => 'Jakarta'],
+            ['label' => ' Berat ', 'nilai' => ' 250 g '],
+        ]]);
+
+        $this->assertSame([['label' => 'Berat', 'nilai' => '250 g']], $produk->spesifikasiIsian());
+        $this->assertSame([
+            ['label' => 'Stok', 'nilai' => 'Habis'],
+            ['label' => 'Berat', 'nilai' => '250 g'],
+        ], $produk->spesifikasiPublik(null));
     }
 
     public function test_tanpa_spesifikasi_tetap_menghasilkan_baris_stok_dan_dikirim_dari(): void
@@ -56,18 +74,10 @@ class SpesifikasiProdukTest extends TestCase
         $this->assertSame([['label' => 'Stok', 'nilai' => 'Habis']], $produk->spesifikasiPublik(''));
     }
 
-    public function test_urutan_publik_kategori_stok_utama_lalu_dikirim_dari(): void
+    public function test_label_otomatis_dikenali_tanpa_membedakan_huruf_dan_spasi(): void
     {
-        // Sengaja disimpan acak untuk membuktikan urutan tampil ditentukan kode, bukan urutan simpan.
-        $produk = new Produk(['tersedia' => true, 'spesifikasi' => [
-            ['label' => 'Spesies Tanaman', 'nilai' => 'Coffea arabica'],
-            ['label' => 'Merek', 'nilai' => 'M'],
-            ['label' => 'Kategori', 'nilai' => 'K'],
-        ]]);
-
-        $this->assertSame(
-            ['Kategori', 'Stok', 'Merek', 'Spesies Tanaman', 'Dikirim Dari'],
-            array_column($produk->spesifikasiPublik('Pekalongan'), 'label'),
-        );
+        $this->assertTrue(Produk::labelOtomatis('stok'));
+        $this->assertTrue(Produk::labelOtomatis('  Dikirim dari '));
+        $this->assertFalse(Produk::labelOtomatis('Stok Gudang'));
     }
 }

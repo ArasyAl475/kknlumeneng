@@ -97,7 +97,7 @@ class HalamanTokoTest extends TestCase
             ->create(['nama' => 'Abon Jamur', 'harga' => null, 'deskripsi' => null, 'spesifikasi' => null]);
 
         // Tabel spesifikasi tetap ada (Stok dan Dikirim Dari selalu terisi, seperti di Shopee),
-        // tetapi isian utama yang tidak diisi admin tidak ikut tampil.
+        // tetapi judul contoh yang tidak diisi admin tidak ikut tampil.
         $this->get(route('toko.produk', ['shopee', $produk]))->assertOk()
             ->assertSee('Lihat harga di marketplace')
             ->assertSee('Foto belum tersedia')
@@ -120,6 +120,7 @@ class HalamanTokoTest extends TestCase
             ],
         ]);
 
+        // Judul bebas buatan admin ("Berat") ikut tampil sesuai urutan, di antara Stok dan Dikirim Dari.
         $this->get(route('toko.produk', ['shopee', $produk]))->assertOk()
             ->assertSeeInOrder([
                 'Spesifikasi Produk',
@@ -127,10 +128,9 @@ class HalamanTokoTest extends TestCase
                 'Stok', 'Tersedia',
                 'Merek', 'Kopi Lumeneng',
                 'Jenis Biji-Bijian', 'Arabika',
+                'Berat', '250 g',
                 'Dikirim Dari', 'Paninggaran, Kab. Pekalongan',
-            ], false)
-            // Baris "Berat" adalah sisa spesifikasi tambahan lama: tidak diatur admin lagi, jadi tidak tampil.
-            ->assertDontSee('Berat');
+            ], false);
     }
 
     public function test_tabel_spesifikasi_menulis_habis_bila_stok_habis(): void

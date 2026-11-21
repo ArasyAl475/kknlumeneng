@@ -20,16 +20,14 @@
         ['nama' => '', 'harga' => '', 'tersedia' => '1'],
     );
 
-    // Contoh hanya petunjuk ketik (placeholder), bukan nilai bawaan, agar tidak tersimpan tanpa sengaja.
-    $contohUtama = [
-        'kategori' => 'contoh: Makanan & Minuman',
-        'merek' => 'contoh: nama usaha, atau Tanpa merek',
-        'tipe_paket' => 'contoh: Kemasan 250 g',
-        'asal_produk' => 'contoh: Desa Lumeneng, Pekalongan',
-        'produk_custom' => 'contoh: Tidak',
-        'jenis_biji_bijian' => 'contoh: Kopi Arabika (khusus produk kopi)',
-        'spesies_tanaman' => 'contoh: Coffea arabica (khusus produk kopi)',
-    ];
+    // Nomor baris dari kiriman sebelumnya dipertahankan (tidak diurutkan ulang) agar pesan galat tetap
+    // menempel di baris yang benar walau admin sempat menghapus baris di tengah.
+    $barisSpesifikasi = array_filter((array) old('spesifikasi', $barisSpesifikasi), 'is_array');
+    $nomorBerikut = $barisSpesifikasi ? max(array_keys($barisSpesifikasi)) + 1 : 0;
+    $targetBaris = min(\App\Http\Requests\Toko\ProdukRequest::MAKS_BARIS, max(3, count($barisSpesifikasi) + 1));
+    while (count($barisSpesifikasi) < $targetBaris) {
+        $barisSpesifikasi[$nomorBerikut++] = ['label' => '', 'nilai' => ''];
+    }
 @endphp
 
 @section('isi')
@@ -71,11 +69,11 @@
                 </div>
 
                 <div>
-                    <label for="harga" class="mb-1 block font-bold">Harga (Rp) @include('admin.toko.produk.penanda-wajib')</label>
-                    <input id="harga" name="harga" type="text" inputmode="numeric" required aria-required="true" maxlength="15" class="isian"
+                    <label for="harga" class="mb-1 block font-bold">Harga (Rp)</label>
+                    <input id="harga" name="harga" type="text" inputmode="numeric" maxlength="15" class="isian"
                         placeholder="contoh: 25000" value="{{ old('harga', $produk->harga) }}"
                         aria-describedby="harga-bantuan @error('harga') harga-galat @enderror" @error('harga') aria-invalid="true" @enderror>
-                    <p id="harga-bantuan" class="mt-1 text-sm text-redup">Tulis angkanya saja. Kalau varian di bawah diberi harga, harga varian yang ditampilkan; harga ini tetap jadi harga dasar.</p>
+                    <p id="harga-bantuan" class="mt-1 text-sm text-redup">Tulis angkanya saja. Boleh dikosongkan: pembeli akan melihat tulisan "Lihat harga di marketplace". Kalau varian di bawah diberi harga, harga varian yang ditampilkan.</p>
                     @error('harga')
                         <p id="harga-galat" class="mt-1 text-sm font-bold text-awas">{{ $message }}</p>
                     @enderror
@@ -131,20 +129,20 @@
         </x-kartu>
 
         <x-kartu judul="Spesifikasi produk (boleh kosong)">
-            <p class="mb-3 text-redup">Tampil di halaman produk dalam tabel seperti di Shopee. Kosongkan yang tidak berlaku, misalnya Jenis Biji-Bijian untuk produk jamur. Baris <strong>Stok</strong> dan <strong>Dikirim Dari</strong> terisi otomatis dari status stok dan menu Info penjual.</p>
-            <div class="grid gap-4 sm:grid-cols-2">
-                @foreach (\App\Models\Toko\Produk::SPESIFIKASI_UTAMA as $kunci => $label)
-                    <div>
-                        <label for="utama-{{ $kunci }}" class="mb-1 block font-bold">{{ $label }}</label>
-                        <input id="utama-{{ $kunci }}" name="utama[{{ $kunci }}]" maxlength="200" class="isian" placeholder="{{ $contohUtama[$kunci] }}"
-                            value="{{ old("utama.{$kunci}", $spesifikasiUtama[$kunci] ?? '') }}"
-                            @error("utama.{$kunci}") aria-invalid="true" aria-describedby="utama-{{ $kunci }}-galat" @enderror>
-                        @error("utama.{$kunci}")
-                            <p id="utama-{{ $kunci }}-galat" class="mt-1 text-sm font-bold text-awas">{{ $message }}</p>
-                        @enderror
-                    </div>
+            <p class="mb-3 text-redup">Tampil di halaman produk dalam tabel seperti di Shopee. Tulis judul dan isinya sendiri, misalnya judul <strong>Berat</strong> isi <strong>250 g</strong>. Judul boleh diganti atau dihapus; baris yang isinya kosong tidak tampil di situs. Baris <strong>Stok</strong> dan <strong>Dikirim Dari</strong> terisi otomatis dari status stok dan menu Info penjual.</p>
+            <div class="space-y-3" data-daftar-baris="spesifikasi">
+                @foreach ($barisSpesifikasi as $i => $b)
+                    @include('admin.toko.produk.baris-spesifikasi', ['i' => $i, 'b' => $b])
                 @endforeach
             </div>
+            <template data-cetakan="spesifikasi">@include('admin.toko.produk.baris-spesifikasi', ['i' => '__i__', 'b' => ['label' => '', 'nilai' => '']])</template>
+            {{-- Saran judul muncul saat mengetik di kotak Judul, tetapi admin tetap bebas menulis judul lain. --}}
+            <datalist id="saran-spesifikasi">
+                @foreach (array_keys(\App\Models\Toko\Produk::SARAN_SPESIFIKASI) as $label)
+                    <option value="{{ $label }}"></option>
+                @endforeach
+            </datalist>
+            <x-tombol varian="kedua" type="button" class="mt-3" data-tambah-baris="spesifikasi" hidden>Tambah baris spesifikasi</x-tombol>
         </x-kartu>
 
         <div class="flex flex-wrap gap-2">

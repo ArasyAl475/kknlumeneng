@@ -42,8 +42,8 @@ class ProdukAdminTest extends TestCase
                 ['nama' => '250 g', 'harga' => '30000', 'tersedia' => '0'],
                 ['nama' => '', 'harga' => '', 'tersedia' => '1'],
             ],
-            'utama' => [
-                'merek' => 'Kopi Lumeneng',
+            'spesifikasi' => [
+                ['label' => 'Merek', 'nilai' => 'Kopi Lumeneng'],
             ],
         ], $timpa);
     }
@@ -79,38 +79,29 @@ class ProdukAdminTest extends TestCase
         $this->assertSame('Rp 18.000', $produk->hargaTeks());
     }
 
-    public function test_isian_utama_tersimpan_berurutan_dan_yang_kosong_dibuang(): void
+    public function test_spesifikasi_bebas_tersimpan_sesuai_urutan_admin_dan_yang_kosong_dibuang(): void
     {
         $this->post(route('admin.toko.produk.store'), $this->isian([
-            'utama' => [
-                'merek' => 'Kopi Lumeneng',
-                'kategori' => 'Makanan & Minuman',
-                'tipe_paket' => '',
-                'jenis_biji_bijian' => '  Arabika ',
+            'spesifikasi' => [
+                ['label' => 'Kategori', 'nilai' => 'Makanan & Minuman'],
+                ['label' => ' Berat Bersih ', 'nilai' => '  250 g '],
+                ['label' => 'Merek', 'nilai' => ''],          // baris contoh yang tidak diisi
+                ['label' => '', 'nilai' => ''],
+                ['label' => 'Cara Seduh', 'nilai' => 'Tubruk'],
             ],
         ]))->assertSessionHasNoErrors();
 
-        // Urutan mengikuti Produk::SPESIFIKASI_UTAMA, bukan urutan kiriman.
         $this->assertSame([
             ['label' => 'Kategori', 'nilai' => 'Makanan & Minuman'],
-            ['label' => 'Merek', 'nilai' => 'Kopi Lumeneng'],
-            ['label' => 'Jenis Biji-Bijian', 'nilai' => 'Arabika'],
+            ['label' => 'Berat Bersih', 'nilai' => '250 g'],
+            ['label' => 'Cara Seduh', 'nilai' => 'Tubruk'],
         ], Produk::query()->sole()->spesifikasi);
     }
 
-    public function test_kiriman_spesifikasi_tambahan_diabaikan(): void
-    {
-        $this->post(route('admin.toko.produk.store'), $this->isian([
-            'spesifikasi' => [['label' => 'Berat', 'nilai' => '250 g']],
-        ]))->assertSessionHasNoErrors();
-
-        $this->assertSame([['label' => 'Merek', 'nilai' => 'Kopi Lumeneng']], Produk::query()->sole()->spesifikasi);
-    }
-
-    public function test_menyimpan_ulang_membuang_baris_tambahan_lama(): void
+    public function test_menyimpan_ulang_mengganti_seluruh_spesifikasi(): void
     {
         $produk = Produk::factory()->create(['spesifikasi' => [
-            ['label' => 'Merek', 'nilai' => 'Kopi Lumeneng'],
+            ['label' => 'Merek', 'nilai' => 'Lama'],
             ['label' => 'Berat', 'nilai' => '250 g'],
         ]]);
 
@@ -119,42 +110,99 @@ class ProdukAdminTest extends TestCase
         $this->assertSame([['label' => 'Merek', 'nilai' => 'Kopi Lumeneng']], $produk->refresh()->spesifikasi);
     }
 
-    public function test_isian_utama_terlalu_panjang_ditolak(): void
+    public function test_spesifikasi_terlalu_panjang_ditolak(): void
     {
-        $this->post(route('admin.toko.produk.store'), $this->isian(['utama' => ['merek' => str_repeat('a', 201)]]))
-            ->assertSessionHasErrors('utama.merek');
+        $this->post(route('admin.toko.produk.store'), $this->isian(['spesifikasi' => [
+            ['label' => str_repeat('a', 61), 'nilai' => 'x'],
+            ['label' => 'Merek', 'nilai' => str_repeat('a', 201)],
+        ]]))->assertSessionHasErrors(['spesifikasi.0.label', 'spesifikasi.1.nilai']);
     }
 
-    public function test_form_ubah_hanya_menampilkan_isian_utama(): void
+    public function test_isi_tanpa_judul_ditolak_dengan_pesan_jelas(): void
+    {
+        $this->post(route('admin.toko.produk.store'), $this->isian(['spesifikasi' => [3 => ['label' => '', 'nilai' => '250 g']]]))
+            ->assertSessionHasErrors(['spesifikasi.3.label' => 'Baris spesifikasi yang diberi isi juga perlu diberi judul, misalnya "Berat".']);
+    }
+
+    public function test_judul_stok_dan_dikirim_dari_ditolak_karena_otomatis(): void
+    {
+        $this->post(route('admin.toko.produk.store'), $this->isian(['spesifikasi' => [
+            ['label' => 'stok', 'nilai' => 'Banyak'],
+            ['label' => 'Dikirim Dari', 'nilai' => 'Jakarta'],
+        ]]))->assertSessionHasErrors(['spesifikasi.0.label', 'spesifikasi.1.label']);
+
+        $this->assertSame(0, Produk::query()->count());
+    }
+
+    public function test_batas_baris_hanya_menghitung_baris_berisi(): void
+    {
+        $berisi = array_map(fn (int $n) => ['label' => "Judul {$n}", 'nilai' => 'isi'], range(1, 20));
+        $kosong = array_map(fn (int $n) => ['label' => "Contoh {$n}", 'nilai' => ''], range(1, 7));
+
+        $this->post(route('admin.toko.produk.store'), ['spesifikasi' => [...$berisi, ...$kosong]] + $this->isian(['spesifikasi' => []]))
+            ->assertSessionHasNoErrors();
+        $this->assertCount(20, Produk::query()->sole()->spesifikasi);
+
+        $this->post(route('admin.toko.produk.store'), ['spesifikasi' => [...$berisi, ['label' => 'Ke-21', 'nilai' => 'isi']]] + $this->isian(['nama' => 'Lain']))
+            ->assertSessionHasErrors('spesifikasi');
+    }
+
+    public function test_form_tambah_menyiapkan_judul_contoh_yang_bisa_diganti(): void
+    {
+        $respons = $this->get(route('admin.toko.produk.create'))->assertOk()
+            ->assertSeeInOrder([
+                'name="spesifikasi[0][label]"', 'value="Kategori"',
+                'name="spesifikasi[6][label]"', 'value="Spesies Tanaman"',
+                '<datalist id="saran-spesifikasi">',
+            ], false)
+            ->assertSee('Tambah baris spesifikasi');
+
+        // 7 judul contoh + 1 baris kosong.
+        $this->assertSame(8, $this->jumlahBarisSpesifikasi($respons->getContent()));
+    }
+
+    private function jumlahBarisSpesifikasi(string $html): int
+    {
+        return preg_match_all('/name="spesifikasi\[\d+\]\[label\]"/', $html);
+    }
+
+    public function test_form_ubah_menampilkan_semua_baris_tersimpan(): void
     {
         $produk = Produk::factory()->create(['spesifikasi' => [
             ['label' => 'merek', 'nilai' => 'Kopi Lumeneng'],
             ['label' => 'Berat', 'nilai' => '250 g'],
         ]]);
 
-        $this->get(route('admin.toko.produk.edit', $produk))->assertOk()
-            ->assertSee('name="utama[merek]"', false)
-            ->assertSee('value="Kopi Lumeneng"', false)
-            ->assertDontSee('name="spesifikasi[0][label]"', false)
-            ->assertDontSee('value="Berat"', false)
-            ->assertDontSee('Spesifikasi tambahan');
+        $respons = $this->get(route('admin.toko.produk.edit', $produk))->assertOk()
+            ->assertSeeInOrder(['value="merek"', 'value="Kopi Lumeneng"', 'value="Berat"', 'value="250 g"'], false);
+
+        // Produk yang sudah punya spesifikasi tidak diberi judul contoh lagi: 2 baris tersimpan + 1 baris kosong.
+        $this->assertSame(3, $this->jumlahBarisSpesifikasi($respons->getContent()));
     }
 
-    public function test_nama_dan_harga_wajib_diisi_dengan_pesan_yang_jelas(): void
+    public function test_hanya_nama_yang_wajib_diisi(): void
     {
         $this->post(route('admin.toko.produk.store'), $this->isian(['nama' => '', 'harga' => '']))
-            ->assertSessionHasErrors([
-                'nama' => 'Nama produk wajib diisi.',
-                'harga' => 'Harga wajib diisi. Tulis angkanya saja, misalnya 25000.',
-            ]);
+            ->assertSessionHasErrors(['nama' => 'Nama produk wajib diisi.'])
+            ->assertSessionDoesntHaveErrors('harga');
 
         $this->assertSame(0, Produk::query()->count());
+    }
+
+    public function test_produk_boleh_tanpa_harga(): void
+    {
+        $this->post(route('admin.toko.produk.store'), ['nama' => 'Jamur Segar', 'harga' => '', 'tersedia' => '1', 'tampil' => '1'])
+            ->assertSessionHasNoErrors();
+
+        $produk = Produk::query()->sole();
+        $this->assertNull($produk->harga);
+        $this->assertNull($produk->hargaTeks());
     }
 
     public function test_harga_nol_ditolak(): void
     {
         $this->post(route('admin.toko.produk.store'), $this->isian(['harga' => '0']))
-            ->assertSessionHasErrors(['harga' => 'Harga harus lebih dari 0.']);
+            ->assertSessionHasErrors(['harga' => 'Harga harus lebih dari 0. Kosongkan saja bila harga hanya dilihat di marketplace.']);
     }
 
     public function test_alert_galat_dan_penanda_wajib_tampil_di_formulir(): void
@@ -166,10 +214,10 @@ class ProdukAdminTest extends TestCase
 
         $this->from(route('admin.toko.produk.create'))
             ->followingRedirects()
-            ->post(route('admin.toko.produk.store'), $this->isian(['harga' => '']))
+            ->post(route('admin.toko.produk.store'), $this->isian(['nama' => '']))
             ->assertSee('role="alert"', false)
             ->assertSee('Periksa kembali isian berikut')
-            ->assertSee('Harga wajib diisi')
+            ->assertSee('Nama produk wajib diisi')
             ->assertSee('aria-invalid="true"', false);
     }
 
