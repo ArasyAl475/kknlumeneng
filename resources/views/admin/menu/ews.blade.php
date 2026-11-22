@@ -4,6 +4,7 @@
         ['admin.ews.alat', 'admin.ews.alat', 'Status alat', 'alat', false],
         ['admin.ews.wilayah.*', 'admin.ews.wilayah.index', 'Daftar wilayah', 'wilayah', false],
         ['admin.ews.ambang.*', 'admin.ews.ambang.edit', 'Ambang batas sensor', 'ambang', false],
+        ['admin.ews.pelaporan.*', 'admin.ews.pelaporan.edit', 'Nomor pelaporan (WA)', 'kontak', false],
         ['admin.ews.riwayat.*', 'admin.ews.riwayat.index', 'Riwayat pembacaan', 'riwayat', false],
         ['admin.ews.aktivitas', 'admin.ews.aktivitas', 'Log aktivitas', 'log', false],
     ];

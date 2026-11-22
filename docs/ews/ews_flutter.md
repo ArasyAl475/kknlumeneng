@@ -23,6 +23,7 @@ Flutter cukup memanggil `GET /api/ews/data` tiap 10 detik. Endpoint ini publik (
 |---|---|---|---|
 | Data terbaru semua wilayah + 4 sensor + ambang | `GET` | `/api/ews/data` | tidak |
 | Data grafik satu sensor | `GET` | `/api/ews/grafik?wilayah=1&sensor=kelembapan_tanah&rentang=24j` | tidak |
+| Nomor WhatsApp tujuan laporan warga | `GET` | `/api/ews/pelaporan` (bagian 7) | tidak |
 | ~~Kirim data sensor~~ / ~~tes koneksi~~ | `POST /api/sensor`, `GET /api/ping` | | khusus alat, **bukan untuk Flutter** |
 
 Alamat dasar (`BASE_URL`) saat uji coba:
@@ -575,3 +576,71 @@ Balasan:
 
 Data di server diperbarui paling cepat tiap ±8 detik, jadi memanggil lebih sering dari 5–10 detik
 tidak membuat data lebih baru, hanya menghabiskan kuota.
+
+---
+
+## 7. Nomor pelaporan (`GET /api/ews/pelaporan`)
+
+Nomor WhatsApp tujuan fitur lapor **jangan ditulis langsung di kode aplikasi**. Admin web mengisinya
+di panel admin → Peringatan Dini → *Nomor pelaporan (WA)*. Aplikasi membaca nomor dari alamat ini, jadi
+saat admin mengganti nomor, aplikasi ikut berubah tanpa rilis ulang (paling lambat ±1 menit, karena
+jawaban di-cache 60 detik).
+
+Contoh jawaban:
+
+```json
+{
+  "tersedia": true,
+  "nomor": "6281234567890",
+  "nomor_tampil": "0812-3456-7890",
+  "tautan_wa": "https://wa.me/6281234567890"
+}
+```
+
+| Field | Arti |
+|---|---|
+| `tersedia` | `false` bila admin belum mengisi nomor. Semua field lain lalu bernilai `null`. |
+| `nomor` | format internasional tanpa `+`, spasi, atau strip (bentuk yang diminta WhatsApp) |
+| `nomor_tampil` | untuk ditampilkan ke warga |
+| `tautan_wa` | langsung bisa dibuka; tambahkan `?text=` untuk mengisi pesan awal |
+
+Contoh Dart (`flutter pub add url_launcher`). Nomor diambil tepat saat warga menekan tombol lapor,
+supaya selalu memakai nomor terbaru:
+
+```dart
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
+
+/// Mengembalikan pesan galat untuk ditampilkan, atau null bila WhatsApp berhasil dibuka.
+Future<String?> kirimLaporanWa(String baseUrl, String isiLaporan) async {
+  try {
+    final res = await http
+        .get(Uri.parse('$baseUrl/api/ews/pelaporan'))
+        .timeout(const Duration(seconds: 10));
+    if (res.statusCode != 200) return 'Server sedang bermasalah. Coba lagi sebentar.';
+
+    final data = jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+    if (data['tersedia'] != true) return 'Nomor pelaporan belum diatur admin desa.';
+
+    final tautan = Uri.parse(data['tautan_wa'] as String)
+        .replace(queryParameters: {'text': isiLaporan});
+    final terbuka = await launchUrl(tautan, mode: LaunchMode.externalApplication);
+    return terbuka ? null : 'WhatsApp tidak bisa dibuka di HP ini.';
+  } catch (_) {
+    return 'Tidak tersambung ke internet. Periksa sinyal lalu coba lagi.';
+  }
+}
+```
+
+Di Android 11 ke atas, tambahkan ini di `AndroidManifest.xml` (di dalam `<manifest>`, di luar
+`<application>`) agar aplikasi boleh membuka tautan https:
+
+```xml
+<queries>
+  <intent>
+    <action android:name="android.intent.action.VIEW" />
+    <data android:scheme="https" />
+  </intent>
+</queries>
+```
