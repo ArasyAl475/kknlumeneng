@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\Ews\AktivitasController;
 use App\Http\Controllers\Admin\Ews\AlatController;
 use App\Http\Controllers\Admin\Ews\AmbangController;
+use App\Http\Controllers\Admin\Ews\NomorPelaporanController;
 use App\Http\Controllers\Admin\Ews\RiwayatController;
 use App\Http\Controllers\Admin\Ews\SimulatorController;
 use App\Http\Controllers\Admin\Ews\TitikController;
@@ -22,6 +23,9 @@ Route::prefix('ews')->name('ews.')->group(function () {
 
     Route::get('ambang', [AmbangController::class, 'edit'])->name('ambang.edit');
     Route::put('ambang', [AmbangController::class, 'update'])->name('ambang.update');
+
+    Route::get('pelaporan', [NomorPelaporanController::class, 'edit'])->name('pelaporan.edit');
+    Route::put('pelaporan', [NomorPelaporanController::class, 'update'])->name('pelaporan.update');
 
     Route::resource('wilayah', WilayahController::class)->except('show')->parameters(['wilayah' => 'wilayah']);
     Route::post('wilayah/{id}/pulihkan', [WilayahController::class, 'pulihkan'])->whereNumber('id')->name('wilayah.pulihkan');

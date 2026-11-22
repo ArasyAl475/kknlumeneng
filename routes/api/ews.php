@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Ews\AlatController;
 use App\Http\Controllers\Ews\DasborController;
+use App\Http\Controllers\Ews\PelaporanController;
 use App\Http\Middleware\Ews\PeriksaKunciAlat;
 use Illuminate\Support\Facades\Route;
 
@@ -16,3 +17,7 @@ Route::middleware(['throttle:60,1', PeriksaKunciAlat::class])->group(function ()
 // tanpa sesi berarti tiap panggilan tidak menulis ke basis data dan bisa di-cache browser.
 Route::get('/ews/data', [DasborController::class, 'data'])->name('ews.data');
 Route::get('/ews/grafik', [DasborController::class, 'grafik'])->middleware('throttle:120,1')->name('ews.grafik');
+
+// Nomor WhatsApp tujuan laporan warga, dibaca aplikasi HP. Publik karena nomornya memang
+// ditampilkan ke warga; yang bisa mengubah hanya admin lewat panel.
+Route::get('/ews/pelaporan', [PelaporanController::class, 'nomor'])->middleware('throttle:60,1')->name('ews.api.pelaporan');
