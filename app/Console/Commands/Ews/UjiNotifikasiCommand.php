@@ -11,18 +11,21 @@ use Throwable;
 class UjiNotifikasiCommand extends Command
 {
     protected $signature = 'ews:uji-notifikasi
-        {status=waspada : awas | waspada | offline}
+        {status=waspada : awas | waspada_semua | waspada | offline}
         {--wilayah= : ID wilayah (seperti di /api/ews/data); bawaan wilayah pertama}
         {--paksa : kirim tanpa pertanyaan konfirmasi}
         {--periksa-saja : Firebase hanya memeriksa kunci dan isi pesan, TIDAK ada HP yang menerima}';
 
     protected $description = 'Kirim notifikasi UJI ke semua HP yang memasang aplikasi EWS Lumeneng';
 
+    // Nama yang dipakai panduan dari pembuat aplikasi HP.
+    protected $aliases = ['ews:test-push'];
+
     public function handle(PushFcm $fcm, NotifikasiWarga $notifikasi): int
     {
         $status = (string) $this->argument('status');
-        if (! in_array($status, [NotifikasiWarga::AWAS, NotifikasiWarga::WASPADA, NotifikasiWarga::OFFLINE], true)) {
-            $this->error('Status harus awas, waspada, atau offline.');
+        if (! in_array($status, [NotifikasiWarga::AWAS, NotifikasiWarga::WASPADA_SEMUA, NotifikasiWarga::WASPADA, NotifikasiWarga::OFFLINE], true)) {
+            $this->error('Status harus awas, waspada_semua, waspada, atau offline.');
 
             return self::INVALID;
         }

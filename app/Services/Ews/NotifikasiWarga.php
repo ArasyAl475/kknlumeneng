@@ -17,7 +17,11 @@ class NotifikasiWarga
 {
     public const AWAS = 'awas';
 
+    // Waspada dari sebagian sensor: tetap dikabarkan, tapi lewat saluran senyap.
     public const WASPADA = 'waspada';
+
+    // Waspada yang berbunyi: SEMUA sensor berambang sudah level 1/2 dan alat masih mengirim.
+    public const WASPADA_SEMUA = 'waspada_semua';
 
     public const OFFLINE = 'offline';
 
@@ -71,12 +75,20 @@ class NotifikasiWarga
     }
 
     /**
-     * @param  array{id: int, nama: string, status: ?string, pemicu: ?string, offline: bool}  $wilayah
+     * @param  array{id: int, nama: string, status: ?string, pemicu: ?string, offline: bool, sensor: array<string, array{level: ?int}>}  $wilayah
      */
     private function periksaWilayah(array $wilayah): bool
     {
-        $baru = self::kode($wilayah['status'], $wilayah['offline']);
+        // Level diambil dari data dashboard, sama dengan `level` di /api/ews/data, bukan dihitung ulang.
+        $level = array_map(fn (string $s) => $wilayah['sensor'][$s]['level'] ?? null, PenilaianStatus::SENSOR_DINILAI);
+        $baru = self::kode($wilayah['status'], $wilayah['offline'], $level);
         $lama = Wilayah::query()->whereKey($wilayah['id'])->value('status_notifikasi');
+
+        // Sensor yang naik-turun di sekitar ambang tidak boleh membunyikan HP berkali-kali: selama masih Waspada,
+        // turun dari "semua sensor" ke "sebagian" tidak dikirim dan tidak dicatat.
+        if ($lama === self::WASPADA_SEMUA && $baru === self::WASPADA) {
+            return false;
+        }
 
         if ($lama === $baru || ! $this->catat($wilayah['id'], $lama, $baru)) {
             return false;
@@ -106,12 +118,20 @@ class NotifikasiWarga
         }
     }
 
-    public static function kode(?string $status, bool $offline): string
+    /**
+     * @param  array<int, ?int>  $levelBerambang  level sensor yang punya ambang; null = sensor tidak mengirim nilai
+     */
+    public static function kode(?string $status, bool $offline, array $levelBerambang = []): string
     {
+        // Sensor tanpa nilai dianggap belum Waspada, jadi tidak ikut membuat HP berbunyi.
+        $semuaWaspada = $levelBerambang !== []
+            && collect($levelBerambang)->every(fn (?int $level) => $level !== null && $level >= 1);
+
         return match (true) {
             $status === PenilaianStatus::AWAS => self::AWAS,
             $status === null => self::KOSONG,
             $offline => self::OFFLINE,
+            $status === PenilaianStatus::WASPADA && $semuaWaspada => self::WASPADA_SEMUA,
             $status === PenilaianStatus::WASPADA => self::WASPADA,
             default => self::AMAN,
         };
@@ -122,27 +142,41 @@ class NotifikasiWarga
      */
     public function pesan(int $wilayahId, string $kode, string $judul, string $isi): array
     {
-        $awas = $kode === self::AWAS;
+        // Aplikasi menentukan bunyi dari channel_id. Nama channel harus persis: channel yang salah atau
+        // kosong membuat Android memakai channel Waspada, yang berbunyi.
+        $channel = match ($kode) {
+            self::AWAS => 'ews_awas_v3',
+            self::WASPADA_SEMUA => 'ews_waspada_v3',
+            self::WASPADA => 'ews_waspada_senyap_v1',
+            default => 'ews_offline_v1',
+        };
+
+        // "sound" hanya dipakai Android 7 ke bawah; kiriman senyap tidak boleh membawanya.
+        $suara = match ($kode) {
+            self::AWAS => 'ews_awas',
+            self::WASPADA_SEMUA => 'ews_waspada',
+            default => null,
+        };
 
         return [
             'topic' => (string) config('ews.push.topik'),
             // Tanpa "notification", Android tidak menampilkan apa pun saat aplikasi tertutup.
             'notification' => ['title' => $judul, 'body' => $isi],
-            // Semua nilai data wajib teks.
-            'data' => ['status' => $kode, 'wilayah_id' => (string) $wilayahId],
+            // Semua nilai data wajib teks. Aplikasi hanya mengenal awas/waspada/offline.
+            'data' => ['status' => $kode === self::WASPADA_SEMUA ? self::WASPADA : $kode, 'wilayah_id' => (string) $wilayahId],
             'android' => [
                 // high: tetap diantar saat layar mati (mode Doze).
                 'priority' => 'high',
                 // HP yang mati lebih dari 6 jam tidak menerima peringatan yang sudah basi.
                 'ttl' => '21600s',
-                'notification' => [
-                    'channel_id' => $awas ? 'ews_awas_v3' : 'ews_waspada_v3',
-                    'sound' => $awas ? 'ews_awas' : 'ews_waspada',
+                'notification' => array_filter([
+                    'channel_id' => $channel,
+                    'sound' => $suara,
                     // Peringatan baru untuk wilayah yang sama menggantikan yang lama, tidak menumpuk.
                     'tag' => "ews-wilayah-{$wilayahId}",
                     'notification_priority' => 'PRIORITY_MAX',
                     'visibility' => 'PUBLIC',
-                ],
+                ]),
             ],
         ];
     }
@@ -155,10 +189,12 @@ class NotifikasiWarga
         // Pesan bisa terlambat sampai, jadi jam kejadian selalu dicantumkan.
         $jam = now()->format('H.i').' WIB';
         $sebab = rtrim(trim((string) $pemicu), '.');
+        $sebab = $sebab !== '' ? $sebab.'. ' : '';
 
         return match ($kode) {
-            self::AWAS => ["Awas: {$nama}", ($sebab !== '' ? $sebab.'. ' : '')."Segera menjauh dari lereng dan ikuti arahan petugas. ({$jam})"],
-            self::WASPADA => ["Waspada: {$nama}", ($sebab !== '' ? $sebab.'. ' : '')."Siapkan diri dan pantau kabar dari petugas. ({$jam})"],
+            self::AWAS => ["Awas: {$nama}", "{$sebab}Segera menjauh dari lereng dan ikuti arahan petugas. ({$jam})"],
+            self::WASPADA_SEMUA => ["Waspada: {$nama}", "Semua sensor menyentuh batas Waspada. {$sebab}Siapkan diri dan pantau kabar dari petugas. ({$jam})"],
+            self::WASPADA => ["Waspada: {$nama}", "{$sebab}Pantau kabar dari petugas. ({$jam})"],
             default => ["{$nama} tidak mengirim data", "Kondisi sekarang belum diketahui, jangan anggap sudah aman. ({$jam})"],
         };
     }
@@ -177,10 +213,10 @@ class NotifikasiWarga
         return match ($kode) {
             self::AWAS => true,
             // Cache::add atomik: status yang bolak-balik Aman <-> Waspada tidak membuat HP berbunyi terus.
-            self::WASPADA => Cache::add($this->kunciJeda($id, $kode), true, now()->addMinutes(max(1, (int) config('ews.push.jeda_menit')))),
+            self::WASPADA, self::WASPADA_SEMUA => Cache::add($this->kunciJeda($id, $kode), true, now()->addMinutes(max(1, (int) config('ews.push.jeda_menit')))),
             self::OFFLINE => (bool) config('ews.push.kirim_offline')
                 && Cache::add($this->kunciJeda($id, $kode), true, now()->addMinutes(max(1, (int) config('ews.push.jeda_menit')))),
-            // Aman tidak dikirim: belum ada saluran senyap di aplikasi, jadi kabar aman akan berbunyi seperti peringatan.
+            // Aman tidak dikirim: aplikasi sudah mencatat kembali Normal sendiri saat dibuka.
             default => false,
         };
     }
