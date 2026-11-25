@@ -82,8 +82,9 @@ Aturannya ada di `PenilaianStatus::kondisiTakDiketahui()`. Alat diam saat Aman c
 alat diam saat Awas tidak berubah (Awas sudah terkunci).
 
 ## Notifikasi HP warga
-Perubahan status wilayah dikirim ke aplikasi Android lewat Firebase: Awas selalu, Waspada dan "alat tidak mengirim
-data" paling sering sekali per 10 menit, Aman tidak dikirim. Rincian: `docs/ews/NOTIFIKASI_HP.md`.
+Perubahan status wilayah dikirim ke aplikasi Android lewat Firebase: Awas selalu (berbunyi), Waspada dan "alat tidak
+mengirim data" paling sering sekali per 10 menit, Aman tidak dikirim. Waspada hanya berbunyi bila semua sensor berambang
+sudah Waspada; Waspada sebagian sensor dan "alat tidak mengirim data" senyap. Rincian: `docs/ews/NOTIFIKASI_HP.md`.
 
 ## Kontrak API alat
 Lihat `docs/ews/API_ALAT.md`. Tidak boleh berubah tanpa persetujuan pembuat alat.
